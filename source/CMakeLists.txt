@@ -2,12 +2,14 @@ cmake_minimum_required (VERSION 3.1)
 
 add_library(csvplan SHARED 
   src/arrange_tables.cxx
+  src/arrange_tables2.cxx
   )
 
 
 target_include_directories(csvplan
     PUBLIC 
-        $<INSTALL_INTERFACE:include>    
+        $<INSTALL_INTERFACE:include/runplan>    
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/runplan>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -25,7 +27,7 @@ target_link_libraries(csvplan
 #  DESTINATION include/CSV
 #  )
 
-install(DIRECTORY include
+install(DIRECTORY include/runplan
   DESTINATION include
   )
 

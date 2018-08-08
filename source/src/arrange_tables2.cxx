@@ -3,7 +3,7 @@
 /** Arrange the tables into a run plan.
  *
  */
-void arrange_tables() {
+void arrange_tables2() {
 
   using namespace ranges;
   using namespace date;
@@ -103,43 +103,8 @@ void arrange_tables() {
   auto LH2_rng2 = view::zip( view::ints((int) LD2_Q2_tables[0].size()+1), LH2_Q2_tables[1]) | to_<std::vector>();
   auto LD2_rng3 = view::zip( view::ints((int) LD2_Q2_tables[1].size()+1), LD2_Q2_tables[2]) | to_<std::vector>();
 
-  //auto allrng =
-  //view::empty |
-  //    action::push_back(view::zip(view::ints(1), LD2_Q2_tables[0])) |
-  //    action::push_back(view::zip(view::ints(1), LH2_Q2_tables[0])) |
-  //    action::push_back(view::zip(view::ints(LD2_Q2_tables[0].size() + 1), LD2_Q2_tables[1])) |
-  //    action::push_back(view::zip(view::ints(LD2_Q2_tables[0].size() + 1), LH2_Q2_tables[1])) |
-  //    action::push_back(view::zip(view::ints(LD2_Q2_tables[1].size() + 1), LD2_Q2_tables[2])); 
 
-      // for (auto& a_table_vector : target_tables_map) {
-      //  std::cout << a_table_vector.first << "\n";
-
-      //  for (auto& a_table_targ : a_table_vector.second) {
-      //    std::cout << "Q2 = " << a_table_targ.first << "\n";
-      //    Q2Table& tab = a_table_targ.second;
-      //    std::cout << tab.size() << "  settings \n";
-
-      //    for (auto& entry : tab) {
-      //      h_setting_time->Fill(entry.time);
-      //      if (a_table_vector.first == std::string("LH2")) {
-      //        h_setting_time_LH2->Fill(entry.time);
-      //        entry.A_target = 1;
-      //        entry.kinematic.Q2 = a_table_targ.first;
-      //        all_LH2_settings.push_back(entry);
-      //      } else if (a_table_vector.first == std::string("LD2")) {
-      //        entry.kinematic.Q2 = a_table_targ.first;
-      //        h_setting_time_LD2->Fill(entry.time);
-      //        all_LD2_settings.push_back(entry);
-      //        //RunPlanTableEntry::PrintHeader();
-      //        //entry.Print();
-      //      }
-      //    }
-      //  }
-      //}
-
-      // ------------------------------------------------------------------------
-      std::vector<RunPlanTableEntry> all_settings;
-
+  // ------------------------------------------------------------------------
   //auto n_swap = (all_LD2_settings.size()-2)/4;
   //for (auto i = all_LD2_settings.begin()+2; i != all_LD2_settings.begin()+2+4*n_swap+4; i += 4) {
   //  std::iter_swap(i, i+1);
@@ -152,18 +117,12 @@ void arrange_tables() {
   //auto LH2_rng = view::zip(all_LH2_settings, view::ints(1)) | to_<std::vector>();
 
   std::vector both_rng = {LD2_rng1,LH2_rng1,  LD2_rng2, LH2_rng2, LD2_rng3};
-  //both_rng.push_back(LD2_rng1);
-  //both_rng.push_back(LH2_rng1);
-  //both_rng.push_back(LD2_rng2);
-  //both_rng.push_back(LH2_rng2);
-  //both_rng.push_back(LD2_rng3);
 
   auto all_rng = view::join(both_rng) | to_<std::vector>();
 
-  //  action::stable_sort(
-  //      action::stable_sort(all_rng, [](auto t1, auto t2) { return std::get<1>(t1) < std::get<1>(t2); }),
-  //      [](auto t1, auto t2) { return std::get<0>(t1).kinematic.Q2 < std::get<0>(t2).kinematic.Q2; });
-
+  // ----------------------------------------------------------------
+  // sort by number, then Q2
+  // 
   all_rng =
       std::move(all_rng) |
       action::stable_sort([](auto t1, auto t2) { return std::get<0>(t1) < std::get<0>(t2); }) |
@@ -171,8 +130,43 @@ void arrange_tables() {
         return std::get<1>(t1).kinematic.Q2 < std::get<1>(t2).kinematic.Q2;
       });
 
+  //auto Q2_values = all_rng | action::unique([](const auto& t1, const auto& t2) {
+  //                   return std::get<1>(t1).kinematic.Q2 == std::get<1>(t2).kinematic.Q2;
+  //                 }) | to_<std::vector>();
+
+  //std::cout << Q2_values << "\n";
+  //for( auto Q2 : Q2_values) {
+  //  std::cout << Q2_values <<"\n";
+  //}
+
+  // ----------------------------------------------------------------
+
+  auto ro_by_Q2_value = all_rng | view::group_by([](const auto& t1, const auto& t2) {
+                      return std::get<1>(t1).kinematic.Q2 == std::get<1>(t2).kinematic.Q2;
+                    });
+
+  // For some these cannot be used in one large statement. Need to check compiled version.
+  auto ref0 = ro_by_Q2_value | view::take(1) | view::join | to_<std::vector>();
+  auto ref1 = ro_by_Q2_value | view::take(2) | view::tail | view::join  | to_<std::vector>(); 
+  auto ref2 = ref1 | view::reverse | to_<std::vector>();
+  //auto ref2 = ro_by_Q2_value | view::take(2) | view::tail | view::join | view::reverse | to_<std::vector>();
+  auto ref4 = ro_by_Q2_value | view::drop(2) | view::join | to_<std::vector>();
+
+  auto run_order_by_Q2 = view::concat(ref0, ref2, ref4);
+
+
+  debug_class<decltype(ref2)> derp2;
+
+  for(auto r : (ref2 | to_<std::vector>())){
+    std::cout << std::get<0>(r) << std::endl; }
+
+  //| view::transform([](auto& r){ return r | view::reverse;})),
+
+  // Number in order of data taking 
   auto run_order = view::zip(
-      view::ints(1), (all_rng | view::transform([](const auto& en) { return std::get<1>(en); })));
+      view::ints(1), (run_order_by_Q2 | view::transform([](const auto& en) { return std::get<1>(en); })));
+
+  // ----------------------------------------------------------------
 
   auto run_order_vec = run_order | to_<std::vector>();
   for(const auto& entry : run_order_vec) {
@@ -243,13 +237,13 @@ void arrange_tables() {
                     return (double)en.time;
                   }) | to_<std::vector>();
 
-  auto ro_by_targ = run_order | view::group_by([](const auto& t1, const auto& t2) {
+  auto ro_by_targ = run_order | view::group_by([](auto t1, auto t2) {
                       return std::get<1>(t1).A_target == std::get<1>(t2).A_target;
                     }) |
                     view::transform([](auto r) { return r | to_<std::vector>(); }) |
                     to_<std::vector>();
 
-  auto ro_by_Q2   = run_order | view::group_by([](const auto& t1, const auto& t2) {
+  auto ro_by_Q2   = run_order | view::group_by([](auto t1,auto t2) {
                       return std::get<1>(t1).kinematic.Q2 == std::get<1>(t2).kinematic.Q2;
                     }) |
                     view::transform([](auto r) { return r | to_<std::vector>(); }) |

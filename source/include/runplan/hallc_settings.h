@@ -1,5 +1,5 @@
 #ifndef hallc_settings_HH
-#define hallc_settings_HH
+#define hallc_settings_HH 1
 
 #include <array>
 #include <iostream>
@@ -226,8 +226,8 @@ namespace csv {
 
   using CSV_Settings = std::vector<hallc::HCKinematic>;
 
-  double Q2_0 = 4.0;
-  CSV_Settings kine0_settings =  {
+  const double Q2_0 = 4.0;
+  const CSV_Settings kine0_settings =  {
     //x     z    nu    W      W'  th_e   th_q  Ee   Ppi
     {0.30,0.40,6.300,3.025,2.405,15.05,10.70,4.700,2.516},
     {0.30,0.50,6.300,3.025,2.227,15.05,10.70,4.700,3.147},
@@ -248,8 +248,8 @@ namespace csv {
   };
 
 
-  double Q2_1 = 5.0;
-  CSV_Settings kine1_settings =  {
+  const double Q2_1 = 5.0;
+  const CSV_Settings kine1_settings =  {
     //x,    z    nu    W      W'  th_e   th_q  Ee   Ppi
     {0.45,0.40,6.000,2.659,2.120,17.46,13.54,5.000,2.396},
     {0.45,0.50,6.000,2.659,1.967,17.46,13.54,5.000,2.997},
@@ -270,8 +270,8 @@ namespace csv {
   };
 
 
-  double Q2_2 = 6.1;
-  CSV_Settings kine2_settings =  {
+  const double Q2_2 = 6.1;
+  const CSV_Settings kine2_settings =  {
     //x     z    nu    W      W'  th_e   th_q  Ee   Ppi
     {0.50,0.40,6.500,2.641,2.103,20.21,12.92,4.500,2.596},
     {0.50,0.50,6.500,2.641,1.950,20.21,12.92,4.500,3.247},
@@ -291,10 +291,10 @@ namespace csv {
     {0.65,0.70,5.000,2.040,1.273,17.48,18.86,6.000,3.497}
   };
 
-  std::vector<std::pair<double, CSV_Settings>> all_settings = {
+  const std::vector<std::pair<double, CSV_Settings>> all_settings = {
     {Q2_0, kine0_settings}, {Q2_1, kine1_settings}, {Q2_2, kine2_settings}};
 
-  CSV_Settings LH2_kine0_settings =  {
+  const CSV_Settings LH2_kine0_settings =  {
     //x     z    nu    W      W'  th_e   th_q  Ee   Ppi
     {0.30,0.40,6.300,3.025,2.405,15.05,10.70,4.700,2.516},
     {0.30,0.50,6.300,3.025,2.227,15.05,10.70,4.700,3.147},
@@ -314,7 +314,7 @@ namespace csv {
     //{0.45,0.70,4.200,2.283,1.434,12.50,18.65,6.800,2.937}
   };
 
-  CSV_Settings LH2_kine1_settings =  {
+  const CSV_Settings LH2_kine1_settings =  {
     //x,    z    nu    W      W'  th_e   th_q  Ee   Ppi
     {0.45,0.40,6.000,2.659,2.120,17.46,13.54,5.000,2.396},
     {0.45,0.50,6.000,2.659,1.967,17.46,13.54,5.000,2.997},
@@ -333,7 +333,7 @@ namespace csv {
     //{0.60,0.60,4.500,2.063,1.430,15.30,19.93,6.500,2.696},
     //{0.60,0.70,4.500,2.063,1.298,15.30,19.93,6.500,3.147}
   };
-  std::vector<std::pair<double, CSV_Settings>> LH2_settings = {
+  const std::vector<std::pair<double, CSV_Settings>> LH2_settings = {
     {Q2_0, LH2_kine0_settings}, {Q2_1, LH2_kine1_settings}};
 
 }
