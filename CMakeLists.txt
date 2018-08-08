@@ -9,7 +9,10 @@ list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(InSANE REQUIRED)
 
-add_subdirectory(source)
+find_package(fmt REQUIRED)
+
+
+add_subdirectory(src/runplan)
 
 # -------------------------
 # install library config
