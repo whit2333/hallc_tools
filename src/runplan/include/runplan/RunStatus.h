@@ -21,7 +21,6 @@ namespace hallc {
     int _DesiredCounts   = 1;
     int _CollectedCounts = 0;
 
-    //ClassDef(RunStatus,1)
   };
 
   /** KinematicSet is a small set of runs at the same kinematics.
@@ -49,7 +48,6 @@ namespace hallc {
       _Runs.push_back(rs);
       _NRuns = _Runs.size();
     }
-    //ClassDef(RunSet,1)
   };
 
   /** MonitoringHistograms.
@@ -70,6 +68,7 @@ namespace hallc {
     }
 
   public:
+    MonitoringHistograms(){}
     MonitoringHistograms(const hallc::RunSet& run_set){
 
       TH1F* h1 = new TH1F("h1","h1",run_set._NRuns,0,run_set._NRuns);
@@ -98,32 +97,8 @@ namespace hallc {
       return nullptr;
     }
 
-
   };
 
 }
-
-#if defined(__ROOTCLING__)
-#pragma link off all globals;
-#pragma link off all classes;
-#pragma link off all functions;
-#pragma link C++ all typedef;
-
-#pragma link C++ nestedclass;
-#pragma link C++ nestedtypedef;
-
-#pragma link C++ namespace hallc;
-
-#pragma link C++ class hallc::RunStatus+;
-#pragma link C++ class std::vector<hallc::RunStatus>+;
-#pragma link C++ class std::map<int, hallc::RunStatus>+;
-
-#pragma link C++ class hallc::RunSet+;
-#pragma link C++ class std::vector<hallc::RunSet>+;
-
-#pragma link C++ class hallc::MonitoringHistograms+;
-#pragma link C++ class std::vector<hallc::MonitoringHistograms>+;
-
-#endif
 
 #endif

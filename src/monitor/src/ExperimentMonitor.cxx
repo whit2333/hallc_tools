@@ -1,6 +1,12 @@
-#include "RunStatus.h"
-#include "ExperimentMonitor.h"
+#include "runplan/RunStatus.h"
+#include "monitor/ExperimentMonitor.h"
+
+#include <fstream>
+
+#include "TCanvas.h"
+#include "TRootCanvas.h"
 #include "TBufferJSON.h"
+#include "TRandom3.h"
 
 // nlohmann json library (header only)
 #include "nlohmann/json.hpp"
@@ -39,7 +45,10 @@ void ExperimentMonitor() {
   int ikine = 1;
   for (auto& Q2_table : *run_order) {
     for (auto& [num, en] : Q2_table) {
-      hallc::RunStatus rs0 = {num, ikine, (int)en.counts, (int)(en.counts * random->Uniform())};
+
+      int rand_cnts = (int)(en.counts * random->Uniform());
+      int entry_cnts = (int)en.counts;
+      hallc::RunStatus rs0 {num, ikine, entry_cnts , rand_cnts };
       run_set.Add(rs0);
     }
 

@@ -22,4 +22,8 @@
 #pragma link C++ class std::pair<double,std::vector<RunPlanTableEntry>>+;
 #pragma link C++ class std::vector<std::pair<double,std::vector<RunPlanTableEntry>>>+;
 
+#pragma link C++ class hallc::MonitoringHistograms+;
+#pragma link C++ class std::vector<hallc::MonitoringHistograms>+;
+
+
 #endif
