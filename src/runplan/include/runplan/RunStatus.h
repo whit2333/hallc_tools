@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "TH1F.h"
+#include "THStack.h"
+
 
 namespace hallc {
 
@@ -27,10 +29,10 @@ namespace hallc {
    *  long runs. 
    */
   struct KinematicSet {
-    int _Number = 0;
-    double _TotalTime = 0.0;
-    std::map<int,double> _RunTimes;
-    std::vector<std::pair<int,int>> _ZATargets{};
+    int                              _Number    = 0;
+    double                           _TotalTime = 0.0;
+    std::map<int, double>            _RunTimes  = {};
+    std::vector<std::pair<int, int>> _ZATargets{};
   };
 
   /** RunSet is a group of runs having some similar configuration or setting.

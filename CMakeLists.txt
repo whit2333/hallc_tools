@@ -1,18 +1,26 @@
 cmake_minimum_required (VERSION 3.1)
 project (RunPlanner VERSION 0.0.1)
 
-find_package(ROOT COMPONENTS Core)
+include(GNUInstallDirs)
+include(cmake/os.cmake)
+
+find_package(ROOT COMPONENTS Core REQUIRED CONFIG)
 include(${ROOT_USE_FILE})
+include(cmake/root.cmake)
+
+find_package(nlohmann_json REQUIRED)
 
 list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3/cmake)
 list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
 find_package(InSANE REQUIRED)
 
 find_package(fmt REQUIRED)
-
+find_package(range-v3 REQUIRED)
 
 add_subdirectory(src/runplan)
+add_subdirectory(src/monitor)
 
 # -------------------------
 # install library config
@@ -24,7 +32,6 @@ install(EXPORT RunPlannerTargets
     NAMESPACE RunPlanner::
     DESTINATION lib/RunPlanner
     )
-
 
 set(TARGETS_INSTALL_PATH lib/RunPlanner/RunPlannerTargets.cmake)
 CONFIGURE_PACKAGE_CONFIG_FILE(

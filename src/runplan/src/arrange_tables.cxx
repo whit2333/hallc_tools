@@ -281,10 +281,10 @@ void arrange_tables() {
     output_ro_by_Q2 << TBufferJSON::ToJSON(&ro_by_Q2);
   }
 
-  std::cout << " TYPE : \n";
-  std::cout << typeid(ro_by_Q2).name() << '\n';
-  debug_class<decltype(ro_by_Q2)>();
-  debug_type<decltype(ro_by_Q2)>();
+  //std::cout << " TYPE : \n";
+  //std::cout << typeid(ro_by_Q2).name() << '\n';
+  //debug_class<decltype(ro_by_Q2)>();
+  //debug_type<decltype(ro_by_Q2)>();
 
 
   TGraph* gr_run_number_VS_shms_pol  = new TGraph(ro_run_number.size(), ro_run_number.data(), ro_shms_pol.data());

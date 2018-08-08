@@ -1,16 +1,4 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <cmath>
-#include <thread>
-#include <future>
-#include <iostream>
-#include <string>
-#include <chrono>
-
-#include <fmt/core.h>
-#include <fmt/ostream.h>
-R__LOAD_LIBRARY(libfmt.so)
+#include "sidis_settings_rate.h"
 
 #include "Math/Vector3Dfwd.h"
 #include "Math/Vector4Dfwd.h"
@@ -18,35 +6,33 @@ R__LOAD_LIBRARY(libfmt.so)
 #include "Math/Rotation3D.h"
 #include "Math/RotationY.h"
 #include "Math/RotationZ.h"
-
 #include "ROOT/TFuture.hxx"
-
-#include "InSANE/MaterialProperties.h"
-#include "InSANE/Luminosity.h"
-#include "PhaseSpaceVariables.h"
-#include "PSSampler.h"
-#include "NFoldDifferential.h"
-#include "Jacobians.h"
-#include "DiffCrossSection.h"
-#include "FinalState.h"
-#include <typeinfo>
-
-
-#include "InSANE/Helpers.h"
-#include "InSANE/Physics.h"
-#include "InSANE/Kinematics.h"
-
-#include "InSANE/Stat2015_UPDFs.h"
-#include "DSSFragmentationFunctions.h"
 
 #include "TH1F.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TBufferJSON.h"
-
 #include "ROOT/RDataFrame.hxx"
 
-#include "hallc_settings.h"
+// insane libraries
+#include "InSANE/MaterialProperties.h"
+#include "InSANE/Luminosity.h"
+#include "InSANE/PhaseSpaceVariables.h"
+#include "InSANE/PSSampler.h"
+#include "InSANE/NFoldDifferential.h"
+#include "InSANE/Jacobians.h"
+#include "InSANE/DiffCrossSection.h"
+#include "InSANE/FinalState.h"
+#include "InSANE/Helpers.h"
+#include "InSANE/Physics.h"
+#include "InSANE/Kinematics.h"
+#include "InSANE/Stat2015_UPDFs.h"
+#include "InSANE/DSSFragmentationFunctions.h"
+
+#include <fmt/core.h>
+#include <fmt/ostream.h>
+R__LOAD_LIBRARY(libfmt.so)
+
 
 using namespace ROOT;
 using namespace insane::physics;
@@ -63,9 +49,7 @@ using SIDIS_vars     = insane::kinematics::variables::SIDIS_x_y_z_phih_phie;
 using SPEC_vars      = insane::kinematics::variables::SIDIS_eprime_ph;
 using Q2_variable    = insane::kinematics::variables::MomentumTransfer;
 using Theta_variable = insane::kinematics::variables::Theta;
-
-std::vector<double> sidis_config_sigma_rate( RunPlanTableEntry& run_setting);
-
+namespace hallc {
 /** Calculates a table of rates.
  *
  */
@@ -78,8 +62,16 @@ void sidis_settings_rate() {
 
   std::vector<std::pair<double,std::vector<RunPlanTableEntry>>>  all_tables;
   std::vector<std::pair<double,std::vector<RunPlanTableEntry>>>  all_kaon_tables;
+
+
+  {
+    std::ofstream json_ofile("tables/pion_rates.json",std::ios_base::trunc);
+  }
+
+  // Copy the settings
+  auto csv_all_settings = csv::all_settings;
  
-  for(auto& setting_group : csv::all_settings) { 
+  for(auto& setting_group : csv_all_settings) { 
 
     // We only are interested in the LH2 target rates for the two lowest Q2 settings
     bool use_LH2 = false;
@@ -161,6 +153,12 @@ void sidis_settings_rate() {
 
       auto  table_entry0 = plus_entry.get() ;
       auto  table_entry1 = minus_entry.get();
+
+      {
+        std::ofstream json_ofile("tables/pion_rates.json",std::ios_base::app);
+        json_ofile << TBufferJSON::ToJSON(&table_entry0);
+        json_ofile << TBufferJSON::ToJSON(&table_entry1);
+      }
 
       auto Kplus_entry = ROOT::Experimental::Async([&a_setting,&table_entry0,&use_LH2,&only_LH2](){
         std::vector<RunPlanTableEntry> resulting_entries;
@@ -753,3 +751,4 @@ std::vector<double> sidis_config_sigma_rate( RunPlanTableEntry& run_setting){
 }
 
 
+}

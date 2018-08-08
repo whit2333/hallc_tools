@@ -155,7 +155,7 @@ void arrange_tables2() {
   auto run_order_by_Q2 = view::concat(ref0, ref2, ref4);
 
 
-  debug_class<decltype(ref2)> derp2;
+  //debug_class<decltype(ref2)> derp2;
 
   for(auto r : (ref2 | to_<std::vector>())){
     std::cout << std::get<0>(r) << std::endl; }
@@ -275,10 +275,10 @@ void arrange_tables2() {
     output_ro_by_Q2 << TBufferJSON::ToJSON(&ro_by_Q2);
   }
 
-  std::cout << " TYPE : \n";
-  std::cout << typeid(ro_by_Q2).name() << '\n';
-  debug_class<decltype(ro_by_Q2)>();
-  debug_type<decltype(ro_by_Q2)>();
+  //std::cout << " TYPE : \n";
+  //std::cout << typeid(ro_by_Q2).name() << '\n';
+  //debug_class<decltype(ro_by_Q2)>();
+  //debug_type<decltype(ro_by_Q2)>();
 
 
   TGraph* gr_run_number_VS_shms_pol  = new TGraph(ro_run_number.size(), ro_run_number.data(), ro_shms_pol.data());

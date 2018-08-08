@@ -30,12 +30,14 @@
 #include "ROOT/TFuture.hxx"
 #include "ROOT/RDataFrame.hxx"
 
+#if !defined(__CLING__)
 // range-v3 library (header only)
 #include "range/v3/all.hpp"
 #include "range/v3/numeric/accumulate.hpp"
 
 // nlohmann json library (header only)
 #include "nlohmann/json.hpp"
+using json = nlohmann::json;
 
 // fmt - string formatting library
 #include "fmt/core.h"
@@ -44,43 +46,14 @@ R__LOAD_LIBRARY(libfmt.so)
 
 // date library (while waiting on c++20) https://github.com/HowardHinnant/date
 #include "date/date.h"
+using day_point = std::chrono::time_point<std::chrono::system_clock, date::days>;
+#endif
 
 #include "hallc_settings.h"
 
-using json        = nlohmann::json;
 using Q2Table     = std::vector<RunPlanTableEntry>;
 using TableVector = std::vector<std::pair<double, Q2Table>>;
-using day_point   = std::chrono::time_point<std::chrono::system_clock, date::days>;
 
-
-    // ---------------------------------------------------------
-    // template debugging
-    // to print a warning do something like:
-    // debug_type<second_arg_type<decltype(f2)>>()
-    //
-    template <typename T>                
-    inline void debug_type(const T&) __attribute__((deprecated));        
-
-    template <typename T>                                          
-    inline void debug_type(const T&) { }                           
-
-    template <typename T>                                        
-    inline void debug_type() __attribute__((deprecated));        
-
-    template <typename T>                                            
-    inline void debug_type() { 
-        std::cout << __PRETTY_FUNCTION__ << "\n";
-    } 
-
-    template <typename T>                                            
-    struct debug_class {
-      T t;
-      debug_class(){
-        std::cout << __PRETTY_FUNCTION__ << "\n";
-      }
-    };
-
-    //__________________________________________________________
 
 void arrange_tables();
 void arrange_tables2();
