@@ -7,10 +7,9 @@ include(${ROOT_USE_FILE})
 list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3/cmake)
 list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
 find_package(InSANE REQUIRED)
 
-add_subdirectory(src/csvplan)
+add_subdirectory(source)
 
 # -------------------------
 # install library config
