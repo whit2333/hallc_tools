@@ -6,3 +6,7 @@
 * nlohmann_json
 * fmtlib
 * date
+* hcana and analyzer (cmake_demangled branches)
+
+
+
