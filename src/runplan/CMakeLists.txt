@@ -4,6 +4,7 @@ add_library(RunPlan SHARED
   src/arrange_tables.cxx
   src/arrange_tables2.cxx
   src/RunStatus.cxx
+  src/hallc_settings.cxx
   src/sidis_settings_rate.cxx
   ${CMAKE_CURRENT_BINARY_DIR}/RunPlanDict.cxx
   )

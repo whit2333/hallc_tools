@@ -5,20 +5,20 @@
 #include <fmt/ostream.h>
 #endif
 
-static void RunPlanTableEntry::PrintWikiHeader(std::ostream& s = std::cout) {
+void RunPlanTableEntry::PrintWikiHeader(std::ostream& s) {
   fmt::print(s,
              "{{|class=\"wikitable\"\n|{:^6}|| {:^5}|| {:^5}|| {:^6}|| {:^6}|| {:^6}|| {:^6}|| "
              "{:^3}|| {:^6}|| {:^9}|| {:^6}|| {:^6} |\n|- \n",
              "target", "x", "z", "th_e", "th_q", "Ee", "Ppi", "pol", "I", "sigma", "rate", "time");
 }
-static void RunPlanTableEntry::PrintWikiFooter(std::ostream& s = std::cout) {
+void RunPlanTableEntry::PrintWikiFooter(std::ostream& s) {
   fmt::print(s,
              "|{:^6}|| {:^5}|| {:^5}|| {:^6}|| {:^6}|| {:^6}|| {:^6}|| {:^3}|| {:^6}|| {:^9}|| "
              "{:^6}|| {:^6} |\n|}}\n",
              "target", "x", "z", "th_e", "th_q", "Ee", "Ppi", "pol", "I", "sigma", "rate", "time");
 }
 
-void RunPlanTableEntry::PrintWiki(std::ostream& s = std::cout) const {
+void RunPlanTableEntry::PrintWiki(std::ostream& s) const {
   std::string target = "LD2";
   double      xs     = rates.LD2_XS;
   if (A_target == 1) {
@@ -31,7 +31,7 @@ void RunPlanTableEntry::PrintWiki(std::ostream& s = std::cout) const {
              target, kinematic.x, kinematic.z, kinematic.th_e, kinematic.th_q, kinematic.Ee,
              kinematic.Ppi, polarity, Ibeam, xs, rates.total_rate, time, counts);
 }
-void RunPlanTableEntry::Print(std::ostream& s = std::cout) const {
+void RunPlanTableEntry::Print(std::ostream& s) const {
   std::string target = "LD2";
   double      xs     = rates.LD2_XS;
   if (A_target == 1) {
@@ -44,11 +44,12 @@ void RunPlanTableEntry::Print(std::ostream& s = std::cout) const {
              target, kinematic.Q2, kinematic.x, kinematic.z, kinematic.th_e, kinematic.th_q,
              kinematic.Ee, kinematic.Ppi, polarity, Ibeam, xs, rates.total_rate, time, counts);
 }
-static void RunPlanTableEntry::PrintHeader(std::ostream& s = std::cout) {
+void RunPlanTableEntry::PrintHeader(std::ostream& s ) {
   fmt::print(s,
              "{:^6}, {:^5}, {:^5}, {:^5}, {:^6}, {:^6}, {:^6}, {:^6}, {:^3}, {:^6}, {:^9}, "
              "{:^6}, {:^6}\n",
              "target", "Q2", "x", "z", "th_e", "th_q", "Ee", "Ppi", "pol", "I", "sigma", "rate",
              "time");
 }
+
 

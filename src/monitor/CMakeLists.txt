@@ -37,7 +37,7 @@ target_include_directories(ExpMonitor
 target_compile_features(ExpMonitor PUBLIC cxx_std_17)
 
 target_link_libraries(ExpMonitor
-  PUBLIC RunPlan
+  PUBLIC RunPlan ${CXX_FILESYSTEM_LIB}
   #  PUBLIC fmt::fmt
   #  PUBLIC InSANE::InSANEbase
   #  PUBLIC InSANE::InSANEnew_xsec
@@ -74,6 +74,7 @@ target_include_directories(experiment_monitor
   )
 target_link_libraries(experiment_monitor
   PRIVATE nlohmann_json::nlohmann_json
+  PUBLIC ${CXX_FILESYSTEM_LIB}
   #PUBLIC InSANEbase
   )
 
@@ -86,6 +87,7 @@ target_include_directories(spectrometer_settings
 target_link_libraries(spectrometer_settings
   PRIVATE nlohmann_json::nlohmann_json
   #PUBLIC InSANEbase
+  PUBLIC ${CXX_FILESYSTEM_LIB}
   PRIVATE hcana::HallC
 )
 
