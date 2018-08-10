@@ -160,14 +160,15 @@ int main(int argc, char* argv[]) {
 
   if (opts.use_help == 1) {
     //cout << make_man_page(cli, argv[0]);
-    cout << "Usage:\n" << usage_lines(cli, "progname", clipp_format)
+    cout << "\033[1mspectrometer_settings\033[0m\n";
+    cout << "Usage:\n" << usage_lines(cli, "specset", clipp_format)
     << "\nOptions:\n" << documentation(cli, clipp_format,doc_filter) << '\n';
     std::exit(0);
   } else if (opts.use_help == 2) {
     cout << make_man_page(cli, argv[0])
-        .prepend_section("DESCRIPTION", "    Spectrometer settings - things don't have to be difficult.")
-        .prepend_section("TEST", "    Spectrometer settings - things don't have to be difficult.")
-        .append_section("LICENSE", "    GPL3");
+                .prepend_section("DESCRIPTION" , "              things don't have to be difficult.")
+                .prepend_section("NAME"        , "              \033[1mspectrometer_settings\033[0m")
+                .append_section("LICENSE"      , "              GPL3");
     std::exit(0);
   }
 

@@ -143,5 +143,66 @@ spectrometer_settings -j my_run_list.json -u -a filter shms angle 11 1 | spectro
 4111 : HMS : 3.32 GeV/c at 19.682 deg  SHMS : 2.61025 GeV/c at 11.99 deg
 ```
 
+## Documentation
 
+```
+spectrometer_settings
+Usage:
+    spectrometer_settings [-d <dir>] [-uaz] [-r <runs>...]... [-PH] [-J [<json_style>]] [-h] [-m] filter <spec> angle <deg> <delta>
+    spectrometer_settings [-d <dir>] [-uaz] [-r <runs>...]... [-PH] [-J [<json_style>]] [-h] [-m] filter <spec> momentum <P0> <deltaP>
+    spectrometer_settings [-d <dir>] [-uaz] [-r <runs>...]... [-PH] [-J [<json_style>]] [-h] [-m] print
+    spectrometer_settings [-d <dir>] [-uaz] [-N <N_runs>] [-S <start_run>] [-PH] [-J [<json_style>]] [-h] [-m] filter <spec> angle <deg> <delta>
+    spectrometer_settings [-d <dir>] [-uaz] [-N <N_runs>] [-S <start_run>] [-PH] [-J [<json_style>]] [-h] [-m] filter <spec> momentum <P0> <deltaP>
+    spectrometer_settings [-d <dir>] [-uaz] [-N <N_runs>] [-S <start_run>] [-PH] [-J [<json_style>]] [-h] [-m] print
+    spectrometer_settings [-j <data>] [-uaz] [-r <runs>...]... [-PH] [-J [<json_style>]] [-h] [-m] filter <spec> angle <deg> <delta>
+    spectrometer_settings [-j <data>] [-uaz] [-r <runs>...]... [-PH] [-J [<json_style>]] [-h] [-m] filter <spec> momentum <P0> <deltaP>
+    spectrometer_settings [-j <data>] [-uaz] [-r <runs>...]... [-PH] [-J [<json_style>]] [-h] [-m] print
+    spectrometer_settings [-j <data>] [-uaz] [-N <N_runs>] [-S <start_run>] [-PH] [-J [<json_style>]] [-h] [-m] filter <spec> angle <deg> <delta>
+    spectrometer_settings [-j <data>] [-uaz] [-N <N_runs>] [-S <start_run>] [-PH] [-J [<json_style>]] [-h] [-m] filter <spec> momentum <P0> <deltaP>
+    spectrometer_settings [-j <data>] [-uaz] [-N <N_runs>] [-S <start_run>] [-PH] [-J [<json_style>]] [-h] [-m] print
+Options:
+    Data source options
+       -d, --replay-dir <dir>
+                            Set path of replay directory which should the
+                            contain directory DBASE. This is the default data
+                            source with dir=.
 
+       -j, --json-data <data>
+                            use json data as input instead of DBASE
+
+    Basic filtering options 
+       -u, --unique         filter unique (adjacent) entries
+       -a, --all            use all runs in supplied json file (only works with json input)
+       -z, --show-zeros     Turns of suppression of zero or null values
+
+    Run range options
+       -r, --runs <runs>    Set indivindual runs to be used instead of range.
+
+       -N, --number-of-runs <N_runs>
+                            Number of runs in the sequence starting at
+                            <start_run>
+
+       -S, --start <start_run>
+                            Set the starting run for the output run sequence
+
+    Data output options
+       Single spectrometer output [default: both]. H->HMS, P->SHMS (note in 6 GeV era S->SOS)
+          -P, --shms        SHMS
+          -H, --hms         HMS
+
+       -J, --json-format <json_style>
+                            Use json output format. Optionally setting the
+                            printing style number [default:-1] which defines
+                            json indentation spacing.
+
+    -h, --help              print help
+    -m, --man               print man page
+
+    Filters
+       filter <spec>        Set to: hms,shms, or both. Specifies spectrometer to use with filter.
+       angle <deg> <delta>  Constructs a filter for angles in the range [deg-delta,deg+delta] degrees.
+
+       momentum <P0> <deltaP>
+                            Constructs a filter for momenta in the range
+                            [P0-deltaP,P0+deltaP] GeV/c.
+```

@@ -215,7 +215,8 @@ struct cli_settings {
         .split_alternatives(true)                  //split usage into several lines
         //for large alternatives
         .alternatives_min_split_size(2)            //min. # of parameters
-        //for separate usage line .merge_alternative_flags_with_common_prefix(false)  //-ab(cdxy|xy)
+        //for separate usage line 
+        //.merge_alternative_flags_with_common_prefix(false)  //-ab(cdxy|xy)
         //instead of -abcdxy|-abxy
         ////.merge_joinable_flags_with_common_prefix(true)     //-abc instead of -a -b -c
         ;
