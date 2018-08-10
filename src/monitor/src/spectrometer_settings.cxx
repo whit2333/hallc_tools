@@ -326,7 +326,11 @@ int main(int argc, char* argv[]) {
   case RunMode::print:
 
     if (opts.output_format == "json") {
-      std::cout << j_output << std::endl;
+      if(opts.json_dump_format>=0) {
+        std::cout << j_output.dump(opts.json_dump_format) << std::endl;
+      } else {
+        std::cout << j_output << std::endl;
+      }
     } else {
 
       for (auto en : output_settings) {

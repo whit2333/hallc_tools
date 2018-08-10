@@ -121,9 +121,9 @@ struct cli_settings {
              "Set to only the SHMS spectrometer for output. [default: both are used]",
          (option("-H", "--hms").set(use_hms, true)) %
              "Set to only the HMS spectrometer for output. [default: both are used]",
-         (option("--json-format")([&] { output_format = "json"; }) &
-          opt_integer("format=-1", json_dump_format)) %
-             "set the printing format [default:table]",
+         option("--json-format")([&] { output_format = "json"; }) &
+          opt_integer("json-format", json_dump_format) %
+             "set the printing format to json with an optional format spacing argument [default:-1]",
          option("-h", "--help").set(use_help, true) % "print help");
     //auto last_args = ;
     //(option("-t", "--type") & value("type", output_format)) % "set the build type");
