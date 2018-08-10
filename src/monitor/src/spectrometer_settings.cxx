@@ -126,7 +126,7 @@ table_range_t build_range_with_DBASE(std::string dbfile, std::vector<int> runlis
                //         hcana::json::FindVarValueOr(hc_parms, "ptheta_lab", 0.0),
                //         hcana::json::FindVarValueOr(hc_parms, "ppcentral", 0.0)});
                table_entry_t res;
-               res["hms"]["angle"]     = hcana::json::FindVarValueOr(hc_parms, "htheta_lab", 0.0);
+               res["hms"]["angle"]     = std::abs(hcana::json::FindVarValueOr(hc_parms, "htheta_lab", 0.0));
                res["hms"]["momentum"]  = hcana::json::FindVarValueOr(hc_parms, "hpcentral", 0.0);
                res["shms"]["angle"]    = hcana::json::FindVarValueOr(hc_parms, "ptheta_lab", 0.0);
                res["shms"]["momentum"] = hcana::json::FindVarValueOr(hc_parms, "ppcentral", 0.0);
@@ -201,9 +201,8 @@ int main(int argc, char* argv[]) {
     opts.use_json_input = true;
   }
 
-
   //for(auto [spec, mode,val,del] : view::zip(opts.fspecs, opts.fmodes, opts.filter_values, opts.filter_deltas) | to_<std::vector>()) {
-  //  std::cout << cli_settings::GetSpecString(spec) << " " ;
+  //  //std::cout << cli_settings::GetSpecString(spec) << " " ;
   //  switch (mode) {
   //    case FilterMode::angle: 
   //      std::cout << "angle ";
@@ -215,7 +214,7 @@ int main(int argc, char* argv[]) {
   //      std::cout << "other ";
   //      break;
   //  }
-  //  std::cout << "value : " << val << " +- " << del << "\n";
+  //  //std::cout << "value : " << val << " +- " << del << "\n";
   //}
 
   // If neither are given, use both
@@ -242,8 +241,7 @@ int main(int argc, char* argv[]) {
   table_range_t run_shms_angles;
   if(opts.use_json_input) {
     run_shms_angles = build_range_with_json( dbfile, run_list, opts.use_all);
-  }
-  else {
+  } else {
     run_shms_angles = build_range_with_DBASE( dbfile, run_list);
   }
 
@@ -261,10 +259,16 @@ int main(int argc, char* argv[]) {
     }) | to_<std::vector>();
   }
 
-  for(auto& [spm, mo,val,del] : view::zip(opts.fspecs, opts.fmodes, opts.filter_values, opts.filter_deltas) | to_<std::vector>()) {
+  for (auto& [spm, mo, val, del] :
+       view::zip(opts.fspecs, opts.fmodes, opts.filter_values, opts.filter_deltas) |
+           to_<std::vector>()) {
     std::string spec = cli_settings::GetSpecString(spm);
     std::string mode = cli_settings::GetFilterMode(mo);
-
+    //std::cout << " ----- \n";
+    //std::cout << spec << "\n";
+    //std::cout << mode << "\n";
+    //std::cout << val << "\n";
+    //std::cout << del << "\n";
     output_settings = output_settings | view::filter([&](auto t) {
                         if (spec == "none") {
                           return false;
@@ -277,27 +281,33 @@ int main(int argc, char* argv[]) {
                       }) |
                       to_<std::vector>();
   }
-  
-  //ostream& os = std::cout;
-
-  nlohmann::json j_output;
-  if((opts.mode == RunMode::build) || (opts.output_format=="json")){
-
-    for (auto en : output_settings) {
-      int arun_num = std::get<0>(en);
-      if(opts.use_hms) {
-        j_output[std::to_string(arun_num)]["hpcentral"]  = std::get<1>(en)["hms"]["momentum"];
-        j_output[std::to_string(arun_num)]["htheta_lab"] = std::get<1>(en)["hms"]["angle"]   ;
-      }
-      if(opts.use_shms) {
-        j_output[std::to_string(arun_num)]["ppcentral"]  = std::get<1>(en)["shms"]["momentum"];
-        j_output[std::to_string(arun_num)]["ptheta_lab"] = std::get<1>(en)["shms"]["angle"]   ;
-      }
-    }
-
+  if(opts.use_unique){
+    output_settings =
+        output_settings | view::adjacent_remove_if([&](auto t1, auto t2) {
+          return ((std::get<1>(t1)["hms"]["angle"] == std::get<1>(t2)["hms"]["angle"]) &&
+                  (std::get<1>(t1)["hms"]["momentum"] == std::get<1>(t2)["hms"]["momentum"]) &&
+                  (std::get<1>(t1)["shms"]["angle"] == std::get<1>(t2)["shms"]["angle"]) &&
+                  (std::get<1>(t1)["shms"]["momentum"] == std::get<1>(t2)["shms"]["momentum"]));
+        }) |
+        to_<std::vector>();
   }
 
-  if((opts.mode == RunMode::standard) || (opts.mode == RunMode::print)) {
+  nlohmann::json j_output;
+  for (auto en : output_settings) {
+    int arun_num = std::get<0>(en);
+    if (opts.use_hms) {
+      j_output[std::to_string(arun_num)]["hpcentral"]  = std::get<1>(en)["hms"]["momentum"];
+      j_output[std::to_string(arun_num)]["htheta_lab"] = std::get<1>(en)["hms"]["angle"];
+    }
+    if (opts.use_shms) {
+      j_output[std::to_string(arun_num)]["ppcentral"]  = std::get<1>(en)["shms"]["momentum"];
+      j_output[std::to_string(arun_num)]["ptheta_lab"] = std::get<1>(en)["shms"]["angle"];
+    }
+  }
+
+  switch (opts.mode) {
+
+  case RunMode::print:
 
     if (opts.output_format == "json") {
       std::cout << j_output << std::endl;
@@ -319,10 +329,14 @@ int main(int argc, char* argv[]) {
         std::cout << "\n";
       }
     }
+    break;
+
+  case RunMode::build:
+
+    ofstream out_file(opts.table_name);
+    out_file << std::setw(2) << j_output << std::endl;
+    break;
+
   }
 
-  if (opts.mode == RunMode::build) {
-    ofstream out_file(opts.table_name);
-    out_file << std::setw(4) << j_output << std::endl;
-  }
 }

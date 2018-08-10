@@ -52,12 +52,12 @@ int main(int argc, char* argv[]) {
     cout << make_man_page(cli, argv[0]);
 
 
-cout << "Usage:\n" << usage_lines(cli, "progname", clipp_format)
-     << "\nOptions:\n" << documentation(cli, clipp_format) << '\n';
+  cout << "Usage:\n" << usage_lines(cli, "progname", clipp_format)
+  << "\nOptions:\n" << documentation(cli, clipp_format) << '\n';
 
-//or generate entire man page in one go
-cout << make_man_page(cli, "progname", clipp_format)
-        .prepend_section("DESCRIPTION", "This program lets you format text.")
-        .append_section("LICENSE", "GPLv3");
+  //or generate entire man page in one go
+  cout << make_man_page(cli, "progname", clipp_format)
+  .prepend_section("DESCRIPTION", "This program lets you format text.")
+  .append_section("LICENSE", "GPLv3");
 }
 

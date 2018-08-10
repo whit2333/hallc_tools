@@ -76,7 +76,7 @@ struct cli_settings {
     return search->second;
   }
 
-  RunMode             mode           = RunMode::standard;
+  RunMode             mode           = RunMode::print;
   bool                use_shms       = false;
   bool                use_hms        = false;
   bool                use_help       = false;
@@ -86,6 +86,7 @@ struct cli_settings {
   string              infile         = "DBASE";
   string              fmt            = "json";
   bool                use_all        = false;
+  bool                use_unique     = false;
   int                 start_run      = 3890;
   int                 N_runs         = 300;
   int                 RunNumber      = 3890;
@@ -110,6 +111,8 @@ struct cli_settings {
               "Set path of replay directory which should the contain directory DBASE" |
           (option("-j", "--json-data").set(use_json_input, true) & value("data", json_data_file)) %
               "use json data as input instead of DBASE"),
+         (option("-u", "--unique").set(use_unique, true)) %
+             "filter unique (adjacent) entries",
          (option("-a", "--all").set(use_all, true)) %
              "use all runs in supplied json file (only works json input)",
          (option("-z", "--show-zeros").set(filter_zero, false)) %
@@ -117,9 +120,13 @@ struct cli_settings {
          (option("-P", "--shms").set(use_shms, true)) %
              "Set to only the SHMS spectrometer for output. [default: both are used]",
          (option("-H", "--hms").set(use_hms, true)) %
-             "Set to only the HMS spectrometer for output. [default: both are used]");
-    auto last_args = (option("-h", "--help").set(use_help, true) % "print help");
+             "Set to only the HMS spectrometer for output. [default: both are used]",
+         option("--json-format")([&] { output_format = "json"; }) %
+             "set the printing format [default:table]",
+         option("-h", "--help").set(use_help, true) % "print help" );
+    //auto last_args = ;
     //(option("-t", "--type") & value("type", output_format)) % "set the build type");
+
     auto standard_args = (repeatable(option("-r", "--runs") & integers("runs", run_list)) %
                               "Set indivindual runs to be used (instead of range)" |
                           ((option("-N", "--number-of-runs") & integer("N_runs", N_runs)) %
@@ -127,34 +134,41 @@ struct cli_settings {
                            (option("-S", "--start") & integer("start_run", start_run)) %
                                "Set the starting run for the output run sequence"));
 
-    auto build_cmd = (command("build").set(mode, RunMode::build) % "build mode" &
-                      value("table_name", table_name) % "Output file");
-    auto filter_types =
-        ("Filter types" %
-         ("filter by spectrometer angle" %
-              (option("angle")([&] { fmodes.push_back(FilterMode::angle); }) % "angle filter type" &
-               number("deg", filter_values) % "angle in degrees" &
-               number("delta", filter_deltas) %
-                   "delta in degrees, used to search with the range of "
-                   "values [angle-delta,angle+delta]") |
-              "filter by spectrometer momentum" %
-              (option("momentum")([this] { this->fmodes.push_back(FilterMode::momentum); }) %
-                   "momentum filter type" &
-               number("GeV/c", filter_values) % "momentum in degrees" &
-               number("deltaP", filter_deltas) %
-                   "delta in degrees, used to search with the range of "
-                   "values [angle-delta,angle+delta]")));
-    auto filter_opt = (option("--filter").set(has_filter, true) % "Add filter" &
-                       value("spectrometer")([this](const string& v) {
-                         this->fspecs.push_back(GetSpec(v));
-                       }) % "spectrometer to filter. Can be one of the following: hms,shms, both" &
-                       filter_types);
-    auto print_cmd  = "print mode" % (command("print").set(mode, RunMode::print),
-                                     option("--json-format")([&]{output_format = "json";}) %
-                                         "set the printing format [default:table]");
+    //auto build_cmd = (command("build").set(mode, RunMode::build) % "build mode",
+    //                  value("table_name", table_name) % "Output file");
+    //auto momentum_filter_type = 
+    //    (command("momentum")([this] { this->fmodes.push_back(FilterMode::momentum); }) %
+    //         "momentum filter type" &
+    //     number("GeV/c", filter_values) % "momentum in degrees" &
+    //     number("deltaP", filter_deltas) % "delta in degrees, used to search with the range of "
+    //                                       "values [angle-delta,angle+delta]") % "Momentunm Filter types" ;
+    //auto angle_filter_type = command("angle")([&] { fmodes.push_back(FilterMode::angle); }) &
+    //                         number("deg", filter_values) % "angle in degrees" &
+    //                         number("delta", filter_deltas) %
+    //                             "delta in degrees, used to search with the range of "
+    //                             "values [angle-delta,angle+delta]";
+    //auto filter_opt = option("--filter").set(has_filter, true) % "Add filter" &
+    //                  value("spectrometer")([this](const string& v) {
+    //                    this->fspecs.push_back(GetSpec(v));
+    //                  }) % "spectrometer to filter. Can be one of the following: hms,shms, both";
+    //auto print_cmd = "print mode" % (command("print").set(mode, RunMode::print),
+    //                                 option("--json-format")([&] { output_format = "json"; }) %
+    //                                     "set the printing format [default:table]");
+    auto filter_spec =
+        (command("filter").set(mode, RunMode::print),
+         value("spectrometer")([&](const string& v) { fspecs.push_back(GetSpec(v)); }));
+    auto filter_angle = (command("angle")([this] { this->fmodes.push_back(FilterMode::angle); }),
+                         (number("deg", filter_values) & number("delta", filter_deltas)));
+    auto filter_momentum =
+        (command("momentum")([this] { this->fmodes.push_back(FilterMode::momentum); }),
+         (number("GeV/c", filter_values) & number("deltaP", filter_deltas)));
+    auto print_cmd = (command("print").set(mode, RunMode::print));
 
-    return ((build_cmd | print_cmd), filter_opt, first_args,
-            standard_args, last_args);
+    //return (     |
+    //            (print_cmd, filter_opt & momentum_filter_type ) |
+    //            (build_cmd, filter_opt & angle_filter_type ),
+    //        first_args, standard_args, last_args);
+    return (first_args, standard_args, (filter_spec, (filter_angle | filter_momentum)) | print_cmd);
   }
 
   auto GetFormat() {
