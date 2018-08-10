@@ -4,6 +4,8 @@ find_package(hcana REQUIRED)
 find_package(Podd 1.6 REQUIRED)
 include(PoddCMakeEnv)
 
+###########################
+# ExpMonitor library
 add_library(ExpMonitor SHARED 
   src/ExperimentMonitor.cxx
   ${CMAKE_CURRENT_BINARY_DIR}/ExpMonitorDict.cxx
@@ -15,7 +17,6 @@ set(lib_HEADERS
 
 get_target_property(insane_include_dir InSANE::InSANEnew_xsec INTERFACE_INCLUDE_DIRECTORIES)
 
-# build root dictionaries
 root_generate_dictionary(ExpMonitorDict 
   #-I${insane_include_dir} 
   -I${CMAKE_CURRENT_SOURCE_DIR} ${lib_HEADERS} 
@@ -35,7 +36,6 @@ target_include_directories(ExpMonitor
     PUBLIC ${EIGEN3_INCLUDE_DIRS}
 )
 target_compile_features(ExpMonitor PUBLIC cxx_std_17)
-
 target_link_libraries(ExpMonitor
   PUBLIC RunPlan ${CXX_FILESYSTEM_LIB}
   #  PUBLIC fmt::fmt
@@ -66,6 +66,8 @@ target_link_libraries(ExpMonitor
 #  #PUBLIC InSANEbase
 #)
 
+################################
+# experiment_monitor executable
 add_executable(experiment_monitor src/experiment_monitor.cxx)
 target_compile_features(experiment_monitor PUBLIC cxx_std_17)
 target_include_directories(experiment_monitor
@@ -78,6 +80,8 @@ target_link_libraries(experiment_monitor
   #PUBLIC InSANEbase
   )
 
+##################################
+# spectrometer_settings executable
 add_executable(spectrometer_settings src/spectrometer_settings.cxx)
 target_compile_features(spectrometer_settings PUBLIC cxx_std_17)
 target_include_directories(spectrometer_settings
@@ -101,7 +105,12 @@ target_link_libraries(spectrometer_settings
 
 
 include(GNUInstallDirs)
-install(TARGETS experiment_monitor spectrometer_settings
+
+install(DIRECTORY include/monitor
+  DESTINATION include
+  )
+
+install(TARGETS ExpMonitor experiment_monitor spectrometer_settings
     EXPORT RunPlannerTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
