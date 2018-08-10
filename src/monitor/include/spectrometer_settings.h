@@ -79,7 +79,7 @@ struct cli_settings {
   RunMode             mode           = RunMode::print;
   bool                use_shms       = false;
   bool                use_hms        = false;
-  bool                use_help       = false;
+  int                 use_help       = false;
   bool                use_json_input = false;
   bool                filter_zero    = true;
   string              json_data_file = "settings.json";
@@ -87,9 +87,9 @@ struct cli_settings {
   string              fmt            = "json";
   bool                use_all        = false;
   bool                use_unique     = false;
-  int                 start_run      = 3890;
-  int                 N_runs         = 300;
-  int                 RunNumber      = 3890;
+  int                 start_run      = 3900;
+  int                 N_runs         = 100;
+  int                 RunNumber      = 0;
   string              replay_dir     = ".";
   std::vector<int>    run_list       = {};
   int                 json_dump_format = -1;
@@ -108,23 +108,30 @@ struct cli_settings {
     using namespace ranges;
 
     auto first_args =
-        (((option("-d", "--replay-dir") & value("dir", replay_dir)) %
-              "Set path of replay directory which should the contain directory DBASE" |
-          (option("-j", "--json-data").set(use_json_input, true) & value("data", json_data_file)) %
-              "use json data as input instead of DBASE"),
-         (option("-u", "--unique").set(use_unique, true)) % "filter unique (adjacent) entries",
-         (option("-a", "--all").set(use_all, true)) %
-             "use all runs in supplied json file (only works json input)",
-         (option("-z", "--show-zeros").set(filter_zero, false)) %
-             "Turns of suppression of zero or null values",
-         (option("-P", "--shms").set(use_shms, true)) %
-             "Set to only the SHMS spectrometer for output. [default: both are used]",
-         (option("-H", "--hms").set(use_hms, true)) %
-             "Set to only the HMS spectrometer for output. [default: both are used]",
-         option("--json-format")([&] { output_format = "json"; }) &
-          opt_integer("json-format", json_dump_format) %
-             "set the printing format to json with an optional format spacing argument [default:-1]",
-         option("-h", "--help").set(use_help, true) % "print help");
+        ("Data source options" %
+             ((option("-d", "--replay-dir") & value("dir", replay_dir)) %
+                  "Set path of replay directory which should the contain directory DBASE. This is "
+                  "the default data source with dir=." |
+              (option("-j", "--json-data").set(use_json_input, true) &
+               value("data", json_data_file)) %
+                  "use json data as input instead of DBASE"),
+         "Basic filtering options " %
+             joinable(option("-u", "--unique").set(use_unique, true) % "filter unique (adjacent) entries",
+              option("-a", "--all").set(use_all, true) %
+                  "use all runs in supplied json file (only works with json input)",
+              option("-z", "--show-zeros").set(filter_zero, false) %
+                  "Turns of suppression of zero or null values"),
+         "Data output options" %
+             (option("-P", "--shms").set(use_shms, true) %
+                  "Set to only the SHMS spectrometer for output. [default: both are used]",
+              option("-H", "--hms").set(use_hms, true) %
+                  "Set to only the HMS spectrometer for output. [default: both are used]",
+              option("-J","--json-format")([&] { output_format = "json"; }) &
+                  opt_integer("json_fmt", json_dump_format) %
+                      "Set the printing format to json with an optional format spacing argument "
+                      "[default:-1]"),
+         option("-h", "--help").set(use_help, 1) % "print help",
+         option("--man").set(use_help, 2) % "print man page");
     //auto last_args = ;
     //(option("-t", "--type") & value("type", output_format)) % "set the build type");
 

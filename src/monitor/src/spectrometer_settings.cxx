@@ -156,10 +156,18 @@ int main(int argc, char* argv[]) {
   assert( cli.flags_are_prefix_free() );
   auto result = parse(argc, argv, cli);
 
-  if (opts.use_help) {
+  auto doc_filter = param_filter{}.prefix("--");
+
+  if (opts.use_help == 1) {
     //cout << make_man_page(cli, argv[0]);
     cout << "Usage:\n" << usage_lines(cli, "progname", clipp_format)
-    << "\nOptions:\n" << documentation(cli, clipp_format) << '\n';
+    << "\nOptions:\n" << documentation(cli, clipp_format,doc_filter) << '\n';
+    std::exit(0);
+  } else if (opts.use_help == 2) {
+    cout << make_man_page(cli, argv[0])
+        .prepend_section("DESCRIPTION", "    Spectrometer settings - things don't have to be difficult.")
+        .prepend_section("TEST", "    Spectrometer settings - things don't have to be difficult.")
+        .append_section("LICENSE", "    GPL3");
     std::exit(0);
   }
 
@@ -201,7 +209,10 @@ int main(int argc, char* argv[]) {
   }
 
   if(is_piped) {
+    // we assume only json is piped as input
     opts.use_json_input = true;
+    // All runs of the piped data are used
+    opts.use_all = true;
   }
 
   bool is_piped_out = false;
