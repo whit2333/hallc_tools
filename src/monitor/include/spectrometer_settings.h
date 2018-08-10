@@ -92,6 +92,7 @@ struct cli_settings {
   int                 RunNumber      = 3890;
   string              replay_dir     = ".";
   std::vector<int>    run_list       = {};
+  int                 json_dump_format = -1;
   string              output_format  = "table";
   string              table_name     = "settings.json";
   bool                has_filter     = false;
@@ -111,8 +112,7 @@ struct cli_settings {
               "Set path of replay directory which should the contain directory DBASE" |
           (option("-j", "--json-data").set(use_json_input, true) & value("data", json_data_file)) %
               "use json data as input instead of DBASE"),
-         (option("-u", "--unique").set(use_unique, true)) %
-             "filter unique (adjacent) entries",
+         (option("-u", "--unique").set(use_unique, true)) % "filter unique (adjacent) entries",
          (option("-a", "--all").set(use_all, true)) %
              "use all runs in supplied json file (only works json input)",
          (option("-z", "--show-zeros").set(filter_zero, false)) %
@@ -121,9 +121,10 @@ struct cli_settings {
              "Set to only the SHMS spectrometer for output. [default: both are used]",
          (option("-H", "--hms").set(use_hms, true)) %
              "Set to only the HMS spectrometer for output. [default: both are used]",
-         option("--json-format")([&] { output_format = "json"; }) %
+         (option("--json-format")([&] { output_format = "json"; }) &
+          opt_integer("format=-1", json_dump_format)) %
              "set the printing format [default:table]",
-         option("-h", "--help").set(use_help, true) % "print help" );
+         option("-h", "--help").set(use_help, true) % "print help");
     //auto last_args = ;
     //(option("-t", "--type") & value("type", output_format)) % "set the build type");
 

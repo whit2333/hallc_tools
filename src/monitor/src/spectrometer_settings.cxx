@@ -36,6 +36,7 @@ table_range_t build_range_with_json(std::string dbfile, std::vector<int> runlist
   if (!isatty(fileno(stdin))) {
     is_piped = true;
   }
+
   
   if(!is_piped) {
     if (!fs::exists(in_path)) {
@@ -80,7 +81,9 @@ table_range_t build_range_with_json(std::string dbfile, std::vector<int> runlist
   return res_tbl_range;
 }
 
+
 /** Build using DBASE.
+ *
  */
 table_range_t build_range_with_DBASE(std::string dbfile, std::vector<int> runlist) {
   using namespace ranges;
@@ -201,6 +204,13 @@ int main(int argc, char* argv[]) {
     opts.use_json_input = true;
   }
 
+  bool is_piped_out = false;
+  if (!isatty(fileno(stdout))) {
+    is_piped_out = true;
+    opts.output_format = "json";
+    opts.mode = RunMode::print;
+  }
+
   //for(auto [spec, mode,val,del] : view::zip(opts.fspecs, opts.fmodes, opts.filter_values, opts.filter_deltas) | to_<std::vector>()) {
   //  //std::cout << cli_settings::GetSpecString(spec) << " " ;
   //  switch (mode) {
@@ -304,6 +314,12 @@ int main(int argc, char* argv[]) {
       j_output[std::to_string(arun_num)]["ptheta_lab"] = std::get<1>(en)["shms"]["angle"];
     }
   }
+
+  if( is_piped_out ) {
+    opts.output_format = "json";
+    opts.mode = RunMode::print;
+  }
+
 
   switch (opts.mode) {
 
