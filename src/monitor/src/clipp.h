@@ -40,6 +40,7 @@
 #include <vector>
 #include <limits>
 #include <stack>
+#include <list>
 #include <algorithm>
 #include <sstream>
 #include <utility>
@@ -6041,6 +6042,25 @@ private:
         }
     }
 
+    static std::list<string> wraptext(std::string input, size_t width) {
+      using namespace std;
+      size_t curpos = 0;
+      size_t nextpos = 0;
+
+      list<string> lines;
+      string substr = input.substr(curpos, width + 1);
+
+      while (substr.length() == width + 1 && (nextpos = substr.rfind(' ')) != input.npos) {
+        lines.push_back(input.substr(curpos, nextpos));
+        curpos += nextpos + 1;
+        substr = input.substr(curpos, width + 1);
+      }
+
+      if (curpos != input.length())
+        lines.push_back(input.substr(curpos, input.npos));
+
+      return lines;
+    }
 
     /*********************************************************************//**
      *
@@ -6077,11 +6097,18 @@ private:
 
         if(!docstr.empty()) {
             if(oneline) {
-                os << string(fmt.doc_column() - len, ' ');
+              os << string(fmt.doc_column() - len, ' ');
+              os << docstr;
             } else {
-                os << '\n' << string(fmt.doc_column(), ' ');
+              //os << '\n';
+              auto wrapped_docstr = wraptext(docstr,80 - fmt.doc_column());
+              for(const auto& aline: wrapped_docstr){
+                os << '\n';
+                os << string(fmt.doc_column(), ' ');
+                os << aline;
+              }
             }
-            os << docstr;
+            //os << docstr;
         }
     }
 

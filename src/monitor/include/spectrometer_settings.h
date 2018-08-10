@@ -107,6 +107,12 @@ struct cli_settings {
     using std::string;
     using namespace ranges;
 
+    auto standard_args = (repeatable(option("-r", "--runs") & integers("runs", run_list)) %
+                              "Set indivindual runs to be used instead of range." |
+                          ((option("-N", "--number-of-runs") & integer("N_runs", N_runs)) %
+                               "Number of runs in the sequence starting at <start_run>",
+                           (option("-S", "--start") & integer("start_run", start_run)) %
+                               "Set the starting run for the output run sequence"));
     auto first_args =
         ("Data source options" %
              ((option("-d", "--replay-dir") & value("dir", replay_dir)) %
@@ -116,31 +122,27 @@ struct cli_settings {
                value("data", json_data_file)) %
                   "use json data as input instead of DBASE"),
          "Basic filtering options " %
-             joinable(option("-u", "--unique").set(use_unique, true) % "filter unique (adjacent) entries",
-              option("-a", "--all").set(use_all, true) %
-                  "use all runs in supplied json file (only works with json input)",
-              option("-z", "--show-zeros").set(filter_zero, false) %
-                  "Turns of suppression of zero or null values"),
+             joinable(option("-u", "--unique").set(use_unique, true) %
+                          "filter unique (adjacent) entries",
+                      option("-a", "--all").set(use_all, true) %
+                          "use all runs in supplied json file (only works with json input)",
+                      option("-z", "--show-zeros").set(filter_zero, false) %
+                          "Turns of suppression of zero or null values"),
+         "Run range options" % standard_args,
          "Data output options" %
-             (option("-P", "--shms").set(use_shms, true) %
-                  "Set to only the SHMS spectrometer for output. [default: both are used]",
-              option("-H", "--hms").set(use_hms, true) %
-                  "Set to only the HMS spectrometer for output. [default: both are used]",
-              option("-J","--json-format")([&] { output_format = "json"; }) &
-                  opt_integer("json_fmt", json_dump_format) %
-                      "Set the printing format to json with an optional format spacing argument "
-                      "[default:-1]"),
+             ("Single spectrometer output [default: both]. H->HMS, P->SHMS (note in 6 GeV era "
+              "S->SOS)" %
+                  joinable(option("-P", "--shms").set(use_shms, true) % "SHMS" ,
+                           option("-H", "--hms").set(use_hms, true) % "HMS" ),
+              (option("-J", "--json-format")([&] { output_format = "json"; }) &
+               opt_integer("json_style", json_dump_format)) %
+                  "Use json output format. Optionally setting the printing style number "
+                  "[default:-1] which defines json indentation spacing."),
          option("-h", "--help").set(use_help, 1) % "print help",
-         option("--man").set(use_help, 2) % "print man page");
+         option("-m", "--man").set(use_help, 2) % "print man page");
     //auto last_args = ;
     //(option("-t", "--type") & value("type", output_format)) % "set the build type");
 
-    auto standard_args = (repeatable(option("-r", "--runs") & integers("runs", run_list)) %
-                              "Set indivindual runs to be used (instead of range)" |
-                          ((option("-N", "--number-of-runs") & integer("N_runs", N_runs)) %
-                               "number of runs to process",
-                           (option("-S", "--start") & integer("start_run", start_run)) %
-                               "Set the starting run for the output run sequence"));
 
     //auto build_cmd = (command("build").set(mode, RunMode::build) % "build mode",
     //                  value("table_name", table_name) % "Output file");
@@ -163,20 +165,23 @@ struct cli_settings {
     //                                 option("--json-format")([&] { output_format = "json"; }) %
     //                                     "set the printing format [default:table]");
     auto filter_spec =
-        (command("filter").set(mode, RunMode::print),
-         value("spectrometer")([&](const string& v) { fspecs.push_back(GetSpec(v)); }));
-    auto filter_angle = (command("angle")([this] { this->fmodes.push_back(FilterMode::angle); }),
+        "Set to: hms,shms, or both. Specifies spectrometer to use with filter." % (command("filter").set(mode, RunMode::print),
+         value("spec")([&](const string& v) { fspecs.push_back(GetSpec(v)); }));
+    auto filter_angle = "Constructs a filter for angles in the range [deg-delta,deg+delta] degrees." %
+                        (command("angle")([this] { this->fmodes.push_back(FilterMode::angle); }),
                          (number("deg", filter_values) & number("delta", filter_deltas)));
     auto filter_momentum =
+        "Constructs a filter for momenta in the range [P0-deltaP,P0+deltaP] GeV/c." %
         (command("momentum")([this] { this->fmodes.push_back(FilterMode::momentum); }),
-         (number("GeV/c", filter_values) & number("deltaP", filter_deltas)));
+         (number("P0", filter_values) & number("deltaP", filter_deltas)));
     auto print_cmd = (command("print").set(mode, RunMode::print));
 
     //return (     |
     //            (print_cmd, filter_opt & momentum_filter_type ) |
     //            (build_cmd, filter_opt & angle_filter_type ),
     //        first_args, standard_args, last_args);
-    return (first_args, standard_args, (filter_spec, (filter_angle | filter_momentum)) | print_cmd);
+    return (first_args, "Filters" % (filter_spec, (filter_angle | filter_momentum)) |
+                            "Print spectrometer" % print_cmd);
   }
 
   auto GetFormat() {
@@ -187,8 +192,8 @@ struct cli_settings {
     // all formatting options (with their default values)
     auto clipp_format =
         doc_formatting{}.start_column(4) // column where usage lines and documentation starts
-        //.doc_column(20)                            //parameter docstring start col
-        //.indent_size(4)                            //indent of documentation lines for children of
+        .doc_column(28)                            //parameter docstring start col
+        .indent_size(3)                            //indent of documentation lines for children of
         //a documented group .line_spacing(0)                           //number of empty lines
         //after single documentation lines .paragraph_spacing(1)                      //number of
         //empty lines before and after paragraphs .flag_separator(", ") //between flags of the same
