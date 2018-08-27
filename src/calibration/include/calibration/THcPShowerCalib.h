@@ -1,7 +1,7 @@
 #ifndef ROOT_THcPShowerCalib
 #define ROOT_THcPShowerCalib
 
-#include "THcPShTrack.h"
+#include "calibration/THcPShTrack.h"
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TVectorD.h"

@@ -86,28 +86,31 @@ target_link_libraries(hcCalibration
 #  #PUBLIC InSANEbase
 #  )
 #
-###################################
-## spectrometer_settings executable
-#add_executable(hcspec src/spectrometer_settings.cxx)
-#target_compile_features(hcspec PUBLIC cxx_std_17)
-#target_include_directories(hcspec
-#  PRIVATE include    
-#  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+
+##################################
+# hc_cal_calib executable
+add_executable(hc_cal_calib src/pcal_calib.cpp)
+
+target_compile_features(hc_cal_calib PUBLIC cxx_std_17)
+target_include_directories(hcspec
+  PRIVATE include    
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+target_link_libraries(hc_cal_calib
+  PUBLIC hcCalibration
+  PRIVATE nlohmann_json::nlohmann_json
+  #PUBLIC InSANEbase
+  PUBLIC ${CXX_FILESYSTEM_LIB}
+  PRIVATE hcana::HallC
+)
+
+#file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR} / include / CSV/*)
+#install(FILES ${headers}
+#  DESTINATION include/CSV
 #  )
-#target_link_libraries(hcspec
-#  PRIVATE nlohmann_json::nlohmann_json
-#  #PUBLIC InSANEbase
-#  PUBLIC ${CXX_FILESYSTEM_LIB}
-#  PRIVATE hcana::HallC
-#)
-#
-##file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR} / include / CSV/*)
-##install(FILES ${headers}
-##  DESTINATION include/CSV
-##  )
-##install(DIRECTORY include/runplan
-##  DESTINATION include
-##  )
+#install(DIRECTORY include/runplan
+#  DESTINATION include
+#  )
 
 
 include(GNUInstallDirs)

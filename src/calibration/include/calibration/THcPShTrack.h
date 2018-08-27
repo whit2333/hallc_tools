@@ -1,7 +1,7 @@
 #ifndef hallc_calibration_shms_calorimeter_HH
 #define hallc_calibration_shms_calorimeter_HH
 
-#include "THcPShHit.h"
+#include "calibration/THcPShHit.h"
 #include "TMath.h"
 
 #include <vector>

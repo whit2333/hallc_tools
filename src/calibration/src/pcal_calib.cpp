@@ -2,11 +2,12 @@
 #include <TCanvas.h>
 #include <TH1.h>
 #include <TF1.h>
-#include "THcPShowerCalib.h"
+#include "calibration/THcPShowerCalib.h"
 
 //
 // A steering Root script for the SHMS calorimeter calibration.
 //
+
 
 void pcal_calib(string Prefix, int nstop=-1, int nstart=0) {
 
@@ -89,4 +90,12 @@ void pcal_calib(string Prefix, int nstop=-1, int nstart=0) {
   // Calculate the analysis rate
   t = clock() - t;
   printf ("The analysis took %.1f seconds \n", ((float) t) / CLOCKS_PER_SEC);
+}
+
+/** MAIN
+ */
+int main(int argc, char* argv[]) {
+
+  pcal_calib("coin_replay_production_4076_50000");
+
 }
