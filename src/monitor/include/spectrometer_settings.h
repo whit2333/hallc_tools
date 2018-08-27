@@ -23,7 +23,7 @@ using table_entry_t = std::map<string, std::map<std::string, double>>;
 using table_range_t = std::vector<std::pair<int,table_entry_t>>;
 
 table_range_t build_range_with_json(std::string dbfile, std::vector<int> runlist , bool all = false) ;
-table_range_t build_range_with_DBASE(std::string dbfile, std::vector<int> runlist) ;
+table_range_t build_range_with_DBASE(std::string dbfile, std::vector<int> runlist, std::string spec_daq ="COIN") ;
 
 //template<typename T>
 //class BuildRangeFrom  {
@@ -100,6 +100,7 @@ struct cli_settings {
   std::vector<FilterMode> fmodes     = {};
   std::vector<double> filter_values  = {};
   std::vector<double> filter_deltas  = {};
+  string              daq_spec_type  = "COIN";
 
   auto GetCLI() {
     using namespace clipp;
@@ -131,7 +132,7 @@ struct cli_settings {
          "Run range options" % standard_args,
          "Data output options" %
              ("Single spectrometer output [default: both]. H->HMS, P->SHMS (note in 6 GeV era "
-              "S->SOS)" %
+              "S->SOS). Selects wither to use DBASE/{COIN,SHMS<HMS} when using DBASE as input." %
                   joinable(option("-P", "--shms").set(use_shms, true) % "SHMS" ,
                            option("-H", "--hms").set(use_hms, true) % "HMS" ),
               (option("-J", "--json-format")([&] { output_format = "json"; }) &

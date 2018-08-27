@@ -82,13 +82,13 @@ target_link_libraries(experiment_monitor
 
 ##################################
 # spectrometer_settings executable
-add_executable(spectrometer_settings src/spectrometer_settings.cxx)
-target_compile_features(spectrometer_settings PUBLIC cxx_std_17)
-target_include_directories(spectrometer_settings
+add_executable(hcspec src/spectrometer_settings.cxx)
+target_compile_features(hcspec PUBLIC cxx_std_17)
+target_include_directories(hcspec
   PRIVATE include    
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
   )
-target_link_libraries(spectrometer_settings
+target_link_libraries(hcspec
   PRIVATE nlohmann_json::nlohmann_json
   #PUBLIC InSANEbase
   PUBLIC ${CXX_FILESYSTEM_LIB}
@@ -109,8 +109,11 @@ include(GNUInstallDirs)
 install(DIRECTORY include/monitor
   DESTINATION include
   )
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ExpMonitorDict_rdict.pcm
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
 
-install(TARGETS ExpMonitor experiment_monitor spectrometer_settings
+install(TARGETS ExpMonitor experiment_monitor hcspec
     EXPORT RunPlannerTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

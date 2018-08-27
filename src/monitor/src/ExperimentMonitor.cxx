@@ -37,6 +37,7 @@ void ExperimentMonitor() {
     std::string sj = j.dump();
     TBufferJSON::FromJSON( run_order, sj.c_str());
   }
+  std::cout << " asdf\n";
 
   auto random = new TRandom3();
 

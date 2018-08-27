@@ -36,7 +36,6 @@ table_range_t build_range_with_json(std::string dbfile, std::vector<int> runlist
   if (!isatty(fileno(stdin))) {
     is_piped = true;
   }
-
   
   if(!is_piped) {
     if (!fs::exists(in_path)) {
@@ -60,10 +59,18 @@ table_range_t build_range_with_json(std::string dbfile, std::vector<int> runlist
         res["shms"]["momentum"] = 0.0;
         return res;
       }
-      res["hms"]["angle"]     = j_in[rn]["htheta_lab"].get<double>();
-      res["hms"]["momentum"]  = j_in[rn]["hpcentral"].get<double>();
-      res["shms"]["angle"]    = j_in[rn]["ptheta_lab"].get<double>();
-      res["shms"]["momentum"] = j_in[rn]["ppcentral"].get<double>();
+      if (j_in[rn].find("htheta_lab") != j_in[rn].end()) {
+        res["hms"]["angle"]     = j_in[rn]["htheta_lab"].get<double>();
+      }
+      if (j_in[rn].find("hpcentral") != j_in[rn].end()) {
+        res["hms"]["momentum"]  = j_in[rn]["hpcentral"].get<double>();
+      }
+      if (j_in[rn].find("ptheta_lab") != j_in[rn].end()) {
+        res["shms"]["angle"]    = j_in[rn]["ptheta_lab"].get<double>();
+      }
+      if (j_in[rn].find("ppcentral") != j_in[rn].end()) {
+        res["shms"]["momentum"] = j_in[rn]["ppcentral"].get<double>();
+      }
       return res;
     });
     return view::zip(runlist, rng)| to_<std::vector>();
@@ -72,10 +79,22 @@ table_range_t build_range_with_json(std::string dbfile, std::vector<int> runlist
   table_range_t res_tbl_range;
   for (nlohmann::json::iterator it = j_in.begin(); it != j_in.end(); ++it) {
       table_entry_t  res;
-      res["hms"]["angle"]     = it.value()["htheta_lab"].get<double>();
-      res["hms"]["momentum"]  = it.value()["hpcentral"].get<double>();
-      res["shms"]["angle"]    = it.value()["ptheta_lab"].get<double>();
-      res["shms"]["momentum"] = it.value()["ppcentral"].get<double>();
+      if (it.value().find("htheta_lab") != it.value().end()) {
+        res["hms"]["angle"]     = it.value()["htheta_lab"].get<double>();
+        res["hms"]["momentum"]  = it.value()["hpcentral"].get<double>();
+      } else {
+        res["hms"]["angle"]     = 0.0;//it.value()["htheta_lab"].get<double>();
+        res["hms"]["momentum"]  = 0.0;//it.value()["hpcentral"].get<double>();
+      }
+
+      if (it.value().find("ptheta_lab") != it.value().end()) {
+        res["shms"]["angle"]    = it.value()["ptheta_lab"].get<double>();
+        res["shms"]["momentum"] = it.value()["ppcentral"].get<double>();
+      } else {
+        res["shms"]["angle"]    = 0.0;//it.value()["ptheta_lab"].get<double>();
+        res["shms"]["momentum"] = 0.0;//it.value()["ppcentral"].get<double>();
+      }
+
       res_tbl_range.push_back(std::make_pair(std::stoi(it.key()),res));
   }
   return res_tbl_range;
@@ -85,13 +104,13 @@ table_range_t build_range_with_json(std::string dbfile, std::vector<int> runlist
 /** Build using DBASE.
  *
  */
-table_range_t build_range_with_DBASE(std::string dbfile, std::vector<int> runlist) {
+table_range_t build_range_with_DBASE(std::string dbfile, std::vector<int> runlist, std::string spec_daq) {
   using namespace ranges;
   // build with hallc DBASE
   // ---------------------------------
   // Check the input database exists
-  std::string file_name           = dbfile + "/DBASE/COIN/standard.database";
-  std::string kinematics_filename = dbfile + "/DBASE/COIN/standard.kinematics";
+  std::string file_name           = dbfile + "/DBASE/"+spec_daq+"/standard.database";
+  std::string kinematics_filename = dbfile + "/DBASE/"+spec_daq+"/standard.kinematics";
 
   fs::path in_path = file_name;
   if (!fs::exists(in_path)) {
@@ -243,6 +262,10 @@ int main(int argc, char* argv[]) {
   if( (!opts.use_shms) && (!opts.use_hms)) {
     opts.use_shms = true;
     opts.use_hms = true;
+  } else if(opts.use_shms) {
+    opts.daq_spec_type = "SHMS";
+  } else if(opts.use_hms) {
+    opts.daq_spec_type = "HMS";
   }
 
   auto& run_list = opts.run_list; 
@@ -264,21 +287,27 @@ int main(int argc, char* argv[]) {
   if(opts.use_json_input) {
     run_shms_angles = build_range_with_json( dbfile, run_list, opts.use_all);
   } else {
-    run_shms_angles = build_range_with_DBASE( dbfile, run_list);
+    run_shms_angles = build_range_with_DBASE( dbfile, run_list,opts.daq_spec_type);
   }
 
   auto output_settings = run_shms_angles;
 
   if(opts.filter_zero) {
-    output_settings = output_settings | view::remove_if([](auto t){
-      return std::get<1>(t)["hms"]["angle"] == 0.0;
-    }) | view::remove_if([](auto t){
-      return std::get<1>(t)["hms"]["momentum"] == 0.0;
-    }) | view::remove_if([](auto t){
-      return std::get<1>(t)["shms"]["angle"] == 0.0;
-    }) | view::remove_if([](auto t){
-      return std::get<1>(t)["shms"]["momentum"] == 0.0;
-    }) | to_<std::vector>();
+    if (opts.use_hms) {
+      output_settings = output_settings | view::remove_if([](auto t){
+        return std::get<1>(t)["hms"]["angle"] == 0.0;
+      }) | view::remove_if([](auto t){
+        return std::get<1>(t)["hms"]["momentum"] == 0.0;
+      }) | to_<std::vector>();
+    }
+
+    if (opts.use_shms) {
+      output_settings = output_settings| view::remove_if([](auto t){
+        return std::get<1>(t)["shms"]["angle"] == 0.0;
+      }) | view::remove_if([](auto t){
+        return std::get<1>(t)["shms"]["momentum"] == 0.0;
+      }) | to_<std::vector>();
+    }
   }
 
   for (auto& [spm, mo, val, del] :

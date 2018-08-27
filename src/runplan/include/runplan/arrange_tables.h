@@ -56,7 +56,7 @@ using TableVector = std::vector<std::pair<double, Q2Table>>;
 
 
 void arrange_tables();
-void arrange_tables2();
+//void arrange_tables2();
 
 
 

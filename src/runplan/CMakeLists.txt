@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.1)
 
 add_library(RunPlan SHARED 
   src/arrange_tables.cxx
-  src/arrange_tables2.cxx
+  #  src/arrange_tables2.cxx
   src/RunStatus.cxx
   src/hallc_settings.cxx
   src/sidis_settings_rate.cxx
@@ -47,6 +47,9 @@ target_link_libraries(RunPlan
 
 install(DIRECTORY include/runplan
   DESTINATION include
+  )
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/RunPlanDict_rdict.pcm
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 
 include(GNUInstallDirs)
