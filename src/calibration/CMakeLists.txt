@@ -89,7 +89,7 @@ target_link_libraries(hcCalibration
 
 ##################################
 # hc_cal_calib executable
-add_executable(hc_cal_calib src/pcal_calib.cpp)
+add_executable(hc_cal_calib src/pcal_calib.cxx)
 
 target_compile_features(hc_cal_calib PUBLIC cxx_std_17)
 target_include_directories(hcspec
@@ -122,7 +122,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hcCalibrationDict_rdict.pcm
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 
-install(TARGETS hcCalibration 
+install(TARGETS hcCalibration hc_cal_calib
     EXPORT RunPlannerTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
