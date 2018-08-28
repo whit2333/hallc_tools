@@ -122,13 +122,20 @@ void pcal_calib(string Prefix, int nstop, int nstart) {
 
   THcPShowerCalib theShowerCalib(Prefix, nstart, nstop);
 
+  std::cout << " ReadThresholds\n";
   theShowerCalib.ReadThresholds(); // Read in threshold param-s and intial gains
+  std::cout << " Init\n";
   theShowerCalib.Init();           // Initialize constants and variables
+  std::cout << " CalcThresholds\n";
   theShowerCalib.CalcThresholds(); // Thresholds on the uncalibrated Edep/P
+  std::cout << " ComposeVMs\n";
   theShowerCalib.ComposeVMs();     // Compute vectors amd matrices for calib.
+  std::cout << " SolveAlphas\n";
   theShowerCalib.SolveAlphas();    // Solve for the calibration constants
+  std::cout << " SaveAlphas\n";
   theShowerCalib.SaveAlphas();     // Save the constants
   // theShowerCalib.SaveRawData();   // Save raw data into file for debuging
+  std::cout << " FillHEcal\n";
   theShowerCalib.FillHEcal(); // Fill histograms
 
   // Plot histograms

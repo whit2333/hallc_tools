@@ -792,7 +792,7 @@ namespace hallc {
 
     //------------------------------------------------------------------------------
 
-    void THcPShowerCalib::SaveAlphas() {
+    void THcPShowerCalib::SaveAlphas(std::string output_fname) {
 
       //
       // Output the gain constants in a format suitable for inclusion in the
@@ -800,10 +800,10 @@ namespace hallc {
       //
 
       ofstream output;
-      char*    fname = Form("pcal.param.%s_%d_%d", fPrefix.c_str(), fNstart, fNstopRequested);
-      cout << "SaveAlphas: fname=" << fname << endl;
+      //char*    fname = Form("pcal.param.%s_%d_%d", "asdf", fNstart, fNstopRequested);
+      //cout << "SaveAlphas: fname=" << fname << endl;
 
-      output.open(fname, ios::out);
+      output.open(output_fname, ios::out);
 
       output << "; Calibration constants for file " << fPrefix << ", " << fNev
              << " events processed" << endl;

@@ -56,7 +56,7 @@ namespace hallc {
       void ComposeVMs();
       void SolveAlphas();
       void FillHEcal();
-      void SaveAlphas();
+      void SaveAlphas(std::string output_fname = "pcal.param");
       void SaveRawData();
 
       TH1F* hEunc;
