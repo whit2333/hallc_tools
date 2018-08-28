@@ -1,8 +1,7 @@
-# HallC Run Plan Monitor
+# HallC Tools
 
 ## Dependencies
 
-* InSANE
 * nlohmann_json
 * fmtlib
 * date
