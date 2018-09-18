@@ -14,8 +14,6 @@ list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3/cmake)
 list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
-find_package(InSANE REQUIRED)
-
 find_package(fmt REQUIRED)
 find_package(range-v3 REQUIRED)
 

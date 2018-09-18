@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 3.1)
 
+find_package(InSANE REQUIRED)
+
 add_library(RunPlan SHARED 
   src/arrange_tables.cxx
   #  src/arrange_tables2.cxx

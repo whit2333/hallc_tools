@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include <map>
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
@@ -8,15 +9,16 @@ namespace fs = std::filesystem;
 namespace fs = std::experimental::filesystem;
 #endif
 
+#include "clipp.h"
+using namespace clipp;
+
 #include <TCanvas.h>
 #include <TF1.h>
 #include <TH1.h>
 #include <TStyle.h>
 
-#include "clipp.h"
-using namespace clipp;
-
 #include "calibration/THcPShowerCalib.h"
+#include "calibration/CalorimeterCalibration.h"
 
 using std::cout;
 using std::endl;
@@ -26,27 +28,24 @@ void pcal_calib(string Prefix, int nstop = -1, int nstart = 0);
 
 int main(int argc, char* argv[]) {
 
-  bool                     rec              = false;
-  bool                     use_default_tags = true;
-  bool                     utf16            = false;
   bool                     force_out        = false;
   bool                     verbose          = false;
   int                      N_events         = 0;
+  int                      run_number       = 0;
   uint64_t                 start_event      = 0;
   bool                     help             = false;
   string                   infile           = "";
   string                   output_name      = "";
-  string                   tree_name        = "proio_converted";
-  std::vector<std::string> tags;
+  string                   tree_name        = "hc_cal_calibration";
 
   auto cli =
       ("input file name" % (required("-i", "--input") & value("input file", infile)),
        "output file name" % (option("-o", "--output") & value("output file", output_name)),
        option("-f", "--force").set(force_out) % "force the output to overwrite existing files",
-       "set a tag that should be added to list " %
-           repeatable(option("-t", "--tag") & value("tag", tags)),
        "starting event - skips the first <evt> events " %
            (option("-S", "--start-event") & value("evt", start_event)),
+       "calibration run number" %
+           (option("-R", "--run-number") & value("run", run_number)),
        "Number of events to process from start event number" %
            (option("-N", "--Nevents") & value("N events", N_events)),
        "output tree name" % (option("-T", "--tree-name") & value("tree name", tree_name)),
@@ -103,17 +102,36 @@ int main(int argc, char* argv[]) {
   cout << "using    " << in_path << "\n";
   cout << "prefix   " << in_path_prefix << "\n";
 
-  pcal_calib(in_path_prefix.c_str());
+  hallc::calibration::CalorimeterCalibration cal_obj(run_number);
+
+  cal_obj.LoadJsonCalibration("pcal_calib.json", run_number);
+
+  cal_obj.ReadLegacyCalibration();
+  //std::cout << cal_obj.PrepareJson() << "\n";
+  cal_obj.BuildTester(1234);
+
+  pcal_calib(in_path.c_str());
 }
 
 // ----------------------------------------------------------------------
 
 void pcal_calib(string Prefix, int nstop, int nstart) {
-
-  using namespace hallc::calibration;
   //
   // A steering Root script for the SHMS calorimeter calibration.
   //
+
+  using namespace hallc::calibration;
+
+  //chrono::steady_clock sc;               // create an object of `steady_clock` class
+  //auto                 start = sc.now(); // start timer
+  //// do stuff....
+
+  //auto end = sc.now(); // end timer (starting & ending is done by measuring the time at the moment
+  //                     // the process started & ended respectively)
+  //auto time_span =
+  //    static_cast<chrono::duration<double>>(end - start); // measure time span between start & end
+  //cout << "Operation took: " << time_span.count() << " seconds !!!";
+  //return 0;
 
   // Initialize the analysis clock
   clock_t t = clock();

@@ -9,41 +9,28 @@
 #include <time.h>
 #include <vector>
 
-
 #include "TDecompLU.h"
+#include "TF1.h"
+#include "TFile.h"
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TMath.h"
 #include "TMatrixD.h"
-#include "TVectorD.h"
-#include "TFile.h"
 #include "TROOT.h"
 #include "TTree.h"
-#include "TF1.h"
+#include "TVectorD.h"
 
 using namespace std;
 
 namespace hallc {
   namespace calibration {
 
-    //
-    // SHMS Calorimeter calibration class.
-    //
-
-    //------------------------------------------------------------------------------
-
     THcPShowerCalib::THcPShowerCalib() {}
 
-    //------------------------------------------------------------------------------
-
-    THcPShowerCalib::THcPShowerCalib(string Prefix, int nstart, int nstop)
-        : fPrefix(Prefix), fNstart(nstart), fNstopRequested(nstop) {}
-
-    //------------------------------------------------------------------------------
+    THcPShowerCalib::THcPShowerCalib(string fname, int nstart, int nstop)
+        : input_file_name(fname), fNstart(nstart), fNstopRequested(nstop) {}
 
     THcPShowerCalib::~THcPShowerCalib() {}
-
-    //------------------------------------------------------------------------------
 
     void THcPShowerCalib::SaveRawData() {
 
@@ -73,6 +60,21 @@ namespace hallc {
     void THcPShowerCalib::ReadThresholds() {
 
       // Read in threshold parameters and initial gains.
+      // File is assumed to have the following structure:
+      // -10 22	Delta range, %
+      // 0.5 1.5	Beta range
+      // 2.  	Heavy Gas Cherenkov, threshold on signals in p.e.
+      // 0.  	Noble Gas Cherenkov, threshold on signals in p.e.
+      // 5	Minimum number of hits per channel required to be calibrated
+      // 0. 3.	Range of uncalibrated energy deposition histogram
+      // 500	Binning of uncalibrated energy deposition histogram
+      // 0.5 2.	Gaussian fit range around e- peak in the uncalibrated Edep histogram
+      // (blank line)
+      //; Calibration constants for run 1791_300000, 38067 events processed (dec. 17 defocused run)
+      // (blank line)
+      //pcal_neg_gain_cor =  ( 14 numbers , comma separated)
+      //pcal_pos_gain_cor = ( 14 numbers , comma separated)
+      //pcal_arr_gain_cor = ( 16 x 14  comma separted values) 
 
       fDeltaMin    = 0.;
       fDeltaMax    = 0.;
@@ -200,16 +202,15 @@ namespace hallc {
     void THcPShowerCalib::Init() {
 
       // Reset ROOT and connect tree file.
+      //gROOT->Reset();
 
-      gROOT->Reset();
+      //char* fname = Form("%s.root", fPrefix.c_str());
+      cout << "THcPShowerCalib::Init: Root file name = " << input_file_name << endl;
 
-      char* fname = Form("%s.root", fPrefix.c_str());
-      cout << "THcPShowerCalib::Init: Root file name = " << fname << endl;
-
-      TFile* f = new TFile(fname);
+      TFile* f = new TFile(input_file_name.c_str());
       f->GetObject("T", fTree);
       if (!fTree) {
-        std::cerr << " could not find tree, T in " << fname << "\n";
+        std::cerr << " could not find tree, T in " << input_file_name << "\n";
         exit(EXIT_FAILURE);
       }
 
@@ -800,12 +801,12 @@ namespace hallc {
       //
 
       ofstream output;
-      //char*    fname = Form("pcal.param.%s_%d_%d", "asdf", fNstart, fNstopRequested);
-      //cout << "SaveAlphas: fname=" << fname << endl;
+      // char*    fname = Form("pcal.param.%s_%d_%d", "asdf", fNstart, fNstopRequested);
+      // cout << "SaveAlphas: fname=" << fname << endl;
 
       output.open(output_fname, ios::out);
 
-      output << "; Calibration constants for file " << fPrefix << ", " << fNev
+      output << "; Calibration constants for file " << input_file_name << ", " << fNev
              << " events processed" << endl;
       output << endl;
 

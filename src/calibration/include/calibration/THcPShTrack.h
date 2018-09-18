@@ -25,6 +25,7 @@ namespace hallc {
      *typedef THcPShHitList::iterator THcPShHitIt;
      */
     class THcPShTrack {
+    public:
 
       using THcPShHitList = std::vector<THcPShHit*>;
       using THcPShHitIt   = THcPShHitList::iterator;
@@ -38,10 +39,9 @@ namespace hallc {
 
       THcPShHitList Hits;
 
-    public:
       THcPShTrack();
       THcPShTrack(Double_t p, Double_t dp, Double_t x, Double_t xp, Double_t y, Double_t yp);
-      ~THcPShTrack();
+      virtual ~THcPShTrack();
 
       void Reset(Double_t p, Double_t dp, Double_t x, Double_t xp, Double_t y, Double_t yp);
 

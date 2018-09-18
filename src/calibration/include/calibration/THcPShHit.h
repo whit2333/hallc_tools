@@ -11,15 +11,15 @@ namespace hallc {
     /** SHMS calorimeter hit class for calibration.
      */
     class THcPShHit {
+    public:
 
       Double_t ADC;       // pedestal subtracted ADC signal.
       Double_t Edep;      // Energy deposition.
       UInt_t   BlkNumber; // Block number.
 
-    public:
       THcPShHit();
       THcPShHit(Double_t adc, UInt_t blk_number);
-      ~THcPShHit();
+      virtual ~THcPShHit();
 
       void SetADC(Double_t sig) { ADC = sig; }
 
@@ -39,6 +39,12 @@ namespace hallc {
     struct pmt_hit {
       Double_t signal;
       UInt_t   channel;
+    };
+
+    struct CalHit {
+      int64_t _channel = 0;
+      double  _adc     = 0.0;
+      double  _energy  = 0.0;
     };
 
   } // namespace calibration

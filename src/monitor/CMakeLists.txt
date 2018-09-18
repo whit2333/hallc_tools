@@ -15,7 +15,7 @@ set(lib_HEADERS
   include/monitor/ExperimentMonitor.h
   )
 
-get_target_property(insane_include_dir InSANE::InSANEnew_xsec INTERFACE_INCLUDE_DIRECTORIES)
+#get_target_property(insane_include_dir InSANE::InSANEnew_xsec INTERFACE_INCLUDE_DIRECTORIES)
 
 root_generate_dictionary(ExpMonitorDict 
   #-I${insane_include_dir} 
