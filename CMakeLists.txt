@@ -12,6 +12,7 @@ find_package(nlohmann_json REQUIRED)
 
 list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3/cmake)
 list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3)
+list(APPEND CMAKE_PREFIX_PATH $ENV{HOME})
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 find_package(fmt REQUIRED)

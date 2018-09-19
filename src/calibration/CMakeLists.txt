@@ -31,6 +31,7 @@ set(lib_HEADERS
 
 root_generate_dictionary(hcCalibrationDict 
   #-I${insane_include_dir} 
+  -I${EIGEN3_INCLUDE_DIRS}
   -I${CMAKE_CURRENT_SOURCE_DIR}/include
   -I${CMAKE_CURRENT_SOURCE_DIR} ${lib_HEADERS} 
   LINKDEF include/LinkDef.h 
@@ -41,6 +42,7 @@ add_dependencies(hcCalibration hcCalibration_ROOTDICTS)
 target_link_libraries(hcCalibration
   PUBLIC ${CXX_FILESYSTEM_LIB}
   PUBLIC nlohmann_json::nlohmann_json
+  PUBLIC Eigen3::Eigen
   #  PUBLIC fmt::fmt
   #  PUBLIC InSANE::InSANEbase
   #  PUBLIC InSANE::InSANEnew_xsec

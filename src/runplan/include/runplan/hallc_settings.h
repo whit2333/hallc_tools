@@ -9,13 +9,13 @@
 #define _USE_MATH_DEFINES
 #include <cmath> 
 
-#if !defined(__CLING__)
-#include "InSANE/PhysicalConstants.h"
-#include "InSANE/SystemOfUnits.h"
-using insane::units::degree;
-#else
-const double degree = M_PI/180.0;
-#endif
+//#if !defined(__CLING__)
+//#include "InSANE/PhysicalConstants.h"
+//#include "InSANE/SystemOfUnits.h"
+//using insane::units::degree;
+//#else
+//const double degree = M_PI/180.0;
+//#endif
 
 namespace hallc {
 
