@@ -23,6 +23,36 @@ namespace hallc {
 
     CalorimeterCalibration::CalorimeterCalibration(int rn) : run_number(rn) {}
 
+      double CalorimeterCalibration::GetGainCoeff(uint64_t block) const {
+        if (block < Config::N_rows_preshower) {
+          return neg_gain_cor.at(block);
+        } else if (block < 2 * Config::N_rows_preshower) {
+          return pos_gain_cor.at(block - Config::N_rows_preshower);
+        } else if (block <
+                   2 * Config::N_rows_preshower + Config::N_rows_shower * Config::N_cols_shower) {
+          return arr_gain_cor.at(block - 2 * Config::N_rows_preshower);
+        }
+        return 0.0;
+      }
+
+      void CalorimeterCalibration::SetGainCoeffs(const std::array<double,fNpmts>& coeffs) {
+        neg_gain_cor.clear();
+        pos_gain_cor.clear();
+        arr_gain_cor.clear();
+        std::copy(coeffs.begin(), 
+                  coeffs.begin() + fNrows_pr, 
+                  std::back_inserter(neg_gain_cor));
+        std::copy(coeffs.begin() + fNrows_pr,
+                  coeffs.begin() + fNpmts_pr,
+                  std::back_inserter(pos_gain_cor));
+        std::copy(coeffs.begin() + fNpmts_pr, 
+                  coeffs.end(), 
+                  std::back_inserter(arr_gain_cor));
+        if (pos_gain_cor.size() != fNrows_pr) {
+          std::cout << pos_gain_cor.size() << "  != " << fNrows_pr << "\n";
+        }
+      }
+
     std::string CalorimeterCalibration::PrepareJson() const {
       nlohmann::json j;
       j["thresholds"]["delta_low"]  = fDeltaMin;
@@ -38,41 +68,21 @@ namespace hallc {
       return j.dump();
     }
 
-    void CalorimeterCalibration::WriteCalibration(int run_num) const {
+
+    void CalorimeterCalibration::LoadCalibration(int run_num, const std::string& fname) {
+      LoadJsonCalibration(run_num,fname );
+    }
+
+    void CalorimeterCalibration::LoadJsonCalibration(int rn, const std::string& fname) {
+      // file checks assumed already complete.
       using nlohmann::json;
-      nlohmann::json j_database;
+      json j_database;
+      input_cal_file_name = fname;
+      run_number          = rn;
       {
-        std::ifstream json_input_file(input_cal_file_name);
-        // std::istream& in_stream = is_piped ? std::cin : jinput;
+        std::ifstream json_input_file(fname);
         json_input_file >> j_database;
       }
-      std::string a_run          = PrepareJson();
-      j_database[std::to_string(run_num)] = nlohmann::json::parse(a_run);
-
-      std::ofstream json_out_file(output_cal_file_name);
-      json_out_file << j_database.dump(1) << std::endl;
-    }
-
-    void CalorimeterCalibration::BuildTester(int run_num) const {
-      nlohmann::json j;
-      // nlohmann::json a_run;
-      std::string a_run          = PrepareJson();
-      j["0"]                     = nlohmann::json::parse(a_run);
-      j["1111"]                  = nlohmann::json::parse(a_run);
-      j["2222"]                  = nlohmann::json::parse(a_run);
-      j["3333"]                  = nlohmann::json::parse(a_run);
-      j[std::to_string(run_num)] = nlohmann::json::parse(a_run);
-
-      std::ofstream json_out_file("test.json");
-      json_out_file << j.dump(1) << std::endl;
-    }
-
-    void CalorimeterCalibration::LoadJsonCalibration(const std::string& fname, int rn) {
-      using nlohmann::json;
-      std::ifstream json_input_file(fname);
-      //std::istream& in_stream = is_piped ? std::cin : jinput;
-      nlohmann::json j_database;
-      json_input_file >> j_database;
 
       std::cout << " runs : ";
       std::vector<int> runs;
@@ -96,13 +106,13 @@ namespace hallc {
       //std::cout << "using run lower " << rn << " :::: " << *(best_run) << "\n";
 
       int best_run = closest(runs, rn);
-      std::cout << " clostest " << best_run << std::endl;
+      std::cout << " closest " << best_run << std::endl;
       json  j = j_database[std::to_string(best_run)];
       //std::cout << j_database[std::to_string(best_run)] << "\n";;
-      std::cout << j.dump(-1) << "\n";
+      //std::cout << j.dump(-1) << "\n";
 
       if (j.find("thresholds") != j.end()) {
-        std::cout << j["thresholds"] << "\n";
+        //std::cout << j["thresholds"] << "\n";
         json j_thresh = j["thresholds"];
         if (j_thresh.find("delta_low") != j_thresh.end()) {
           fDeltaMin = j_thresh["delta_low"].get<double>();
@@ -126,7 +136,7 @@ namespace hallc {
           fNGCerMin = j["thresholds"]["ngc_min"].get<double>();
         }
       } else {
-        std::cout << " thresholds not found !!! \n";
+        //std::cout << " thresholds not found !!! \n";
       }
 
       if (j.find("histogram") != j.end()) {
@@ -134,7 +144,7 @@ namespace hallc {
       if (j.find("cal") != j.end()) {
         json j_cal = j["cal"];
         if (j_cal.find("neg_gain_cor") != j_cal.end()) {
-          std::cout << " neg_gain_cor!!!\n";
+          //std::cout << " neg_gain_cor!!!\n";
           neg_gain_cor = j["cal"]["neg_gain_cor"].get<std::vector<double>>();
         }
         if (j_cal.find("pos_gain_cor") != j_cal.end()) {
@@ -144,6 +154,36 @@ namespace hallc {
           arr_gain_cor = j["cal"]["arr_gain_cor"].get<std::vector<double>>();
         }
       }
+    }
+
+    void CalorimeterCalibration::WriteCalibration(int run_num, const std::string& fname) const {
+      using nlohmann::json;
+      nlohmann::json j_database;
+      output_cal_file_name = fname;
+      run_number           = run_num;
+      {
+        std::ifstream json_input_file(input_cal_file_name);
+        json_input_file >> j_database;
+      }
+      std::string a_run                   = PrepareJson();
+      j_database[std::to_string(run_num)] = nlohmann::json::parse(a_run);
+
+      std::ofstream json_out_file(output_cal_file_name);
+      json_out_file << j_database.dump(1) << std::endl;
+    }
+
+    void CalorimeterCalibration::BuildTester(int run_num) const {
+      nlohmann::json j;
+      // nlohmann::json a_run;
+      std::string a_run          = PrepareJson();
+      j["0"]                     = nlohmann::json::parse(a_run);
+      j["1111"]                  = nlohmann::json::parse(a_run);
+      j["2222"]                  = nlohmann::json::parse(a_run);
+      j["3333"]                  = nlohmann::json::parse(a_run);
+      j[std::to_string(run_num)] = nlohmann::json::parse(a_run);
+
+      std::ofstream json_out_file("test.json");
+      json_out_file << j.dump(1) << std::endl;
     }
 
     void CalorimeterCalibration::ReadLegacyCalibration(const std::string& fname) {
@@ -165,17 +205,17 @@ namespace hallc {
       //pcal_arr_gain_cor = ( 16 x 14  comma separted values) 
 
       using namespace std;
-      fDeltaMin    = 0.;
-      fDeltaMax    = 0.;
-      fBetaMin     = 0.;
-      fBetaMax     = 0.;
-      fHGCerMin    = 999.;
-      fNGCerMin    = 999.;
-      fMinHitCount = 999999;
+      //fDeltaMin    = 0.;
+      //fDeltaMax    = 0.;
+      //fBetaMin     = 0.;
+      //fBetaMax     = 0.;
+      //fHGCerMin    = 999.;
+      //fNGCerMin    = 999.;
+      //fMinHitCount = 999999;
 
-      for (UInt_t ipmt = 0; ipmt < fNpmts; ipmt++) {
-        falpha0[ipmt] = 0.;
-      }
+      //for (UInt_t ipmt = 0; ipmt < fNpmts; ipmt++) {
+      //  falpha0[ipmt] = 0.;
+      //}
 
       /// \todo add file checks
       ifstream fin(fname);
@@ -244,7 +284,7 @@ namespace hallc {
             string name;
             iss >> name >> name >> alpha_0;//falpha0[iblk];
           } else {
-            iss >> falpha0[iblk];
+            iss >> alpha_0;//falpha0[iblk];
           }
           pos_gain_cor.push_back(alpha_0);
 
@@ -292,18 +332,18 @@ namespace hallc {
       UInt_t j = 0;
       cout << "pcal_neg_gain_cor =";
       for (UInt_t i = 0; i < fNrows_pr; i++){
-        cout << fixed << setw(6) << setprecision(2) << neg_gain_cor[j++] << ",";
+        cout << fixed << setw(6) << setprecision(2) << neg_gain_cor[i] << ",";
       }
       cout << endl;
       cout << "pcal_pos_gain_cor =";
       for (UInt_t i = 0; i < fNrows_pr; i++) {
-        cout << fixed << setw(6) << setprecision(2) << pos_gain_cor[j++] << ",";
+        cout << fixed << setw(6) << setprecision(2) << pos_gain_cor[i] << ",";
       }
       cout << endl;
       for (UInt_t k = 0; k < fNcols_sh; k++) {
         k == 0 ? cout << "pcal_arr_gain_cor =" : cout << "                   ";
         for (UInt_t i = 0; i < fNrows_sh; i++)
-          cout << fixed << setw(6) << setprecision(2) << falpha0[j++] << ",";
+          cout << fixed << setw(6) << setprecision(2) << arr_gain_cor[i + k*fNrows_sh] << ",";
         cout << endl;
       }
       cout << "=================================================================\n";

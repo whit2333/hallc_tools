@@ -20,6 +20,14 @@ namespace hallc {
       static const size_t N_cols_preshower = 2;
     };
 
+    /** Calorimeter Calibration.
+     *
+     * Stores the calibration and provides various read/write methods.
+     * Actual calibration method is handeled by ShowerCalibrator.
+     *
+     * \todo Add (non-member?) functions  to combine multiple calibrations.
+     *
+     */
     struct CalorimeterCalibration {
 
       // Coordinate correction constants for Preshower blocks
@@ -28,87 +36,55 @@ namespace hallc {
       using Config = CalorimeterConfig<16,14,14>;
       // Calorimeter geometry constants.
       static const unsigned int fNrows_pr = Config::N_rows_preshower;
-      static const unsigned int fNcols_pr = 2;
+      static const unsigned int fNcols_pr = Config::N_cols_preshower;
       static const unsigned int fNrows_sh = Config::N_rows_shower;
       static const unsigned int fNcols_sh = Config::N_cols_shower;
       static const unsigned int fNpmts_pr = fNrows_pr * fNcols_pr;
       static const unsigned int fNpmts    = fNpmts_pr + fNrows_sh * fNcols_sh;
 
-      // Quantities for calculations of the calibration constants.
-      //  do these need to be here?
-      double                                         fe0;
-      std::array<double, fNpmts>                     fqe;
-      std::array<double, fNpmts>                     fq0;
-      std::array<std::array<double, fNpmts>, fNpmts> fQ;
-      std::array<double, fNpmts>                     falphaU; // 'unconstrained' calib. constants
-      std::array<double, fNpmts>                     falphaC; // the sought calibration constants
-      std::array<double, fNpmts>                     falpha0; // initial gains
-      std::array<double, fNpmts>                     falpha1; // unit gains
-      std::array<unsigned int, fNpmts>               fHitCount;
-
-      double fDeltaMin    = 0.;
-      double fDeltaMax    = 1.;
-      double fBetaMin     = 0.;
-      double fBetaMax     = 2.;
-      double fHGCerMin    = 999.;
-      double fNGCerMin    = 999.;
-      double fMinHitCount = 999999;
+      double       fDeltaMin    = 0.;
+      double       fDeltaMax    = 1.;
+      double       fBetaMin     = 0.5;
+      double       fBetaMax     = 2.;
+      double       fHGCerMin    = 2.;
+      double       fNGCerMin    = 2.;
+      double       fMinHitCount = 10;
+      double       fEuncLoLo    = 0.0;
+      double       fEuncHiHi    = 0.0; // Range of uncalibrated Edep histogram
+      unsigned int fEuncNBin    = 0;   // Binning of uncalibrated Edep histogram
+      double       fEuncGFitLo  = 0.0;
+      double       fEuncGFitHi  = 0.0; // Gaussian fit range of uncalib. Edep histo.
 
       std::vector<double> neg_gain_cor;
       std::vector<double> pos_gain_cor;
       std::vector<double> arr_gain_cor;
 
-      std::string input_cal_file_name  = "pcal_calib.json";
-      std::string output_cal_file_name = "pcal_calib_new.json";
-      int         run_number = 0;
-
-      double       fEuncLoLo;
-      double       fEuncHiHi; // Range of uncalibrated Edep histogram
-      unsigned int fEuncNBin; // Binning of uncalibrated Edep histogram
-      double       fEuncGFitLo;
-      double       fEuncGFitHi; // Gaussian fit range of uncalib. Edep histo.
+      mutable std::string input_cal_file_name  = "pcal_calib.json";
+      mutable std::string output_cal_file_name = "pcal_calib_new.json";
+      mutable int         run_number           = 0;
 
     public:
       CalorimeterCalibration(){}
       CalorimeterCalibration(int rn);
       CalorimeterCalibration(const CalorimeterCalibration&) = default;
 
-      double GetGainCoeff(uint64_t block) const {
-        if (block < Config::N_rows_preshower) {
-          return neg_gain_cor.at(block);
-        } else if (block < 2 * Config::N_rows_preshower) {
-          return pos_gain_cor.at(block - Config::N_rows_preshower);
-        } else if (block <
-                   2 * Config::N_rows_preshower + Config::N_rows_shower * Config::N_cols_shower) {
-          return arr_gain_cor.at(block - 2 * Config::N_rows_preshower);
-        }
-        return 0.0;
-      }
+      double GetGainCoeff(uint64_t block) const ;
 
-      void SetGainCoeffs(const std::array<double,fNpmts>& coeffs) {
-        neg_gain_cor.clear();
-        pos_gain_cor.clear();
-        arr_gain_cor.clear();
-        std::copy(coeffs.begin(), 
-                  coeffs.begin() + fNrows_pr, 
-                  std::back_inserter(neg_gain_cor));
-        std::copy(coeffs.begin() + fNrows_pr,
-                  coeffs.begin() + fNpmts_pr,
-                  std::back_inserter(pos_gain_cor));
-        std::copy(coeffs.begin() + fNpmts_pr, 
-                  coeffs.end(), 
-                  std::back_inserter(arr_gain_cor));
-        if (pos_gain_cor.size() != fNrows_pr) {
-          std::cout << pos_gain_cor.size() << "  != " << fNrows_pr << "\n";
-        }
-      }
+      /** Sets the calibration coeffs. 
+       *  (neg_gain_cor, pos_gain_cor, arr_gain_cor)
+       */
+      void SetGainCoeffs(const std::array<double,fNpmts>& coeffs) ;
 
+      /** Leagcy reader.
+       */
       void ReadLegacyCalibration(const std::string& fname = "input.dat" );
 
       /** Load the calibration constants for a specific run.
        */
-      void LoadJsonCalibration(const std::string& fname = "pcal_calib.json", int run_number = 0);
-      void WriteCalibration(int run_num) const;
+      void LoadCalibration(    int run_num, const std::string& fname = "pcal_calib.json");
+      void LoadJsonCalibration(int run_num, const std::string& fname = "pcal_calib.json");
+
+      void WriteCalibration(int run_num, const std::string& fname = "pcal_calib_new.json") const;
 
 
       /** Load the calibration constants for a specific run.

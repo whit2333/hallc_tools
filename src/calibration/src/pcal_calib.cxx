@@ -103,11 +103,10 @@ int main(int argc, char* argv[]) {
   cout << "prefix   " << in_path_prefix << "\n";
 
   hallc::calibration::CalorimeterCalibration cal_obj(run_number);
-
-  cal_obj.LoadJsonCalibration("pcal_calib.json", run_number);
+  //cal_obj.LoadJsonCalibration("pcal_calib.json", run_number);
 
   cal_obj.ReadLegacyCalibration();
-  //std::cout << cal_obj.PrepareJson() << "\n";
+  ////std::cout << cal_obj.PrepareJson() << "\n";
   cal_obj.BuildTester(1234);
 
   pcal_calib(in_path.c_str());

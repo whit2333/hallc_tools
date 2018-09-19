@@ -417,7 +417,7 @@ std::vector<double> sidis_config_sigma_rate( RunPlanTableEntry& run_setting){
 
   // ------------------------------
   // Prepare the initial state
-  double P1 = 11.0;
+  double P1 = 10.6;
   double m1 = 0.000511;
   double E1 = std::sqrt(P1*P1+m1*m1);
 

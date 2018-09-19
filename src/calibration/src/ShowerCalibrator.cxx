@@ -36,20 +36,17 @@ namespace hallc {
 
     ShowerCalibrator::ShowerCalibrator() {}
 
-    ShowerCalibrator::ShowerCalibrator(string fname, int nstart, int nstop)
-        : input_file_name(fname), fNstart(nstart), fNstopRequested(nstop) {}
+    ShowerCalibrator::ShowerCalibrator(std::string infile, std::string outfile)
+        : input_calib_file(infile),output_calib_file(outfile)  {}
 
-    void ShowerCalibrator::CalcThresholds() {
+    void ShowerCalibrator::Process(std::string rootfile) {
+      //input_rootfile_name = rootfile;
       // Calculate +/-3 RMS thresholds on the uncalibrated total energy
       // depositions. These thresholds are used mainly to exclude potential
       // hadronic events due to the gas Cherenkov inefficiency.
 
       // Histogram uncalibrated energy depositions, get mean and RMS from the
       // histogram, establish +/-3 * RMS thresholds.
-
-      // cout<< "ShowerCalibrator::CalcThresholds: FNentries = " << fNentries << endl;
-      //  cout << "ShowerCalibrator::CalcThresholds: fNstart = " << fNstart << " "
-      //       << "  fNstop = " << fNstop << endl;
 
       using doublers = ROOT::VecOps::RVec<double>;
 
@@ -62,7 +59,6 @@ namespace hallc {
 
         // Mark (04/16/18).
         double yc = -0.019 * (delta) + yptar * 253. - 40. * 0.00052 * (delta) + ytar;
-
         double xc = xptar * 253.;
 
         if (xc > FullHeight / 2.)
@@ -87,7 +83,7 @@ namespace hallc {
         return true;
       };
 
-      ROOT::RDataFrame df("T", input_file_name.c_str(),
+      ROOT::RDataFrame df("T", rootfile.c_str(),
                           {"P.cal.pr.goodPosAdcPulseInt",
                            "P.cal.pr.goodNegAdcPulseInt",
                            "P.cal.fly.goodAdcPulseInt",
@@ -108,8 +104,6 @@ namespace hallc {
                            "P.cal.ntracks",
                            "P.cal.fly.nclust",
                            "P.cal.fly.ntracks"});
-
-
       //(P_tr_tg_th, P_tr_tg_y, P_tr_tg_ph, P_tr_tg_dp)
       // if (P_tr_n != 1)
       //  return 0;
@@ -154,44 +148,6 @@ namespace hallc {
                       {"P.tr.x", "P.tr.y", "P.tr.th", "P.tr.ph", "P.tr.p", "P.tr.tg_dp"});
       ;
 
-      // if (!good_trk)
-      //  return 0;
-
-      // good_trk = CollCut(P_tr_tg_th, P_tr_tg_y, P_tr_tg_ph, P_tr_tg_dp);
-
-      // if (!good_trk)
-      //  return 0;
-
-      // good_trk = good_trk && P_tr_x + P_tr_xp * D_CALO_FP > XMIN &&
-      //           P_tr_x + P_tr_xp * D_CALO_FP < XMAX && P_tr_y + P_tr_yp * D_CALO_FP > YMIN &&
-      //           P_tr_y + P_tr_yp * D_CALO_FP < YMAX;
-      // if (!good_trk)
-      //  return 0;
-
-      //////
-      // if (P_cal_nclust != 1)
-      //  return 0;
-      // if (P_cal_fly_nclust != 1)
-      //  return 0;
-
-      //////
-      // good_trk = P_tr_xp > -0.045 + 0.0025 * P_tr_x;
-      // if (!good_trk)
-      //  return 0;
-
-      // bool good_ngcer = P_ngcer_npe[0] > fNGCerMin || P_ngcer_npe[1] > fNGCerMin ||
-      //                  P_ngcer_npe[2] > fNGCerMin || P_ngcer_npe[3] > fNGCerMin;
-      // if (!good_ngcer)
-      //  return 0;
-
-      // bool good_hgcer =
-      //    P_hgcer_npe[0] + P_hgcer_npe[1] + P_hgcer_npe[2] + P_hgcer_npe[3] > fHGCerMin;
-      // if (!good_hgcer)
-      //  return 0;
-
-      // bool good_beta = P_tr_beta > fBetaMin && P_tr_beta < fBetaMax;
-      // if (!good_beta)
-      //  return 0;
 
       auto d2 =
           df_with_cuts
@@ -231,14 +187,12 @@ namespace hallc {
               .Define("E_times_p",
                       [&](const ShowerTrackInfo& st, double Etot) { return (st._P) * Etot; },
                       {"shower_track", "E_shower_cal0"})
-              .Define("E_tot2", [](double Etot) { return Etot * Etot; }, {"E_shower_cal0"})
-              ;
+              .Define("E_tot2", [](double Etot) { return Etot * Etot; }, {"E_shower_cal0"});
 
       TCanvas* c = new TCanvas();
-      c->Divide(2,2);
-      c->cd(1);
+      //c->Divide(2,2);
+      //c->cd(1);
 
-      std::cout << " Please ignore the clang errors above and below...\n" ;
       auto h_Euncalib =
           d2.Histo1D({"h_Euncalib", "; E/p total", 100, 0.8, 1.8}, "E_shower_cal0");
       TH1D* hEunc = (TH1D*)h_Euncalib->Clone("hEunc");
@@ -256,12 +210,12 @@ namespace hallc {
       Double_t gsigma = r.Get()->Parameter(2);
       double fLoThr          = gmean - 3. * gsigma;
       double fHiThr          = gmean + 3. * gsigma;
-      cout << "CalcThreshods: fLoThr   = " << fLoThr << "\n";
-      cout << "               fHiThr   = " << fHiThr << "\n";
+      //cout << "CalcThreshods: fLoThr   = " << fLoThr << "\n";
+      //cout << "               fHiThr   = " << fHiThr << "\n";
 
-      auto disp0 = d2.Display({"E_shower_cal0", "P.cal.pr.goodNegAdcPulseInt",
-                               "P.cal.pr.goodPosAdcPulseInt", "P.cal.fly.goodAdcPulseInt"});
-      disp0->Print();
+      //auto disp0 = d2.Display({"E_shower_cal0", "P.cal.pr.goodNegAdcPulseInt",
+      //                         "P.cal.pr.goodPosAdcPulseInt", "P.cal.fly.goodAdcPulseInt"});
+      //disp0->Print();
 
       auto d3 =
           d2.Filter([&](double Enorm) { return (Enorm > fLoThr) && (Enorm < fHiThr); },
@@ -287,7 +241,7 @@ namespace hallc {
           {"trk"});
       auto   d3_Nev = d3.Count();
       double Nev    = *d3_Nev;
-      std::cout << " Nev " << Nev << "\n";
+      //std::cout << " Nev " << Nev << "\n";
 
       mq.fq0 *= (1.0 / Nev);
       mq.fqe *= (1.0 / Nev);
@@ -394,9 +348,6 @@ namespace hallc {
       //c->cd(4);
       //hq0->Draw();
     }
-
-    //------------------------------------------------------------------------------
-
 
 
   } // namespace calibration

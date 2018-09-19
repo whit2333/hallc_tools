@@ -46,53 +46,10 @@ namespace hallc {
     /** SHMS Calorimeter calibration class.
      */
     class ShowerCalibrator {
-    public:
-      CalorimeterCalibration _calibration;
+
+      bool   _gui = true;
 
     public:
-      ShowerCalibrator();
-      ShowerCalibrator(std::string, int, int);
-      ShowerCalibrator(const CalorimeterCalibration& c);
-      virtual ~ShowerCalibrator() = default;
-
-      void CalcThresholds();
-      //void ComposeVMs();
-      //void SolveAlphas();
-      //void FillHEcal();
-
-      //void SaveAlphas(std::string output_fname = "pcal.param");
-      //void SaveRawData();
-
-      TH1F* hEunc;
-      TH1F* hEuncSel;
-      TH1F* hEcal;
-      TH2F* hDPvsEcal;
-      TH2F* hESHvsEPR;
-      ////
-      TH1F* hEPRunc;
-      TH2F* hETOTvsEPR;
-      TH2F* hETOTvsEPRunc;
-      TH2F* hESHvsEPRunc;
-
-      std::string  input_file_name;
-
-      double fLoThr; // Low and high thresholds on the normalized uncalibrated
-      double fHiThr; // energy deposition.
-      UInt_t   fNev;   // Number of processed events.
-
-      //double fDeltaMin, fDeltaMax;     // Delta range, %.
-      //double fBetaMin, fBetaMax;       // Beta range
-      //double fHGCerMin;                // Threshold heavy gas Cerenkov signal, p.e.
-      //double fNGCerMin;                // Threshold noble gas Cerenkov signal, p.e.
-      //UInt_t   fMinHitCount;             // Min. number of hits/chan. for calibration
-      //double fEuncLoLo, fEuncHiHi;     // Range of uncalibrated Edep histogram
-      //UInt_t   fEuncNBin;                // Binning of uncalibrated Edep histogram
-      //double fEuncGFitLo, fEuncGFitHi; // Gaussian fit range of uncalib. Edep histo.
-
-      UInt_t fNentries;
-      UInt_t fNstart;
-      UInt_t fNstop;
-      Int_t  fNstopRequested;
 
       // Declaration of leaves types
       // Preshower and Shower ADC signals.
@@ -105,32 +62,81 @@ namespace hallc {
       static const unsigned int fNpmts_sh = fNrows_sh * fNcols_sh;
       static const unsigned int fNpmts    = fNpmts_pr + fNrows_sh * fNcols_sh;
 
-      std::array<double, fNrows_pr> P_pr_apos_p;
-      std::array<double, fNrows_pr> P_pr_aneg_p;
-      std::array<double, fNpmts_sh> P_sh_a_p;
+      std::string            input_calib_file;
+      std::string            output_calib_file;
+      //std::string            input_rootfile_name;
 
-      // Track parameters.
+      CalorimeterCalibration _calibration;
 
-      double P_tr_n;
-      double P_tr_p;
-      double P_tr_x; // X FP
-      double P_tr_xp;
-      double P_tr_y; // Y FP
-      double P_tr_yp;
 
-      double P_tr_tg_dp;
-      double P_tr_tg_ph;
-      double P_tr_tg_th;
-      double P_tr_tg_y;
+      double fLoThr; // Low and high thresholds on the normalized uncalibrated
+      double fHiThr; // energy deposition.
+      //UInt_t   fNev;   // Number of processed events.
 
-      std::array<double,4> P_hgcer_npe;
-      std::array<double,4> P_ngcer_npe;
-      double P_tr_beta;
+      //UInt_t fNentries;
+      //UInt_t fNstart;
+      //UInt_t fNstop;
+      //Int_t  fNstopRequested;
 
-      double P_cal_nclust;      // Preshower
-      double P_cal_ntracks;     // Preshower
-      double P_cal_fly_nclust;  // Shower
-      double P_cal_fly_ntracks; // Shower
+    public:
+      ShowerCalibrator();
+      ShowerCalibrator(std::string infile, std::string outfile);
+      ShowerCalibrator(const CalorimeterCalibration& c);
+      virtual ~ShowerCalibrator() = default;
+
+      void LoadCalibration(int run_number){
+        _calibration.LoadCalibration(run_number, input_calib_file);
+      }
+      void WriteCalibration(int run_number, std::string outfile){
+        _calibration.WriteCalibration(run_number, outfile);
+      }
+      void UpdateCalibration(int run_number){
+        _calibration.WriteCalibration(run_number, output_calib_file);
+      }
+      void Process(std::string rootfile);
+
+      void UseGui(bool v = true) { _gui = v; }
+      void NoGui() { _gui = false; }
+
+      //TH1F* hEunc;
+      //TH1F* hEuncSel;
+      //TH1F* hEcal;
+      //TH2F* hDPvsEcal;
+      //TH2F* hESHvsEPR;
+      //////
+      //TH1F* hEPRunc;
+      //TH2F* hETOTvsEPR;
+      //TH2F* hETOTvsEPRunc;
+      //TH2F* hESHvsEPRunc;
+
+
+
+      //std::array<double, fNrows_pr> P_pr_apos_p;
+      //std::array<double, fNrows_pr> P_pr_aneg_p;
+      //std::array<double, fNpmts_sh> P_sh_a_p;
+
+      //// Track parameters.
+
+      //double P_tr_n;
+      //double P_tr_p;
+      //double P_tr_x; // X FP
+      //double P_tr_xp;
+      //double P_tr_y; // Y FP
+      //double P_tr_yp;
+
+      //double P_tr_tg_dp;
+      //double P_tr_tg_ph;
+      //double P_tr_tg_th;
+      //double P_tr_tg_y;
+
+      //std::array<double,4> P_hgcer_npe;
+      //std::array<double,4> P_ngcer_npe;
+      //double P_tr_beta;
+
+      //double P_cal_nclust;      // Preshower
+      //double P_cal_ntracks;     // Preshower
+      //double P_cal_fly_nclust;  // Shower
+      //double P_cal_fly_ntracks; // Shower
 
       // Quantities for calculations of the calibration constants.
       //using Vector_t      = Eigen::Matrix<double, fNpmts, 1>;
