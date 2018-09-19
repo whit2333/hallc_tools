@@ -15,6 +15,8 @@
 #pragma link C++ class hallc::calibration::THcPShTrack+;
 #pragma link C++ class hallc::calibration::pmt_hit+;
 #pragma link C++ class hallc::calibration::CalHit+;
+#pragma link C++ class hallc::calibration::ShowerTrack+;
+#pragma link C++ class hallc::calibration::ShowerTrackInfo+;
 
 //#pragma link C++ class hallc::HCKinematic+;
 //#pragma link C++ class std::vector<hallc::HCKinematic>+;

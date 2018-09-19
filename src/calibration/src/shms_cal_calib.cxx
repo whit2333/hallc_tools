@@ -16,6 +16,7 @@ using namespace clipp;
 #include <TF1.h>
 #include <TH1.h>
 #include <TStyle.h>
+#include <TRint.h>
 
 #include "calibration/THcPShowerCalib.h"
 #include "calibration/ShowerCalibrator.h"
@@ -61,6 +62,11 @@ int main(int argc, char* argv[]) {
     cout << make_man_page(cli, argv[0]);
     std::quick_exit(0);
   }
+
+
+  int     dum_argc   = 1;
+  char*   dum_argv[] = {"app"};
+  TRint*  app    = new TRint("App", &dum_argc, dum_argv);
 
   // ------------------------------
   // file checks
@@ -113,10 +119,13 @@ int main(int argc, char* argv[]) {
   //cal_obj.BuildTester(1234);
 
   ShowerCalibrator theShowerCalib;
-  theShowerCalib._calibration.LoadJsonCalibration("pcal_calib.json", run_number);
   theShowerCalib.input_file_name = in_path;
+  theShowerCalib._calibration.LoadJsonCalibration("pcal_calib.json", run_number);
   theShowerCalib._calibration.Print();
   theShowerCalib.CalcThresholds();
+  theShowerCalib._calibration.WriteCalibration(run_number);
+
+  app->Run();
 
 }
 

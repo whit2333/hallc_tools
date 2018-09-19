@@ -14,6 +14,8 @@
 #include "TFile.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TH1D.h"
+#include "TH2D.h"
 #include "TMath.h"
 #include "TMatrixD.h"
 #include "TROOT.h"
@@ -21,8 +23,9 @@
 #include "TVectorD.h"
 
 #include "calibration/THcPShTrack.h"
-
 #include "calibration/CalorimeterCalibration.h"
+
+#include <Eigen/Dense>
 
 #define D_CALO_FP 292.64
 
@@ -50,15 +53,13 @@ namespace hallc {
       ShowerCalibrator();
       ShowerCalibrator(std::string, int, int);
       ShowerCalibrator(const CalorimeterCalibration& c);
-      ~ShowerCalibrator();
+      virtual ~ShowerCalibrator() = default;
 
-      //void ReadThresholds();
-      //void Init();
-      bool ReadShRawTrack(THcPShTrack& trk, UInt_t ientry);
       void CalcThresholds();
-      void ComposeVMs();
-      void SolveAlphas();
-      void FillHEcal();
+      //void ComposeVMs();
+      //void SolveAlphas();
+      //void FillHEcal();
+
       //void SaveAlphas(std::string output_fname = "pcal.param");
       //void SaveRawData();
 
@@ -75,18 +76,18 @@ namespace hallc {
 
       std::string  input_file_name;
 
-      Double_t fLoThr; // Low and high thresholds on the normalized uncalibrated
-      Double_t fHiThr; // energy deposition.
+      double fLoThr; // Low and high thresholds on the normalized uncalibrated
+      double fHiThr; // energy deposition.
       UInt_t   fNev;   // Number of processed events.
 
-      //Double_t fDeltaMin, fDeltaMax;     // Delta range, %.
-      //Double_t fBetaMin, fBetaMax;       // Beta range
-      //Double_t fHGCerMin;                // Threshold heavy gas Cerenkov signal, p.e.
-      //Double_t fNGCerMin;                // Threshold noble gas Cerenkov signal, p.e.
+      //double fDeltaMin, fDeltaMax;     // Delta range, %.
+      //double fBetaMin, fBetaMax;       // Beta range
+      //double fHGCerMin;                // Threshold heavy gas Cerenkov signal, p.e.
+      //double fNGCerMin;                // Threshold noble gas Cerenkov signal, p.e.
       //UInt_t   fMinHitCount;             // Min. number of hits/chan. for calibration
-      //Double_t fEuncLoLo, fEuncHiHi;     // Range of uncalibrated Edep histogram
+      //double fEuncLoLo, fEuncHiHi;     // Range of uncalibrated Edep histogram
       //UInt_t   fEuncNBin;                // Binning of uncalibrated Edep histogram
-      //Double_t fEuncGFitLo, fEuncGFitHi; // Gaussian fit range of uncalib. Edep histo.
+      //double fEuncGFitLo, fEuncGFitHi; // Gaussian fit range of uncalib. Edep histo.
 
       UInt_t fNentries;
       UInt_t fNstart;
@@ -94,55 +95,75 @@ namespace hallc {
       Int_t  fNstopRequested;
 
       // Declaration of leaves types
-
       // Preshower and Shower ADC signals.
-
       // Calorimeter geometry constants.
-      static const unsigned int fNrows_pr = 14; // Row number for Preshower
-      static const unsigned int fNrows_sh = 16; // Row number for Shower
-      static const unsigned int fNcols_pr = 2;  // 2 columns in Preshower
-      static const unsigned int fNcols_sh = 14; // 14 columnsin Shower
+      static const unsigned int fNrows_pr = CalorimeterCalibration::Config::N_rows_preshower;
+      static const unsigned int fNcols_pr = CalorimeterCalibration::Config::N_cols_preshower;
+      static const unsigned int fNrows_sh = CalorimeterCalibration::Config::N_rows_shower;
+      static const unsigned int fNcols_sh = CalorimeterCalibration::Config::N_cols_shower;
       static const unsigned int fNpmts_pr = fNrows_pr * fNcols_pr;
+      static const unsigned int fNpmts_sh = fNrows_sh * fNcols_sh;
       static const unsigned int fNpmts    = fNpmts_pr + fNrows_sh * fNcols_sh;
 
-      Double_t P_pr_apos_p[THcPShTrack::fNrows_pr];
-      Double_t P_pr_aneg_p[THcPShTrack::fNrows_pr];
-      Double_t P_sh_a_p[THcPShTrack::fNcols_sh * THcPShTrack::fNrows_sh];
+      std::array<double, fNrows_pr> P_pr_apos_p;
+      std::array<double, fNrows_pr> P_pr_aneg_p;
+      std::array<double, fNpmts_sh> P_sh_a_p;
 
       // Track parameters.
 
-      double   P_tr_n;
-      Double_t P_tr_p;
-      Double_t P_tr_x; // X FP
-      Double_t P_tr_xp;
-      Double_t P_tr_y; // Y FP
-      Double_t P_tr_yp;
+      double P_tr_n;
+      double P_tr_p;
+      double P_tr_x; // X FP
+      double P_tr_xp;
+      double P_tr_y; // Y FP
+      double P_tr_yp;
 
-      Double_t P_tr_tg_dp;
-      Double_t P_tr_tg_ph;
-      Double_t P_tr_tg_th;
-      Double_t P_tr_tg_y;
+      double P_tr_tg_dp;
+      double P_tr_tg_ph;
+      double P_tr_tg_th;
+      double P_tr_tg_y;
 
-      Double_t P_hgcer_npe[4];
-      Double_t P_ngcer_npe[4];
-      Double_t P_tr_beta;
+      std::array<double,4> P_hgcer_npe;
+      std::array<double,4> P_ngcer_npe;
+      double P_tr_beta;
 
-      Double_t P_cal_nclust;      // Preshower
-      Double_t P_cal_ntracks;     // Preshower
-      Double_t P_cal_fly_nclust;  // Shower
-      Double_t P_cal_fly_ntracks; // Shower
-
+      double P_cal_nclust;      // Preshower
+      double P_cal_ntracks;     // Preshower
+      double P_cal_fly_nclust;  // Shower
+      double P_cal_fly_ntracks; // Shower
 
       // Quantities for calculations of the calibration constants.
-      double fe0;
-      double fqe[fNpmts];
-      double fq0[fNpmts];
-      double fQ[fNpmts][fNpmts];
-      double falphaU[fNpmts]; // 'unconstrained' calib. constants
-      double falphaC[fNpmts]; // the sought calibration constants
-      double falpha0[fNpmts]; // initial gains
-      double falpha1[fNpmts]; // unit gains
-      unsigned int fHitCount[fNpmts];
+      //using Vector_t      = Eigen::Matrix<double, fNpmts, 1>;
+      //using VectorCount_t = Eigen::Matrix<uint64_t, fNpmts, 1>;
+      //using Matrix_t      = Eigen::Matrix<double, fNpmts, fNpmts>;
+
+      //double        fe0;
+      //Vector_t      fqe;
+      //Vector_t      fq0;
+      ////Matrix_t      fQ;
+      //Vector_t      falphaU; // 'unconstrained' calib. constants
+      //Vector_t      falphaC; // the sought calibration constants
+      //Vector_t      falpha0; // initial gains
+      //Vector_t      falpha1; // unit gains
+      //VectorCount_t fHitCount;
+
+      struct MatrixQuantities {
+        using Vector_t      = Eigen::VectorXd;
+        using VectorCount_t = Eigen::VectorXi;
+        using Matrix_t      = Eigen::MatrixXd;
+        using LU_t          = Eigen::FullPivLU<typename MatrixQuantities::Matrix_t>;
+
+        double        fe0       = 0.0;
+        Vector_t      fqe       = Vector_t::Zero(fNpmts);
+        Vector_t      fq0       = Vector_t::Zero(fNpmts);
+        Vector_t      fQiq0     = Vector_t::Zero(fNpmts);
+        Vector_t      falphaU   = Vector_t::Zero(fNpmts); // 'unconstrained' calib. constants
+        Vector_t      falphaC   = Vector_t::Zero(fNpmts); // the sought calibration constants
+        Vector_t      falpha0   = Vector_t::Zero(fNpmts); // initial gains
+        Vector_t      falpha1   = Vector_t::Zero(fNpmts); // unit gains
+        VectorCount_t fHitCount = VectorCount_t::Zero(fNpmts);
+        Matrix_t      fQ        = Matrix_t::Zero(fNpmts, fNpmts);
+      };
 
       void Print() const {
         _calibration.Print();

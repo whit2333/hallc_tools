@@ -1,5 +1,6 @@
 #include "calibration/THcPShTrack.h"
 #include "calibration/ShowerCalibrator.h"
+#include "calibration/ShowerTrack.h"
 
 #include <fstream>
 #include <iomanip>
@@ -13,7 +14,10 @@
 #include "TF1.h"
 #include "TFile.h"
 #include "TH1F.h"
+#include "TH1D.h"
 #include "TH2F.h"
+#include "TCanvas.h"
+#include "TFitResult.h"
 #include "TMath.h"
 #include "TMatrixD.h"
 #include "TROOT.h"
@@ -35,13 +39,7 @@ namespace hallc {
     ShowerCalibrator::ShowerCalibrator(string fname, int nstart, int nstop)
         : input_file_name(fname), fNstart(nstart), fNstopRequested(nstop) {}
 
-    ShowerCalibrator::~ShowerCalibrator() {}
-
-
-    //------------------------------------------------------------------------------
-
     void ShowerCalibrator::CalcThresholds() {
-
       // Calculate +/-3 RMS thresholds on the uncalibrated total energy
       // depositions. These thresholds are used mainly to exclude potential
       // hadronic events due to the gas Cherenkov inefficiency.
@@ -52,8 +50,6 @@ namespace hallc {
       // cout<< "ShowerCalibrator::CalcThresholds: FNentries = " << fNentries << endl;
       //  cout << "ShowerCalibrator::CalcThresholds: fNstart = " << fNstart << " "
       //       << "  fNstop = " << fNstop << endl;
-
-      Int_t       nev = 0;
 
       using doublers = ROOT::VecOps::RVec<double>;
 
@@ -119,18 +115,44 @@ namespace hallc {
       //  return 0;
       // bool good_trk = P_tr_tg_dp > fDeltaMin && P_tr_tg_dp < fDeltaMax;
 
-      auto df_with_cuts = df.Filter([&](const double& n) { return int(n) == 1; }, {"P.tr.n"})
-                              .Filter(
-                                  [&](doublers& dp) {
-                                    return (dp.at(0) > _calibration.fDeltaMin) &&
-                                           (dp.at(0) < _calibration.fDeltaMax);
-                                  },
-                                  {"P.tr.tg_dp"})
-                              .Filter(
-                                  [&](doublers& th, doublers& y, doublers& yp, doublers& dp) {
-                                    return collimator_cut(th.at(0), y.at(0), yp.at(0), dp.at(0));
-                                  },
-                                  {"P.tr.tg_th", "P.tr.tg_y", "P.tr.tg_ph", "P.tr.tg_dp"});
+      auto df_with_cuts =
+          df.Filter([&](const double& n) { return int(n) == 1; }, {"P.tr.n"})
+              .Filter(
+                  [&](doublers& dp) {
+                    return (dp.at(0) > _calibration.fDeltaMin) &&
+                           (dp.at(0) < _calibration.fDeltaMax);
+                  },
+                  {"P.tr.tg_dp"})
+              .Filter(
+                  [&](doublers& npe) {
+                    return (npe[0] + npe[1] + npe[2] + npe[3]) > _calibration.fHGCerMin;
+                  },
+                  {"P.hgcer.npe"})
+              .Filter(
+                  [&](doublers& npe) {
+                    return (npe[0] + npe[1] + npe[2] + npe[3]) > _calibration.fNGCerMin;
+                  },
+                  {"P.ngcer.npe"})
+              .Filter(
+                  [&](doublers& beta) {
+                    return (beta.at(0) > _calibration.fBetaMin) &&
+                           (beta.at(0) < _calibration.fBetaMax);
+                  },
+                  {"P.tr.beta"})
+              .Filter(
+                  [&](doublers& th, doublers& y, doublers& yp, doublers& dp) {
+                    return collimator_cut(th.at(0), y.at(0), yp.at(0), dp.at(0));
+                  },
+                  {"P.tr.tg_th", "P.tr.tg_y", "P.tr.tg_ph", "P.tr.tg_dp"})
+              .Filter("P.cal.nclust==1")
+              .Filter("P.cal.fly.nclust==1")
+              .Define("shower_track",
+                      [&](doublers& x, doublers& y, doublers& xp, doublers& yp, doublers& p,
+                          doublers& dp) {
+                        return ShowerTrackInfo{p.at(0),dp.at(0),x.at(0),xp.at(0),y.at(0),yp.at(0)};
+                      },
+                      {"P.tr.x", "P.tr.y", "P.tr.th", "P.tr.ph", "P.tr.p", "P.tr.tg_dp"});
+      ;
 
       // if (!good_trk)
       //  return 0;
@@ -171,616 +193,210 @@ namespace hallc {
       // if (!good_beta)
       //  return 0;
 
-      auto d2 = df_with_cuts.Define("E_shower_cal",
-                                    [&](doublers& pr_neg, doublers& pr_pos, doublers& shower) {
-                                      THcPShTrack trk;
-                                      UInt_t      nb = 0;
-                                      for (UInt_t k = 0; k < THcPShTrack::fNcols_pr; k++) {
-                                        for (UInt_t j = 0; j < THcPShTrack::fNrows_pr; j++) {
-                                          nb++;
-                                          Double_t adc;
-                                          switch (k) {
-                                          case 0:
-                                            adc = pr_neg[j];
-                                            break;
-                                          case 1:
-                                            adc = pr_pos[j];
-                                            break;
-                                          default:
-                                            cout << "*** Wrong PreShower column! ***" << endl;
-                                          }
-                                          if (adc > PR_ADC_THR)
-                                            trk.AddHit(adc, 0., nb);
-                                        }
-                                      }
-                                      // Set Shower hits.
-                                      for (UInt_t k = 0; k < THcPShTrack::fNcols_sh; k++) {
-                                        for (UInt_t j = 0; j < THcPShTrack::fNrows_sh; j++) {
-                                          nb++;
-                                          Double_t adc = P_sh_a_p[k * THcPShTrack::fNrows_sh + j];
-                                          if (adc > SH_ADC_THR) {
-                                            trk.AddHit(adc, 0., nb);
-                                          }
-                                        }
-                                      }
-                                      return trk.Enorm();
-                                    },
-                                    {"P.cal.pr.goodPosAdcPulseInt", "P.cal.pr.goodNegAdcPulseInt",
-                                     "P.cal.fly.goodAdcPulseInt"});
+      auto d2 =
+          df_with_cuts
+              .Define("trk",
+                      [&](const ShowerTrackInfo& st, const doublers& pr_neg, const doublers& pr_pos,
+                          const doublers& shower) {
+                        ShowerTrack trk(st, &_calibration);
+                        uint64_t    nb      = 0;
+                        double      total_E = 0.0;
+                        for (const auto& val : pr_neg) {
+                          if (val > 0.0) {
+                            trk.AddHit(nb, val);
+                          }
+                          nb++;
+                        }
+                        for (const auto& val : pr_pos) {
+                          if (val > 0.0) {
+                            trk.AddHit(nb, val);
+                          }
+                          nb++;
+                        }
+                        // Set Shower hits.
+                        for (const auto& val : shower) {
+                          if (val > 0.0) {
+                            trk.AddHit(nb, val);
+                          }
+                          nb++;
+                        }
+                        // std::cout << trk.Enorm() << "\n";
+                        // std::cout << trk.GetP() << "\n";
+                        // trk.Print();
+                        return trk;
+                      },
+                      {"shower_track", "P.cal.pr.goodNegAdcPulseInt", "P.cal.pr.goodPosAdcPulseInt",
+                       "P.cal.fly.goodAdcPulseInt"})
+              .Define("E_shower_cal0", [&](const ShowerTrack& trk) { return trk.Enorm(); }, {"trk"})
+              .Define("E_times_p",
+                      [&](const ShowerTrackInfo& st, double Etot) { return (st._P) * Etot; },
+                      {"shower_track", "E_shower_cal0"})
+              .Define("E_tot2", [](double Etot) { return Etot * Etot; }, {"E_shower_cal0"})
+              ;
 
-      auto hEunc = d2.Histo1D({"hEunc", "Edep/P uncalibrated", _calibration.fEuncNBin,
-                                         _calibration.fEuncLoLo, _calibration.fEuncHiHi},
-                                        "E_shower_cal");
+      TCanvas* c = new TCanvas();
+      c->Divide(2,2);
+      c->cd(1);
 
-      hEunc->DrawCopy();
+      std::cout << " Please ignore the clang errors above and below...\n" ;
+      auto h_Euncalib =
+          d2.Histo1D({"h_Euncalib", "; E/p total", 100, 0.8, 1.8}, "E_shower_cal0");
+      TH1D* hEunc = (TH1D*)h_Euncalib->Clone("hEunc");
       std::cout <<  " entries : " << *(d2.Count()) << "\n";
 
-      // hEunc     = new TH1F("hEunc", "Edep/P uncalibrated", fEuncNBin, fEuncLoLo, fEuncHiHi);
-
-      //// Set track coordinates and slopes at the face of Preshower.
-
-      //trk.Reset(P_tr_p, P_tr_tg_dp, P_tr_x + D_CALO_FP * P_tr_xp, P_tr_xp,
-      //          P_tr_y + D_CALO_FP * P_tr_yp, P_tr_yp);
-
-      //// Set Preshower hits.
-
-      //UInt_t nb = 0;
-      //for (UInt_t k = 0; k < THcPShTrack::fNcols_pr; k++) {
-      //  for (UInt_t j = 0; j < THcPShTrack::fNrows_pr; j++) {
-      //    nb++;
-      //    Double_t adc;
-      //    switch (k) {
-      //    case 0:
-      //      adc = P_pr_aneg_p[j];
-      //      break;
-      //    case 1:
-      //      adc = P_pr_apos_p[j];
-      //      break;
-      //    default:
-      //      cout << "*** Wrong PreShower column! ***" << endl;
-      //    }
-      //    if (adc > PR_ADC_THR)
-      //      trk.AddHit(adc, 0., nb);
-      //  }
-      //}
-
-      //// Set Shower hits.
-
-      //for (UInt_t k = 0; k < THcPShTrack::fNcols_sh; k++) {
-      //  for (UInt_t j = 0; j < THcPShTrack::fNrows_sh; j++) {
-      //    nb++;
-      //    Double_t adc = P_sh_a_p[k * THcPShTrack::fNrows_sh + j];
-      //    if (adc > SH_ADC_THR) {
-      //      trk.AddHit(adc, 0., nb);
-      //    }
-      //  }
-      //}
-      //for (UInt_t ientry = fNstart; ientry < fNstop; ientry++) {
-
-      //  if (ReadShRawTrack(trk, ientry)) {
-
-      //    //    trk.Print(cout);
-      //    //    getchar();
-
-      //    trk.SetEs(falpha0); // Use initial gain constants here.
-      //    Double_t Enorm = trk.Enorm();
-
-      //    ////
-      //    if (Enorm > 0.) {
-      //      hEunc->Fill(Enorm);
-      //      hETOTvsEPRunc->Fill(trk.EPRnorm(), Enorm);        ////
-      //      hESHvsEPRunc->Fill(trk.EPRnorm(), trk.ESHnorm()); ////
-      //      hEPRunc->Fill(trk.EPRnorm());                     ////
-      //      nev++;
-      //    }
-
-      //    //    if (nev%100000 == 0)
-      //    //      cout << "CalcThreshods: nev=" << nev << "  Enorm=" << Enorm << endl;
-      //  }
-
-      //  if (nev > 200000)
-      //    break;
-      //};
-
-      //  hEunc->Fit("gaus","0","",fEuncGFitLo, fEuncGFitHi);    //fit, do not plot
-      //hEunc->Fit("gaus", "", "", fEuncGFitLo, fEuncGFitHi);
-      //hEunc->GetFunction("gaus")->SetLineColor(2);
-      //hEunc->GetFunction("gaus")->SetLineWidth(1);
-      //hEunc->GetFunction("gaus")->SetLineStyle(1);
-      //TF1*     fit    = hEunc->GetFunction("gaus");
-      //Double_t gmean  = fit->GetParameter(1);
-      //Double_t gsigma = fit->GetParameter(2);
-      //fLoThr          = gmean - 3. * gsigma;
-      //fHiThr          = gmean + 3. * gsigma;
-      //cout << "CalcThreshods: fLoThr=" << fLoThr << "  fHiThr=" << fHiThr << "  nev=" << nev
-      //     << endl;
-
-      //Int_t nbins = hEunc->GetNbinsX();
-      //Int_t nlo   = hEunc->FindBin(fLoThr);
-      //Int_t nhi   = hEunc->FindBin(fHiThr);
-
-      //cout << "CalcThresholds: nlo=" << nlo << "  nhi=" << nhi << "  nbins=" << nbins << endl;
-
-      //// Histogram of selected within the thresholds events.
-
-      //hEuncSel = (TH1F*)hEunc->Clone("hEuncSel");
-
-      //for (Int_t i = 0; i < nlo; i++)
-      //  hEuncSel->SetBinContent(i, 0.);
-      //for (Int_t i = nhi; i < nbins + 1; i++)
-      //  hEuncSel->SetBinContent(i, 0.);
-    };
-
-    //------------------------------------------------------------------------------
-
-    bool ShowerCalibrator::ReadShRawTrack(THcPShTrack& trk, UInt_t ientry) {
-
-      //
-      // Set a Shower track event from ntuple ientry.
-      //
-
-      //fTree->GetEntry(ientry);
-
-    //  if (ientry % 100000 == 0)
-    //    cout << "   ReadShRawTrack: " << ientry << endl;
-
-    //  // Request single electron track in calorimeter's fid. volume.
-    //  //
-
-    //  if (P_tr_n != 1)
-    //    return 0;
-
-    //  bool good_trk = P_tr_tg_dp > _calibration.fDeltaMin && P_tr_tg_dp < _calibration.fDeltaMax;
-
-    //  if (!good_trk)
-    //    return 0;
-
-    //  good_trk = true;//CollCut(P_tr_tg_th, P_tr_tg_y, P_tr_tg_ph, P_tr_tg_dp);
-
-    //  if (!good_trk)
-    //    return 0;
-
-    //  good_trk = good_trk && P_tr_x + P_tr_xp * D_CALO_FP > XMIN &&
-    //             P_tr_x + P_tr_xp * D_CALO_FP < XMAX && P_tr_y + P_tr_yp * D_CALO_FP > YMIN &&
-    //             P_tr_y + P_tr_yp * D_CALO_FP < YMAX;
-    //  if (!good_trk)
-    //    return 0;
-
-    //  ////
-    //  if (P_cal_nclust != 1)
-    //    return 0;
-    //  if (P_cal_fly_nclust != 1)
-    //    return 0;
-
-    //  ////
-    //  good_trk = P_tr_xp > -0.045 + 0.0025 * P_tr_x;
-    //  if (!good_trk)
-    //    return 0;
-
-    //  bool good_ngcer = P_ngcer_npe[0] > _calibration.fNGCerMin || P_ngcer_npe[1] > _calibration.fNGCerMin ||
-    //                    P_ngcer_npe[2] > _calibration.fNGCerMin || P_ngcer_npe[3] > _calibration.fNGCerMin;
-    //  if (!good_ngcer)
-    //    return 0;
-
-    //  bool good_hgcer =
-    //      P_hgcer_npe[0] + P_hgcer_npe[1] + P_hgcer_npe[2] + P_hgcer_npe[3] > _calibration.fHGCerMin;
-    //  if (!good_hgcer)
-    //    return 0;
-
-    //  bool good_beta = P_tr_beta > _calibration.fBetaMin && P_tr_beta < _calibration.fBetaMax;
-    //  if (!good_beta)
-    //    return 0;
-
-    //  // Set track coordinates and slopes at the face of Preshower.
-
-    //  trk.Reset(P_tr_p, P_tr_tg_dp, P_tr_x + D_CALO_FP * P_tr_xp, P_tr_xp,
-    //            P_tr_y + D_CALO_FP * P_tr_yp, P_tr_yp);
-
-    //  // Set Preshower hits.
-
-    //  UInt_t nb = 0;
-
-    //  for (UInt_t k = 0; k < THcPShTrack::fNcols_pr; k++) {
-    //    for (UInt_t j = 0; j < THcPShTrack::fNrows_pr; j++) {
-    //      nb++;
-    //      Double_t adc;
-    //      switch (k) {
-    //      case 0:
-    //        adc = P_pr_aneg_p[j];
-    //        break;
-    //      case 1:
-    //        adc = P_pr_apos_p[j];
-    //        break;
-    //      default:
-    //        cout << "*** Wrong PreShower column! ***" << endl;
-    //      }
-    //      if (adc > PR_ADC_THR)
-    //        trk.AddHit(adc, 0., nb);
-    //    }
-    //  }
-
-    //  // Set Shower hits.
-
-    //  for (UInt_t k = 0; k < THcPShTrack::fNcols_sh; k++) {
-    //    for (UInt_t j = 0; j < THcPShTrack::fNrows_sh; j++) {
-    //      nb++;
-    //      Double_t adc = P_sh_a_p[k * THcPShTrack::fNrows_sh + j];
-    //      if (adc > SH_ADC_THR) {
-    //        trk.AddHit(adc, 0., nb);
-    //      }
-    //    }
-    //  }
-
-      return 1;
-    }
-
-    //------------------------------------------------------------------------------
-
-    void ShowerCalibrator::ComposeVMs() {
-
-      //
-      // Fill in vectors and matrixes for the gain constant calculations.
-      //
-
-      fNev = 0;
-      THcPShTrack trk;
-
-      // Loop over the shower track events in the ntuples.
-
-      //for (UInt_t ientry = fNstart; ientry < fNstop; ientry++) {
-
-      //  if (ReadShRawTrack(trk, ientry)) {
-
-      //    // Set energy depositions with default gains.
-      //    // Calculate normalized to the track momentum total energy deposition,
-      //    // check it against the thresholds.
-
-      //    trk.SetEs(falpha0);
-      //    Double_t Enorm = trk.Enorm();
-      //    if (Enorm > fLoThr && Enorm < fHiThr) {
-
-      //      trk.SetEs(falpha1); // Set energies with unit gains for now.
-      //      // trk.Print(cout);
-
-      //      fe0 += trk.GetP(); // Accumulate track momenta.
-
-      //      vector<pmt_hit> pmt_hit_list; // Container to save PMT hits
-
-      //      // Loop over hits.
-
-      //      for (UInt_t i = 0; i < trk.GetNhits(); i++) {
-
-      //        THcPShHit* hit = trk.GetHit(i);
-      //        // hit->Print(cout);
-
-      //        UInt_t nb = hit->GetBlkNumber();
-
-      //        // Fill the qe and q0 vectors.
-
-      //        fqe[nb - 1] += hit->GetEdep() * trk.GetP();
-      //        fq0[nb - 1] += hit->GetEdep();
-
-      //        // Save the PMT hit.
-
-      //        pmt_hit_list.push_back(pmt_hit{hit->GetEdep(), nb});
-
-      //        fHitCount[nb - 1]++; // Accrue the hit counter.
-
-      //      } // over hits
-
-      //      // Fill in the correlation matrix Q by retrieving the PMT hits.
-
-      //      for (vector<pmt_hit>::iterator i = pmt_hit_list.begin(); i < pmt_hit_list.end(); i++) {
-
-      //        UInt_t   ic = (*i).channel;
-      //        Double_t is = (*i).signal;
-
-      //        for (vector<pmt_hit>::iterator j = i; j < pmt_hit_list.end(); j++) {
-
-      //          UInt_t   jc = (*j).channel;
-      //          Double_t js = (*j).signal;
-
-      //          fQ[ic - 1][jc - 1] += is * js;
-      //          if (jc != ic)
-      //            fQ[jc - 1][ic - 1] += is * js;
-      //        }
-      //      }
-
-      //      fNev++;
-
-      //    }; // if within enorm thresholds
-
-      //  }; // success in reading
-
-      //}; // over entries
-
-      //// Take averages.
-
-      //fe0 /= fNev;
-      //for (UInt_t i = 0; i < THcPShTrack::fNpmts; i++) {
-      //  fqe[i] /= fNev;
-      //  fq0[i] /= fNev;
-      //}
-
-      //for (UInt_t i = 0; i < THcPShTrack::fNpmts; i++)
-      //  for (UInt_t j = 0; j < THcPShTrack::fNpmts; j++)
-      //    fQ[i][j] /= fNev;
-
-      // Output vectors and matrixes, for debug purposes.
-      /*
-      ofstream q0out;
-      q0out.open("q0.deb",ios::out);
-      for (UInt_t i=0; i<THcPShTrack::fNpmts; i++)
-        q0out << setprecision(20) << fq0[i] << " " << i << endl;
-      q0out.close();
-
-      ofstream qeout;
-      qeout.open("qe.deb",ios::out);
-      for (UInt_t i=0; i<THcPShTrack::fNpmts; i++)
-        qeout << setprecision(20) << fqe[i] << " " << i << endl;
-      qeout.close();
-
-      ofstream Qout;
-      Qout.open("Q.deb",ios::out);
-      for (UInt_t i=0; i<THcPShTrack::fNpmts; i++)
-        for (UInt_t j=0; j<THcPShTrack::fNpmts; j++)
-          Qout << setprecision(20) << fQ[i][j] << " " << i << " " << j << endl;
-      Qout.close();
-
-      ofstream sout;
-      sout.open("signal.deb",ios::out);
-      for (UInt_t i=0; i<THcPShTrack::fNpmts; i++) {
-        double sig_sum = fq0[i] * fNev;
-        double sig2_sum = fQ[i][i] * fNev;
-        int nhit = fHitCount[i];
-        double sig = 0.;
-        double err = 0.;
-        if (nhit != 0) {
-          sig = sig_sum/nhit;
-          double rms2 = sig2_sum/nhit - (sig_sum/nhit)*(sig_sum/nhit);
-          if (rms2 > 0.) {
-            double rms = TMath::Sqrt(rms2);
-            err = rms/TMath::Sqrt(double(nhit));
-          }
-        }
-
-        sout << sig << " " << err << " " << nhit << " " << i << endl;
-      }
-      sout.close();
-      */
-    }
-
-    //------------------------------------------------------------------------------
-
-    void ShowerCalibrator::SolveAlphas() {
-
-      //
-      // Solve for the sought calibration constants, by use of the Root
-      // matrix algebra package.
-      //
-
-      TMatrixD Q(THcPShTrack::fNpmts, THcPShTrack::fNpmts);
-      TVectorD q0(THcPShTrack::fNpmts);
-      TVectorD qe(THcPShTrack::fNpmts);
-      TVectorD au(THcPShTrack::fNpmts);
-      TVectorD ac(THcPShTrack::fNpmts);
-      Bool_t   ok;
-
-      cout << "Solving Alphas..." << endl;
-      cout << endl;
-
-      // Print out hit numbers.
-
-      cout << "Hit counts:" << endl;
-      UInt_t j = 0;
-
-      for (UInt_t k = 0; k < THcPShTrack::fNcols_pr; k++) {
-        k == 0 ? cout << "Preshower:" : cout << "        :";
-        for (UInt_t i = 0; i < THcPShTrack::fNrows_pr; i++)
-          cout << setw(6) << fHitCount[j++] << ",";
-        cout << endl;
-      }
-
-      for (UInt_t k = 0; k < THcPShTrack::fNcols_sh; k++) {
-        k == 0 ? cout << "Shower   :" : cout << "        :";
-        for (UInt_t i = 0; i < THcPShTrack::fNrows_sh; i++)
-          cout << setw(6) << fHitCount[j++] << ",";
-        cout << endl;
-      }
-
-      // Initialize the vectors and the matrix of the Root algebra package.
-
-      for (UInt_t i = 0; i < THcPShTrack::fNpmts; i++) {
-        q0[i] = fq0[i];
-        qe[i] = fqe[i];
-        for (UInt_t k = 0; k < THcPShTrack::fNpmts; k++) {
-          Q[i][k] = fQ[i][k];
-        }
-      }
-
-      // Sanity check.
-
-      for (UInt_t i = 0; i < THcPShTrack::fNpmts; i++) {
-
-        // Check zero hit channels: the vector and matrix elements should be 0.
-
-        if (fHitCount[i] == 0) {
-
-          if (q0[i] != 0. || qe[i] != 0.) {
-
-            cout << "*** Inconsistency in chanel " << i << ": # of hits  " << fHitCount[i]
-                 << ", q0=" << q0[i] << ", qe=" << qe[i];
-
-            for (UInt_t k = 0; k < THcPShTrack::fNpmts; k++) {
-              if (Q[i][k] != 0. || Q[k][i] != 0.)
-                cout << ", Q[" << i << "," << k << "]=" << Q[i][k] << ", Q[" << k << "," << i
-                     << "]=" << Q[k][i];
+      TFitResultPtr r = hEunc->Fit("gaus", "S", "", 0.8,1.8);//_calibration.fEuncGFitLo, _calibration.fEuncGFitHi);
+      //hEunc->Fit("gaus", "0", "", _calibration.fEuncGFitLo, _calibration.fEuncGFitHi);
+      //hEunc->Fit("gaus", "", "", _calibration.fEuncGFitLo, _calibration.fEuncGFitHi);
+      hEunc->GetFunction("gaus")->SetLineColor(2);
+      hEunc->GetFunction("gaus")->SetLineWidth(2);
+      hEunc->GetFunction("gaus")->SetLineStyle(1);
+      TF1*     fit    = hEunc->GetFunction("gaus");
+      std::cout << r << std::endl;
+      Double_t gmean  = r.Get()->Parameter(1);
+      Double_t gsigma = r.Get()->Parameter(2);
+      double fLoThr          = gmean - 3. * gsigma;
+      double fHiThr          = gmean + 3. * gsigma;
+      cout << "CalcThreshods: fLoThr   = " << fLoThr << "\n";
+      cout << "               fHiThr   = " << fHiThr << "\n";
+
+      auto disp0 = d2.Display({"E_shower_cal0", "P.cal.pr.goodNegAdcPulseInt",
+                               "P.cal.pr.goodPosAdcPulseInt", "P.cal.fly.goodAdcPulseInt"});
+      disp0->Print();
+
+      auto d3 =
+          d2.Filter([&](double Enorm) { return (Enorm > fLoThr) && (Enorm < fHiThr); },
+                    {"E_shower_cal0"});
+
+      MatrixQuantities mq;
+      d3.Foreach(
+          [&mq](const ShowerTrack& trk) {
+            auto new_trk = trk.UpdatedTrack(nullptr);
+            mq.fe0 += new_trk.GetP();
+            for (const auto& ahit : new_trk.GetHits()) {
+              mq.fq0[ahit._channel] += ahit._energy;
+              mq.fqe[ahit._channel] += ahit._energy * new_trk.GetP();
+              mq.fHitCount[ahit._channel]++;
+              for (const auto& bhit : new_trk.GetHits()) {
+                mq.fQ(ahit._channel,bhit._channel) += ahit._energy*bhit._energy;
+                if (ahit._channel != bhit._channel) {
+                  mq.fQ(ahit._channel,bhit._channel) += ahit._energy * bhit._energy;
+                }
+              }
             }
+          },
+          {"trk"});
+      auto   d3_Nev = d3.Count();
+      double Nev    = *d3_Nev;
+      std::cout << " Nev " << Nev << "\n";
 
-            cout << " ***" << endl;
+      mq.fq0 *= (1.0 / Nev);
+      mq.fqe *= (1.0 / Nev);
+      mq.fQ  *= (1.0 / Nev);
+      mq.fe0 *= (1.0 / Nev);
+
+      for (uint64_t i = 0; i < fNpmts; i++) {
+        if (mq.fHitCount(i) < 20){//_calibration.fMinHitCount) {
+          //cout << "Channel " << i << ", " << mq.fHitCount(i) << " hits, will not be calibrated." << endl;
+          mq.fq0(i) = 0.;
+          mq.fqe(i) = 0.;
+          for (uint64_t k = 0; k < fNpmts; k++) {
+            mq.fQ(i,k) = 0.;
+            mq.fQ(k,i) = 0.;
           }
-        }
-
-        // The hit channels: the vector elements should be non zero.
-
-        if ((fHitCount[i] != 0) && (q0[i] == 0. || qe[i] == 0.)) {
-          cout << "*** Inconsistency in chanel " << i << ": # of hits  " << fHitCount[i]
-               << ", q0=" << q0[i] << ", qe=" << qe[i] << " ***" << endl;
-        }
-
-      } // sanity check
-
-      // Low hit number channels: exclude from calculation. Assign all the
-      // correspondent elements 0, except self-correlation Q(i,i)=1.
-
-      cout << endl;
-      cout << "Channels with hit number less than " << _calibration.fMinHitCount << " will not be calibrated."
-           << endl;
-      cout << endl;
-
-      for (UInt_t i = 0; i < THcPShTrack::fNpmts; i++) {
-
-        if (fHitCount[i] < _calibration.fMinHitCount) {
-          cout << "Channel " << i << ", " << fHitCount[i] << " hits, will not be calibrated."
-               << endl;
-          q0[i] = 0.;
-          qe[i] = 0.;
-          for (UInt_t k = 0; k < THcPShTrack::fNpmts; k++) {
-            Q[i][k] = 0.;
-            Q[k][i] = 0.;
-          }
-          Q[i][i] = 1.;
+          mq.fQ(i,i) = 1.0;
         }
       }
 
-      // Declare LU decomposition method for the correlation matrix Q.
+      MatrixQuantities::LU_t lu(mq.fQ);
+      //mq.falphaU = mq.fQ.householderQr().solve(fqe);
+      //mq.falphaU = mq.fQ.fullPivLu().solve(fqe);
+      //mq.falphaU = mq.fQ.fullPivHouseholderQr().solve(fqe);
+      mq.falphaU = lu.solve(mq.fqe);
+      //std::cout << " alphaU " << mq.falphaU.transpose() << "\n";
+      //std::cout << " fqe " << mq.fqe.transpose() << "\n";
+      //std::cout << " hitcount  " << mq.fHitCount.transpose() << "\n";
+      //std::cout << " diag Q " << mq.fQ.diagonal().transpose() << "\n";
+      //std::cout << "fQ \n";
+      //std::cout << mq.fQ.transpose() << "\n";
 
-      TDecompLU lu(Q);
-      Double_t  d1, d2;
-      lu.Det(d1, d2);
-      cout << "cond:" << lu.Condition() << endl;
-      cout << "det :" << d1 * TMath::Power(2., d2) << endl;
-      cout << "tol :" << lu.GetTol() << endl;
+      double t1 = mq.fe0 - mq.falphaU.dot(mq.fq0); // temporary variable.
+      //std::cout << " t " << t1 << "\n";
+      //std::cout << " |Q| " << mq.fQ.determinant() << "\n";
+      //fqe[nb - 1] += hit->GetEdep() * trk.GetP();
+      //fq0[nb - 1] += hit->GetEdep();
 
-      // Solve equation Q x au = qe for the 'unconstrained' calibration (gain)
-      // constants au.
-
-      au = lu.Solve(qe, ok);
-      cout << "au: ok=" << ok << endl;
-      //  au.Print();
-
-      // Find the sought 'constrained' calibration constants next.
-
-      Double_t t1 = fe0 - au * q0; // temporary variable.
-      //  cout << "t1 =" << t1 << endl;
-
-      TVectorD Qiq0(THcPShTrack::fNpmts); // an intermittent result
-      Qiq0 = lu.Solve(q0, ok);
-      cout << "Qiq0: ok=" << ok << endl;
+      //std::cout << " fq0 " << mq.fq0 << "\n";
+      //std::cout << " fqe " << mq.fqe << "\n";
+      //std::cout << " fe0 " << mq.fe0 << "\n";
+      //for(const auto& v : mq.fq0) {
+      //  std::cout << v ", ";
+      //} std::cout << "\n";
+      //mq.fQi = lu.Solve(q0, ok);
+      //cout << "Qiq0: ok=" << ok << endl;
       //  Qiq0.Print();
-
-      Double_t t2 = q0 * Qiq0; // another temporary variable
+      
+      mq.fQiq0 = mq.fQ.fullPivLu().solve(mq.fq0);
+      double t2 = mq.fq0.dot(mq.fQiq0); // another temporary variable
       //  cout << "t2 =" << t2 << endl;
 
-      ac = (t1 / t2) * Qiq0 + au; // the sought gain constants
-      // cout << "ac:" << endl;
-      //  ac.Print();
+      mq.falphaC = (t1 / t2) * mq.fQiq0 + mq.falphaU; // the sought gain constants
+      //std::cout << " falphaC " << mq.falphaC.transpose() << "\n";
 
-      // Assign the gain arrays.
+      std::array<double,fNpmts> temp;
+      Eigen::Map<typename MatrixQuantities::Vector_t>(temp.data(),fNpmts) = mq.falphaC;
 
-      for (UInt_t i = 0; i < THcPShTrack::fNpmts; i++) {
-        falphaU[i] = au[i];
-        falphaC[i] = ac[i];
-      }
+      _calibration.SetGainCoeffs(temp);
+
+      auto d4 = d2.Define("trk_2",
+                          [&](const ShowerTrackInfo& st, const doublers& pr_neg,
+                              const doublers& pr_pos, const doublers& shower) {
+                            ShowerTrack trk(st, &_calibration);
+                            uint64_t    nb = 0;
+                            for (const auto& val : pr_neg) {
+                              if (val > 0.0) {
+                                trk.AddHit(nb, val);
+                              }
+                              nb++;
+                            }
+                            for (const auto& val : pr_pos) {
+                              if (val > 0.0) {
+                                trk.AddHit(nb, val);
+                              }
+                              nb++;
+                            }
+                            // Set Shower hits.
+                            for (const auto& val : shower) {
+                              if (val > 0.0) {
+                                trk.AddHit(nb, val);
+                              }
+                              nb++;
+                            }
+                            return trk;
+                          },
+                          {"shower_track", "P.cal.pr.goodNegAdcPulseInt",
+                           "P.cal.pr.goodPosAdcPulseInt", "P.cal.fly.goodAdcPulseInt"})
+                    .Define("E_shower_cal2", [&](const ShowerTrack& trk) { return trk.Enorm(); },
+                            {"trk_2"});
+
+
+      auto h_Euncalib2 = d4.Histo1D({"h_Euncalib2", "; E/p total", 100, 0.8, 1.8}, "E_shower_cal2");
+
+      h_Euncalib2->SetLineColor(4);
+      h_Euncalib2->SetLineWidth(2);
+      h_Euncalib2->DrawCopy("same");
+      //std::cout << "derp3\n";
+      //TH1D* hEunc2 = (TH1D*)h_Euncalib2->Clone("hEunc2");
+      //hEunc2->SetLineColor(2);
+      //hEunc2->Draw("same");
+
+      //c->cd(2);
+      //hqe->Draw();
+      //c->cd(4);
+      //hq0->Draw();
     }
 
     //------------------------------------------------------------------------------
 
-    void ShowerCalibrator::FillHEcal() {
-
-      //
-      // Fill histogram of the normalized energy deposition, and 2-d histogram
-      // of momentum deviation versus normalized energy deposition.
-      // Output event by event energy depositions and momenta for debug purposes.
-      //
-
-      //  ofstream output;
-      //  output.open("calibrated.deb",ios::out);
-
-      Int_t nev = 0;
-
-      THcPShTrack trk;
-
-      for (UInt_t ientry = fNstart; ientry < fNstop; ientry++) {
-
-        if (ReadShRawTrack(trk, ientry)) {
-          //    trk.Print(cout);
-
-          trk.SetEs(falphaC); // use the 'constrained' calibration constants
-          Double_t P     = trk.GetP();
-          Double_t delta = trk.GetDp();
-          Double_t Enorm = trk.Enorm();
-
-          ////
-          if (Enorm > 0.) {
-            hEcal->Fill(Enorm);
-            hDPvsEcal->Fill(Enorm, delta, 1.);
-            hESHvsEPR->Fill(trk.EPRnorm(), trk.ESHnorm());
-            hETOTvsEPR->Fill(trk.EPRnorm(), trk.Enorm()); ////
-            //      output << Enorm*P/1000. << " " << P/1000. << " " << delta << " "
-            //	     << trk.GetX() << " " << trk.GetY() << endl;
-            nev++;
-          }
-        }
-
-        if (nev > 200000)
-          break;
-      };
-
-      //  output.close();
-
-      cout << "FillHEcal: " << nev << " events filled" << endl;
-    };
-
-    //------------------------------------------------------------------------------
-
-    //void ShowerCalibrator::SaveAlphas(std::string output_fname) {
-
-    //  //
-    //  // Output the gain constants in a format suitable for inclusion in the
-    //  // pcal.param file to be used in the analysis.
-    //  //
-
-    //  ofstream output;
-    //  // char*    fname = Form("pcal.param.%s_%d_%d", "asdf", fNstart, fNstopRequested);
-    //  // cout << "SaveAlphas: fname=" << fname << endl;
-
-    //  output.open(output_fname, ios::out);
-
-    //  output << "; Calibration constants for file " << input_file_name << ", " << fNev
-    //         << " events processed" << endl;
-    //  output << endl;
-
-    //  UInt_t j = 0;
-
-    //  for (UInt_t k = 0; k < THcPShTrack::fNcols_pr; k++) {
-    //    k == 0 ? output << "pcal_neg_gain_cor =" : output << "pcal_pos_gain_cor =";
-    //    for (UInt_t i = 0; i < THcPShTrack::fNrows_pr; i++)
-    //      output << fixed << setw(6) << setprecision(2) << falphaC[j++] << ",";
-    //    output << endl;
-    //  }
-
-    //  for (UInt_t k = 0; k < THcPShTrack::fNcols_sh; k++) {
-    //    k == 0 ? output << "pcal_arr_gain_cor =" : output << "                   ";
-    //    for (UInt_t i = 0; i < THcPShTrack::fNrows_sh; i++)
-    //      output << fixed << setw(6) << setprecision(2) << falphaC[j++] << ",";
-    //    output << endl;
-    //  }
-
-    //  output.close();
-    //}
-
-    //-----------------------------------------------------------------------------
 
 
   } // namespace calibration

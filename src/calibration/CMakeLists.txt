@@ -13,6 +13,7 @@ add_library(hcCalibration SHARED
   #src/hcCalibration.cxx
   src/CalorimeterCalibration.cxx
   src/ShowerCalibrator.cxx
+  src/ShowerTrack.cxx
   ${CMAKE_CURRENT_BINARY_DIR}/hcCalibrationDict.cxx
   )
 
@@ -23,6 +24,7 @@ set(lib_HEADERS
   include/calibration/THcPShTrack.h
   include/calibration/CalorimeterCalibration.h
   include/calibration/ShowerCalibrator.h
+  include/calibration/ShowerTrack.h
   )
 
 #get_target_property(insane_include_dir InSANE::InSANEnew_xsec INTERFACE_INCLUDE_DIRECTORIES)

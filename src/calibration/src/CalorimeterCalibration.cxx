@@ -38,6 +38,21 @@ namespace hallc {
       return j.dump();
     }
 
+    void CalorimeterCalibration::WriteCalibration(int run_num) const {
+      using nlohmann::json;
+      nlohmann::json j_database;
+      {
+        std::ifstream json_input_file(input_cal_file_name);
+        // std::istream& in_stream = is_piped ? std::cin : jinput;
+        json_input_file >> j_database;
+      }
+      std::string a_run          = PrepareJson();
+      j_database[std::to_string(run_num)] = nlohmann::json::parse(a_run);
+
+      std::ofstream json_out_file(output_cal_file_name);
+      json_out_file << j_database.dump(1) << std::endl;
+    }
+
     void CalorimeterCalibration::BuildTester(int run_num) const {
       nlohmann::json j;
       // nlohmann::json a_run;
@@ -117,13 +132,15 @@ namespace hallc {
       if (j.find("histogram") != j.end()) {
       }
       if (j.find("cal") != j.end()) {
-        if (j.find("neg_gain_cor") != j.end()) {
+        json j_cal = j["cal"];
+        if (j_cal.find("neg_gain_cor") != j_cal.end()) {
+          std::cout << " neg_gain_cor!!!\n";
           neg_gain_cor = j["cal"]["neg_gain_cor"].get<std::vector<double>>();
         }
-        if (j.find("pos_gain_cor") != j.end()) {
+        if (j_cal.find("pos_gain_cor") != j_cal.end()) {
           pos_gain_cor = j["cal"]["pos_gain_cor"].get<std::vector<double>>();
         }
-        if (j.find("arr_gain_cor") != j.end()) {
+        if (j_cal.find("arr_gain_cor") != j_cal.end()) {
           arr_gain_cor = j["cal"]["arr_gain_cor"].get<std::vector<double>>();
         }
       }
@@ -204,13 +221,14 @@ namespace hallc {
           getline(fin, line, ',');
           //	cout << "line=" << line << endl;
           iss.str(line);
+          double alpha_0 = 0.0;
           if (j == 0) {
             string name;
-            iss >> name >> name >> falpha0[iblk];
+            iss >> name >> name >> alpha_0;//falpha0[iblk];
           } else {
-            iss >> falpha0[iblk];
+            iss >> alpha_0;//falpha0[iblk];
           }
-          neg_gain_cor.push_back(falpha0[iblk]);
+          neg_gain_cor.push_back(alpha_0);
 
           iss.clear();
           iblk++;
@@ -221,13 +239,14 @@ namespace hallc {
           getline(fin, line, ',');
           //	cout << "line=" << line << endl;
           iss.str(line);
+          double alpha_0 = 0.0;
           if (j == 0) {
             string name;
-            iss >> name >> name >> falpha0[iblk];
+            iss >> name >> name >> alpha_0;//falpha0[iblk];
           } else {
             iss >> falpha0[iblk];
           }
-          pos_gain_cor.push_back(falpha0[iblk]);
+          pos_gain_cor.push_back(alpha_0);
 
           iss.clear();
           iblk++;
@@ -241,21 +260,22 @@ namespace hallc {
           getline(fin, line, ',');
           //	cout << "line=" << line << endl;
           iss.str(line);
+          double alpha_0 = 0.0;
           if (k == 0 && j == 0) {
             string name;
-            iss >> name >> name >> falpha0[iblk];
+            iss >> name >> name >> alpha_0;//falpha0[iblk];
           } else {
-            iss >> falpha0[iblk];
+            iss >> alpha_0;//falpha0[iblk];
           }
 
-          arr_gain_cor.push_back(falpha0[iblk]);
+          arr_gain_cor.push_back(alpha_0);
           iss.clear();
           iblk++;
         }
       }
-
       fin.close();
 
+      std::ios_base::fmtflags f(std::cout.flags());
       cout << "=================================================================\n";
       cout << "Thresholds:" << endl;
       cout << "  Delta min, max   = " << fDeltaMin << "  " << fDeltaMax << endl;
@@ -267,26 +287,73 @@ namespace hallc {
            << fEuncNBin << endl;
       cout << "  Uncalibrated histo. fit range: " << fEuncGFitLo << "  " << fEuncGFitHi << endl;
       cout << endl;
-
       cout << "Initial gain constants:\n";
 
       UInt_t j = 0;
-      for (UInt_t k = 0; k < fNcols_pr; k++) {
-        k == 0 ? cout << "pcal_neg_gain_cor =" : cout << "pcal_pos_gain_cor =";
-        for (UInt_t i = 0; i < fNrows_pr; i++)
-          cout << fixed << setw(6) << setprecision(2) << falpha0[j++] << ",";
-        cout << endl;
+      cout << "pcal_neg_gain_cor =";
+      for (UInt_t i = 0; i < fNrows_pr; i++){
+        cout << fixed << setw(6) << setprecision(2) << neg_gain_cor[j++] << ",";
       }
+      cout << endl;
+      cout << "pcal_pos_gain_cor =";
+      for (UInt_t i = 0; i < fNrows_pr; i++) {
+        cout << fixed << setw(6) << setprecision(2) << pos_gain_cor[j++] << ",";
+      }
+      cout << endl;
       for (UInt_t k = 0; k < fNcols_sh; k++) {
         k == 0 ? cout << "pcal_arr_gain_cor =" : cout << "                   ";
         for (UInt_t i = 0; i < fNrows_sh; i++)
           cout << fixed << setw(6) << setprecision(2) << falpha0[j++] << ",";
         cout << endl;
       }
-
       cout << "=================================================================\n";
+      std::cout.flags(f);
+    }
 
-      //  getchar();
+    void CalorimeterCalibration::Print() const {
+      std::ios_base::fmtflags f(std::cout.flags());
+
+      using namespace std;
+      std::cout << " fDeltaMin    " << fDeltaMin << "\n";
+      std::cout << " fDeltaMax    " << fDeltaMax << "\n";
+      std::cout << " fBetaMin     " << fBetaMin << "\n";
+      std::cout << " fBetaMax     " << fBetaMax << "\n";
+      std::cout << " fHGCerMin    " << fHGCerMin << "\n";
+      std::cout << " fNGCerMin    " << fNGCerMin << "\n";
+      std::cout << " fMinHitCount " << fMinHitCount << "\n";
+      std::cout << " input_cal_file_name  " << input_cal_file_name << "\n";
+      std::cout << " output_cal_file_name " << output_cal_file_name << "\n";
+      std::cout << " run_number           " << run_number << "\n";
+      std::string delim = "";
+      std::cout << " neg_gain_cor : ";
+      for (const auto& v : neg_gain_cor) {
+        std::cout << delim << fixed << setw(5) << setprecision(1) << v;
+        delim = ", ";
+      }
+      std::cout << "\n";
+      std::cout << " pos_gain_cor : ";
+      delim = "";
+      for (const auto& v : pos_gain_cor) {
+        std::cout << delim << fixed << setw(5) << setprecision(1) << v;
+        delim = ", ";
+      }
+      std::cout << "\n";
+
+      std::cout << " arr_gain_cor : ";
+      int icol = 0;
+      delim    = "";
+      for (const auto& v : arr_gain_cor) {
+        std::cout << delim << fixed << setw(5) << setprecision(1) << v;
+        icol++;
+        if (icol % fNcols_sh == 0) {
+          delim = "\n";
+          delim += "                ";
+        } else {
+          delim = ", ";
+        }
+      }
+      std::cout << setprecision(6) << scientific << "\n";
+      std::cout.flags(f);
     }
   }
 } // namespace hallc
