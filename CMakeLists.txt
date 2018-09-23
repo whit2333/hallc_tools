@@ -8,13 +8,21 @@ find_package(ROOT COMPONENTS Core REQUIRED CONFIG)
 include(${ROOT_USE_FILE})
 include(cmake/root.cmake)
 
-find_package(nlohmann_json REQUIRED)
-
-list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3/cmake)
-list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3)
-list(APPEND CMAKE_PREFIX_PATH $ENV{HOME})
+#add_subdirectory(src/3rd_party)
+#list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3/cmake)
+#list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3)
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
+find_package(nlohmann_json CONFIG)
+if(NOT nlohmann_json_FOUND)
+  message(FATAL_ERROR " to build all 3rd party run the command:\n\
+  bash ${CMAKE_SOURCE_DIR}/src/3rd_party/build_all_3rd_party.sh ${CMAKE_INSTALL_PREFIX}\n\
+   nlohmann json missing : https://github.com/nlohmann/json.git")
+  find_package(nlohmann_json REQUIRED)
+endif(NOT nlohmann_json_FOUND)
+
+#https://github.com/fmtlib/fmt.git
 find_package(fmt REQUIRED)
 find_package(range-v3 REQUIRED)
 
