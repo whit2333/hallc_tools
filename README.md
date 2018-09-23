@@ -30,7 +30,6 @@ $ which hcana
 /group/c-csv/local/stow/hcana/bin/hcana
 ```
 
-
 ```bash
 $ make_hallc_replay_symlinks -h
 make_hallc_replay_symlinks - emulate hallc_replay directory with symbolic links 
