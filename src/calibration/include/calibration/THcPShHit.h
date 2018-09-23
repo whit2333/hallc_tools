@@ -4,7 +4,6 @@
 #include "TObject.h"
 #include <iostream>
 
-
 namespace hallc {
   namespace calibration {
 
@@ -41,11 +40,6 @@ namespace hallc {
       UInt_t   channel;
     };
 
-    struct CalHit {
-      int64_t _channel = 0;
-      double  _adc     = 0.0;
-      double  _energy  = 0.0;
-    };
 
   } // namespace calibration
 } // namespace hallc

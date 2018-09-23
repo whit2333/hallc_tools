@@ -62,30 +62,35 @@ namespace hallc {
       mutable std::string input_cal_file_name  = "pcal_calib.json";
       mutable std::string output_cal_file_name = "pcal_calib_new.json";
       mutable int         run_number           = 0;
+    protected:
+      static void MergeHelper(double w1, double w2, std::vector<double>& vec1,
+                              const std::vector<double>& vec2);
 
     public:
-      CalorimeterCalibration(){}
+      CalorimeterCalibration() {}
       CalorimeterCalibration(int rn);
       CalorimeterCalibration(const CalorimeterCalibration&) = default;
+      CalorimeterCalibration& operator=(const CalorimeterCalibration&) = default;
 
-      double GetGainCoeff(uint64_t block) const ;
+      void Merge(const CalorimeterCalibration&, double weight = 0.5);
 
-      /** Sets the calibration coeffs. 
+      double GetGainCoeff(uint64_t block) const;
+
+      /** Sets the calibration coeffs.
        *  (neg_gain_cor, pos_gain_cor, arr_gain_cor)
        */
-      void SetGainCoeffs(const std::array<double,fNpmts>& coeffs) ;
+      void SetGainCoeffs(const std::array<double, fNpmts>& coeffs);
 
       /** Leagcy reader.
        */
-      void ReadLegacyCalibration(const std::string& fname = "input.dat" );
+      void ReadLegacyCalibration(const std::string& fname = "input.dat");
 
       /** Load the calibration constants for a specific run.
        */
-      void LoadCalibration(    int run_num, const std::string& fname = "pcal_calib.json");
+      void LoadCalibration(int run_num, const std::string& fname = "pcal_calib.json");
       void LoadJsonCalibration(int run_num, const std::string& fname = "pcal_calib.json");
 
       void WriteCalibration(int run_num, const std::string& fname = "pcal_calib_new.json") const;
-
 
       /** Load the calibration constants for a specific run.
        *  Takes the current values and builds a json object string for the main database file.
@@ -94,7 +99,7 @@ namespace hallc {
 
       void BuildTester(int run_num) const;
 
-      void Print() const ;
+      void Print() const;
     };
 
     //namespace fmt {

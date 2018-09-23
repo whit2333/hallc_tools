@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 3.1)
 
-find_package(hcana REQUIRED)
-find_package(Podd 1.6 REQUIRED)
-include(PoddCMakeEnv)
+#find_package(hcana REQUIRED)
+#find_package(Podd 1.6 REQUIRED)
+#include(PoddCMakeEnv)
 
 ###########################
 # ExpMonitor library
@@ -42,6 +42,7 @@ add_dependencies(hcCalibration hcCalibration_ROOTDICTS)
 target_link_libraries(hcCalibration
   PUBLIC ${CXX_FILESYSTEM_LIB}
   PUBLIC nlohmann_json::nlohmann_json
+  PUBLIC ${ROOT_LIBRARIES}
   PUBLIC Eigen3::Eigen
   #  PUBLIC fmt::fmt
   #  PUBLIC InSANE::InSANEbase
@@ -111,7 +112,7 @@ target_link_libraries(hc_cal_calib
   PRIVATE nlohmann_json::nlohmann_json
   #PUBLIC InSANEbase
   PUBLIC ${CXX_FILESYSTEM_LIB}
-  PRIVATE hcana::HallC
+  #PRIVATE hcana::HallC
 )
 
 # shms_cal_calib
@@ -127,7 +128,6 @@ target_link_libraries(shms_cal_calib
   PRIVATE nlohmann_json::nlohmann_json
   #PUBLIC InSANEbase
   PUBLIC ${CXX_FILESYSTEM_LIB}
-  PRIVATE hcana::HallC
 )
 
 

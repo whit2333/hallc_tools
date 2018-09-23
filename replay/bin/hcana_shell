@@ -1,0 +1,3 @@
+#!/bin/bash
+
+singularity shell $(hallc_config -d)/cool_halls.simg 

@@ -26,23 +26,24 @@ using std::cout;
 using std::endl;
 using std::string;
 
-//void shms_cal_calib(string Prefix, int nstop = -1, int nstart = 0);
-
 int main(int argc, char* argv[]) {
 
   bool                     force_out        = false;
   bool                     update           = false;
   bool                     verbose          = false;
   bool                     use_gui          = false;
+  bool                     save_plots       = false;
   int                      N_events         = 0;
   int                      run_number       = 0;
   uint64_t                 start_event      = 0;
   bool                     help             = false;
-  string                   dir              = "";
+  string                   dir              = "PARAM/SHMS/CAL/";
   string                   infile           = "pcal_calib.json";
   string                   output_name      = "";
   string                   tree_name        = "T";
   string                   rootfile         = "";
+  string                   plot_file_name   = "shms_cal_calib.pdf";
+  double                   weight           = 0.5;
 
   auto cli =
       ("directory to find default calibration files" %
@@ -53,11 +54,16 @@ int main(int argc, char* argv[]) {
        option("-f", "--force").set(force_out) % "force the output to overwrite existing files",
        option("-u", "--update").set(update) % "update the input calibration file",
        option("-g", "--gui").set(use_gui) % "update the input calibration file",
+       "saves plots to plot_file (Default: \"shms_cal_calib_plots.pdf\"" %
+           (option("-s", "--save-plots").set(save_plots, true) &
+            opt_value("plot_file", plot_file_name)),
        //"starting event - skips the first <evt> events " %
        //    (option("-S", "--start-event") & value("evt", start_event)),
        "calibration run number" % (option("-R", "--run-number") & value("run", run_number)),
        "Number of events to process from start event number" %
            (option("-N", "--Nevents") & value("N events", N_events)),
+       "weight for updating new calibration [0-1]" %
+           (option("-w", "--weight") & value("weight", weight)),
        "output tree name" % (option("-T", "--tree-name") & value("tree name", tree_name)),
        option("-h", "--help").set(help) % "print help",
        option("-v", "--verbose").set(verbose) % "turn on verbose output",
@@ -73,7 +79,7 @@ int main(int argc, char* argv[]) {
   }
 
   int     dum_argc   = 1;
-  char*   dum_argv[] = {"app"};
+  char*   dum_argv[] = {(char*)"app"};
   TRint*  app    = nullptr;
 
   if (use_gui) {
@@ -137,10 +143,32 @@ int main(int argc, char* argv[]) {
   if (verbose) {
     theShowerCalib.Print();
   }
+  // Get a copy of the initial calibration 
+  CalorimeterCalibration cal_0(theShowerCalib._calibration);
+
+  // Process data to get new calibration 
   theShowerCalib.Process(rootfile);
+  if (verbose) {
+    theShowerCalib.Print();
+  }
+  // Get the new calibraiton 
+  CalorimeterCalibration cal_1(theShowerCalib._calibration);
+  // merge 
+  cal_0.Merge(cal_1,weight);
+  theShowerCalib._calibration = cal_0;
+  theShowerCalib.UpdatePlots(rootfile);
+
   std::cout << "writing calibration to file : \n " << outfile << "\n";
   theShowerCalib.WriteCalibration(run_number, outfile);
-
+  if (save_plots) {
+    fs::path plot_file_path = plot_file_name;
+    std::vector<string> extns = {".pdf", ".png"};
+    if (!std::count(extns.begin(), extns.end(), plot_file_path.extension().string())) {
+      std::cerr << "error: file extension " << plot_file_path.extension() << " not supported\n";
+      return -127;
+    }
+    theShowerCalib.SavePlots(plot_file_name);
+  }
   if (use_gui) {
     app->Run();
   }

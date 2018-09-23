@@ -2,13 +2,92 @@
 
 ## Dependencies
 
+* hcana and analyzer (cmake_demangled branches)
+    * https://github.com/whit2333/analyzer/tree/cmake_demangled
+    * https://github.com/whit2333/hcana/tree/cmake_demangled
 * nlohmann_json
 * fmtlib
 * date
-* hcana and analyzer (cmake_demangled branches)
+
+TODO: Add header-only dependencies to project
 
 
 ## Examples
+
+### Getting your replay started 
+
+We will use the helper script that is installed with `hallc_tools`
+
+If you are on the farm and have the csv module files configured (todo add link 
+to wiki), you should run 
+```
+module load csv/latest
+```
+As a check, see which version of hcana you are using. It should look something 
+like this :
+```bash
+$ which hcana
+/group/c-csv/local/stow/hcana/bin/hcana
+```
+
+
+```bash
+$ make_hallc_replay_symlinks -h
+make_hallc_replay_symlinks - emulate hallc_replay directory with symbolic links 
+  Usage:
+     make_hallc_replay_symlinks [options] 
+      
+  options:
+     -c, --create         create output directories (REPORT_OUTPUT)
+     -r, --raw <dir>      create link to raw directory 
+     -R, --root <dir>     create link to rootfile directory 
+     -m, --monitor <dir>  create link to monitoring directory 
+     -d, --remove         remove symlinks
+     -h, --help           show brief help
+```
+Start with an empty directory:
+
+```bash
+mkdir my_replay
+cd my_replay
+make_hallc_replay_symlinks -c
+ls -l
+```
+
+Now you should see a list of the symbolic links:
+
+```
+lrwxrwxrwx 1 whit whit   49 Sep 23 12:28 analysis -> /home/whit/work/HallC/hallc_tools/replay/analysis
+lrwxrwxrwx 1 whit whit   44 Sep 23 12:28 bin -> /home/whit/work/HallC/hallc_tools/replay/bin
+lrwxrwxrwx 1 whit whit   76 Sep 23 12:28 CALIBRATION -> /home/whit/work/HallC/hallc_tools/replay/submodules/hallc_replay/CALIBRATION
+lrwxrwxrwx 1 whit whit   73 Sep 23 12:28 DATFILES -> /home/whit/work/HallC/hallc_tools/replay/submodules/hallc_replay/DATFILES
+lrwxrwxrwx 1 whit whit   70 Sep 23 12:28 DBASE -> /home/whit/work/HallC/hallc_tools/replay/submodules/hallc_replay/DBASE
+lrwxrwxrwx 1 whit whit   74 Sep 23 12:28 DEF-files -> /home/whit/work/HallC/hallc_tools/replay/submodules/hallc_replay/DEF-files
+lrwxrwxrwx 1 whit whit   69 Sep 23 12:28 MAPS -> /home/whit/work/HallC/hallc_tools/replay/submodules/hallc_replay/MAPS
+lrwxrwxrwx 1 whit whit   74 Sep 23 12:28 onlineGUI -> /home/whit/work/HallC/hallc_tools/replay/submodules/hallc_replay/onlineGUI
+lrwxrwxrwx 1 whit whit   70 Sep 23 12:28 PARAM -> /home/whit/work/HallC/hallc_tools/replay/submodules/hallc_replay/PARAM
+drwxr-xr-x 5 whit whit 4096 Sep 23 12:28 REPORT_OUTPUT lrwxrwxrwx 1 whit whit   72 Sep 23 12:28 SCRIPTS -> 
+/home/whit/work/HallC/hallc_tools/replay/submodules/hallc_replay/SCRIPTS
+lrwxrwxrwx 1 whit whit   74 Sep 23 12:28 TEMPLATES -> /home/whit/work/HallC/hallc_tools/replay/submodules/hallc_replay/TEMPLATES
+```
+
+Next you'll want to add a link for the raw data files and root file outputs.
+
+```bash
+make_hallc_replay_symlinks -r /cache/hallc/spring17/raw \
+                           -R /work/hallc/c-csv/whit/rootfiles
+```
+Make sure the rootfile directory exists otherwise it will show up as a broken 
+symbolic link.
+
+Now everything should be in place to run the replay
+
+
+
+
+
+
+### `hcspec` usage
 
 * Example 1
 Starting at run 2000, print the runs (non-zero) up to run 2500

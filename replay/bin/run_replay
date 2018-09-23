@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export ROOT_INCLUDE_PATH=/opt/software/local/include:$HOME/include
+export DB_DIR=DBASE
+
+hcana $1

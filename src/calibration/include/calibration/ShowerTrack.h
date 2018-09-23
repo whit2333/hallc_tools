@@ -17,6 +17,12 @@ namespace hallc {
 
     class CalorimeterCalibration;
 
+    struct CalHit {
+      int64_t _channel = 0;
+      double  _adc     = 0.0;
+      double  _energy  = 0.0;
+    };
+
     struct ShowerTrackInfo {
     //public:
       double _P  = 0.0; // track momentum
@@ -83,7 +89,6 @@ namespace hallc {
       void Print(std::ostream& ostrm = std::cout) const;
 
       ShowerTrack UpdatedTrack(CalorimeterCalibration* cc) const;
-
 
       double Enorm() const ;
       double EPRnorm()const;

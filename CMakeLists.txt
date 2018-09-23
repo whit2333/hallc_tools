@@ -21,6 +21,7 @@ find_package(range-v3 REQUIRED)
 add_subdirectory(src/runplan)
 add_subdirectory(src/monitor)
 add_subdirectory(src/calibration)
+add_subdirectory(replay)
 
 # -------------------------
 # install library config

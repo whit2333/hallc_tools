@@ -37,10 +37,10 @@ namespace hallc {
     ShowerCalibrator::ShowerCalibrator() {}
 
     ShowerCalibrator::ShowerCalibrator(std::string infile, std::string outfile)
-        : input_calib_file(infile),output_calib_file(outfile)  {}
+        : input_calib_file(infile), output_calib_file(outfile) {}
 
-    void ShowerCalibrator::Process(std::string rootfile) {
-      //input_rootfile_name = rootfile;
+    auto ShowerCalibrator::GetDataFrame(std::string rootfile) {
+      // input_rootfile_name = rootfile;
       // Calculate +/-3 RMS thresholds on the uncalibrated total energy
       // depositions. These thresholds are used mainly to exclude potential
       // hadronic events due to the gas Cherenkov inefficiency.
@@ -143,12 +143,10 @@ namespace hallc {
               .Define("shower_track",
                       [&](doublers& x, doublers& y, doublers& xp, doublers& yp, doublers& p,
                           doublers& dp) {
-                        return ShowerTrackInfo{p.at(0),dp.at(0),x.at(0),xp.at(0),y.at(0),yp.at(0)};
+                        return ShowerTrackInfo{p.at(0),  dp.at(0), x.at(0),
+                                               xp.at(0), y.at(0),  yp.at(0)};
                       },
                       {"P.tr.x", "P.tr.y", "P.tr.th", "P.tr.ph", "P.tr.p", "P.tr.tg_dp"});
-      ;
-
-
       auto d2 =
           df_with_cuts
               .Define("trk",
@@ -176,9 +174,6 @@ namespace hallc {
                           }
                           nb++;
                         }
-                        // std::cout << trk.Enorm() << "\n";
-                        // std::cout << trk.GetP() << "\n";
-                        // trk.Print();
                         return trk;
                       },
                       {"shower_track", "P.cal.pr.goodNegAdcPulseInt", "P.cal.pr.goodPosAdcPulseInt",
@@ -188,14 +183,19 @@ namespace hallc {
                       [&](const ShowerTrackInfo& st, double Etot) { return (st._P) * Etot; },
                       {"shower_track", "E_shower_cal0"})
               .Define("E_tot2", [](double Etot) { return Etot * Etot; }, {"E_shower_cal0"});
+      return d2;
+    }
 
-      TCanvas* c = new TCanvas();
-      //c->Divide(2,2);
-      //c->cd(1);
+    void ShowerCalibrator::Process(std::string rootfile) {
+      using doublers = ROOT::VecOps::RVec<double>;
 
-      auto h_Euncalib =
-          d2.Histo1D({"h_Euncalib", "; E/p total", 100, 0.8, 1.8}, "E_shower_cal0");
-      TH1D* hEunc = (TH1D*)h_Euncalib->Clone("hEunc");
+      auto     d2 = GetDataFrame(rootfile);
+      if(!_canvas) {
+        _canvas = new TCanvas("glcanvas");
+      }
+
+      auto  h_Euncalib = d2.Histo1D({"h_Euncalib", ";E/p total", 100, 0.8, 1.8}, "E_shower_cal0");
+      TH1D* hEunc      = (TH1D*)h_Euncalib->Clone("hEunc");
       std::cout <<  " entries : " << *(d2.Count()) << "\n";
 
       TFitResultPtr r = hEunc->Fit("gaus", "S", "", 0.8,1.8);//_calibration.fEuncGFitLo, _calibration.fEuncGFitHi);
@@ -206,13 +206,12 @@ namespace hallc {
       hEunc->GetFunction("gaus")->SetLineStyle(1);
       TF1*     fit    = hEunc->GetFunction("gaus");
       std::cout << r << std::endl;
-      Double_t gmean  = r.Get()->Parameter(1);
-      Double_t gsigma = r.Get()->Parameter(2);
-      double fLoThr          = gmean - 3. * gsigma;
-      double fHiThr          = gmean + 3. * gsigma;
-      //cout << "CalcThreshods: fLoThr   = " << fLoThr << "\n";
-      //cout << "               fHiThr   = " << fHiThr << "\n";
-
+      fMean  = r.Get()->Parameter(1);
+      fSigma = r.Get()->Parameter(2);
+      fLoThr          = fMean - 3. * fSigma;
+      fHiThr          = fMean + 3. * fSigma;
+      cout << "CalcThreshods: fLoThr   = " << fLoThr << "\n";
+      cout << "               fHiThr   = " << fHiThr << "\n";
       //auto disp0 = d2.Display({"E_shower_cal0", "P.cal.pr.goodNegAdcPulseInt",
       //                         "P.cal.pr.goodPosAdcPulseInt", "P.cal.fly.goodAdcPulseInt"});
       //disp0->Print();
@@ -220,6 +219,7 @@ namespace hallc {
       auto d3 =
           d2.Filter([&](double Enorm) { return (Enorm > fLoThr) && (Enorm < fHiThr); },
                     {"E_shower_cal0"});
+      auto   d3_Nev = d3.Count();
 
       MatrixQuantities mq;
       d3.Foreach(
@@ -239,7 +239,7 @@ namespace hallc {
             }
           },
           {"trk"});
-      auto   d3_Nev = d3.Count();
+
       double Nev    = *d3_Nev;
       //std::cout << " Nev " << Nev << "\n";
 
@@ -249,7 +249,7 @@ namespace hallc {
       mq.fe0 *= (1.0 / Nev);
 
       for (uint64_t i = 0; i < fNpmts; i++) {
-        if (mq.fHitCount(i) < 20){//_calibration.fMinHitCount) {
+        if (mq.fHitCount(i) < _calibration.fMinHitCount) {
           //cout << "Channel " << i << ", " << mq.fHitCount(i) << " hits, will not be calibrated." << endl;
           mq.fq0(i) = 0.;
           mq.fqe(i) = 0.;
@@ -261,43 +261,31 @@ namespace hallc {
         }
       }
 
-      MatrixQuantities::LU_t lu(mq.fQ);
-      //mq.falphaU = mq.fQ.householderQr().solve(fqe);
-      //mq.falphaU = mq.fQ.fullPivLu().solve(fqe);
-      //mq.falphaU = mq.fQ.fullPivHouseholderQr().solve(fqe);
-      mq.falphaU = lu.solve(mq.fqe);
-      //std::cout << " alphaU " << mq.falphaU.transpose() << "\n";
-      //std::cout << " fqe " << mq.fqe.transpose() << "\n";
-      //std::cout << " hitcount  " << mq.fHitCount.transpose() << "\n";
-      //std::cout << " diag Q " << mq.fQ.diagonal().transpose() << "\n";
-      //std::cout << "fQ \n";
-      //std::cout << mq.fQ.transpose() << "\n";
+      //MatrixQuantities::LU_t lu(mq.fQ);
+      //mq.falphaU = lu.solve(mq.fqe);
+      //mq.falphaU = mq.fQ.householderQr().solve(mq.fqe);
+      //mq.falphaU = mq.fQ.fullPivLu().solve(mq.fqe);
+      mq.falphaU = mq.fQ.fullPivHouseholderQr().solve(mq.fqe);
 
       double t1 = mq.fe0 - mq.falphaU.dot(mq.fq0); // temporary variable.
-      //std::cout << " t " << t1 << "\n";
-      //std::cout << " |Q| " << mq.fQ.determinant() << "\n";
-      //fqe[nb - 1] += hit->GetEdep() * trk.GetP();
-      //fq0[nb - 1] += hit->GetEdep();
-
-      //std::cout << " fq0 " << mq.fq0 << "\n";
-      //std::cout << " fqe " << mq.fqe << "\n";
-      //std::cout << " fe0 " << mq.fe0 << "\n";
-      //for(const auto& v : mq.fq0) {
-      //  std::cout << v ", ";
-      //} std::cout << "\n";
-      //mq.fQi = lu.Solve(q0, ok);
-      //cout << "Qiq0: ok=" << ok << endl;
-      //  Qiq0.Print();
       
       mq.fQiq0 = mq.fQ.fullPivLu().solve(mq.fq0);
+
       double t2 = mq.fq0.dot(mq.fQiq0); // another temporary variable
       //  cout << "t2 =" << t2 << endl;
 
       mq.falphaC = (t1 / t2) * mq.fQiq0 + mq.falphaU; // the sought gain constants
       //std::cout << " falphaC " << mq.falphaC.transpose() << "\n";
 
-      std::array<double,fNpmts> temp;
-      Eigen::Map<typename MatrixQuantities::Vector_t>(temp.data(),fNpmts) = mq.falphaC;
+      for (uint64_t i = 0; i < fNpmts; i++) {
+        if (mq.falphaU(i) < 0) {
+          mq.falphaU(i) = 0.0;
+        }
+      }
+      std::array<double, fNpmts> temp;
+      Eigen::Map<typename MatrixQuantities::Vector_t>(temp.data(), fNpmts) = mq.falphaC;
+
+      /// \todo Add checks!!!
 
       _calibration.SetGainCoeffs(temp);
 
@@ -332,23 +320,60 @@ namespace hallc {
                     .Define("E_shower_cal2", [&](const ShowerTrack& trk) { return trk.Enorm(); },
                             {"trk_2"});
 
-
       auto h_Euncalib2 = d4.Histo1D({"h_Euncalib2", "; E/p total", 100, 0.8, 1.8}, "E_shower_cal2");
 
       h_Euncalib2->SetLineColor(4);
       h_Euncalib2->SetLineWidth(2);
       h_Euncalib2->DrawCopy("same");
-      //std::cout << "derp3\n";
-      //TH1D* hEunc2 = (TH1D*)h_Euncalib2->Clone("hEunc2");
-      //hEunc2->SetLineColor(2);
-      //hEunc2->Draw("same");
-
-      //c->cd(2);
-      //hqe->Draw();
-      //c->cd(4);
-      //hq0->Draw();
     }
 
+
+    void ShowerCalibrator::UpdatePlots(std::string rootfile) {
+      using doublers = ROOT::VecOps::RVec<double>;
+
+      auto d2 = GetDataFrame(rootfile);
+      auto d5 = d2
+      //.Filter([&](double Enorm) { return (Enorm > fLoThr) && (Enorm < fHiThr); },
+      //                    {"E_shower_cal0"})
+                    .Define("trk_3",
+                            [&](const ShowerTrackInfo& st, const doublers& pr_neg,
+                                const doublers& pr_pos, const doublers& shower) {
+                              ShowerTrack trk(st, &_calibration);
+                              uint64_t    nb = 0;
+                              for (const auto& val : pr_neg) {
+                                if (val > 0.0) {
+                                  trk.AddHit(nb, val);
+                                }
+                                nb++;
+                              }
+                              for (const auto& val : pr_pos) {
+                                if (val > 0.0) {
+                                  trk.AddHit(nb, val);
+                                }
+                                nb++;
+                              }
+                              // Set Shower hits.
+                              for (const auto& val : shower) {
+                                if (val > 0.0) {
+                                  trk.AddHit(nb, val);
+                                }
+                                nb++;
+                              }
+                              return trk;
+                            },
+                            {"shower_track", "P.cal.pr.goodNegAdcPulseInt",
+                             "P.cal.pr.goodPosAdcPulseInt", "P.cal.fly.goodAdcPulseInt"})
+                    .Define("E_shower_cal3", [&](const ShowerTrack& trk) { return trk.Enorm(); },
+                            {"trk_3"});
+
+      auto h_Euncalib3 = d5.Histo1D({"h_Euncalib3", "; E/p total", 100, 0.8, 1.8}, "E_shower_cal3");
+
+      h_Euncalib3->SetFillColorAlpha(2,0.5);
+      //h_Euncalib3->SetFillStyle(4050);
+      h_Euncalib3->SetLineColor(2);
+      h_Euncalib3->SetLineWidth(2);
+      h_Euncalib3->DrawCopy("same");
+    }
 
   } // namespace calibration
 } // namespace hallc

@@ -21,6 +21,7 @@
 #include "TROOT.h"
 #include "TTree.h"
 #include "TVectorD.h"
+#include "TCanvas.h"
 
 #include "calibration/THcPShTrack.h"
 #include "calibration/CalorimeterCalibration.h"
@@ -41,13 +42,14 @@
 namespace hallc {
   namespace calibration {
 
-    //bool CollCut(double xptar, double ytar, double yptar, double delta);
-
     /** SHMS Calorimeter calibration class.
      */
     class ShowerCalibrator {
 
-      bool   _gui = true;
+    protected:
+      bool     _gui    = true;
+      TCanvas* _canvas = nullptr;
+      //std::string            input_rootfile_name;
 
     public:
 
@@ -61,97 +63,6 @@ namespace hallc {
       static const unsigned int fNpmts_pr = fNrows_pr * fNcols_pr;
       static const unsigned int fNpmts_sh = fNrows_sh * fNcols_sh;
       static const unsigned int fNpmts    = fNpmts_pr + fNrows_sh * fNcols_sh;
-
-      std::string            input_calib_file;
-      std::string            output_calib_file;
-      //std::string            input_rootfile_name;
-
-      CalorimeterCalibration _calibration;
-
-
-      double fLoThr; // Low and high thresholds on the normalized uncalibrated
-      double fHiThr; // energy deposition.
-      //UInt_t   fNev;   // Number of processed events.
-
-      //UInt_t fNentries;
-      //UInt_t fNstart;
-      //UInt_t fNstop;
-      //Int_t  fNstopRequested;
-
-    public:
-      ShowerCalibrator();
-      ShowerCalibrator(std::string infile, std::string outfile);
-      ShowerCalibrator(const CalorimeterCalibration& c);
-      virtual ~ShowerCalibrator() = default;
-
-      void LoadCalibration(int run_number){
-        _calibration.LoadCalibration(run_number, input_calib_file);
-      }
-      void WriteCalibration(int run_number, std::string outfile){
-        _calibration.WriteCalibration(run_number, outfile);
-      }
-      void UpdateCalibration(int run_number){
-        _calibration.WriteCalibration(run_number, output_calib_file);
-      }
-      void Process(std::string rootfile);
-
-      void UseGui(bool v = true) { _gui = v; }
-      void NoGui() { _gui = false; }
-
-      //TH1F* hEunc;
-      //TH1F* hEuncSel;
-      //TH1F* hEcal;
-      //TH2F* hDPvsEcal;
-      //TH2F* hESHvsEPR;
-      //////
-      //TH1F* hEPRunc;
-      //TH2F* hETOTvsEPR;
-      //TH2F* hETOTvsEPRunc;
-      //TH2F* hESHvsEPRunc;
-
-
-
-      //std::array<double, fNrows_pr> P_pr_apos_p;
-      //std::array<double, fNrows_pr> P_pr_aneg_p;
-      //std::array<double, fNpmts_sh> P_sh_a_p;
-
-      //// Track parameters.
-
-      //double P_tr_n;
-      //double P_tr_p;
-      //double P_tr_x; // X FP
-      //double P_tr_xp;
-      //double P_tr_y; // Y FP
-      //double P_tr_yp;
-
-      //double P_tr_tg_dp;
-      //double P_tr_tg_ph;
-      //double P_tr_tg_th;
-      //double P_tr_tg_y;
-
-      //std::array<double,4> P_hgcer_npe;
-      //std::array<double,4> P_ngcer_npe;
-      //double P_tr_beta;
-
-      //double P_cal_nclust;      // Preshower
-      //double P_cal_ntracks;     // Preshower
-      //double P_cal_fly_nclust;  // Shower
-      //double P_cal_fly_ntracks; // Shower
-
-      // Quantities for calculations of the calibration constants.
-      //using Vector_t      = Eigen::Matrix<double, fNpmts, 1>;
-      //using VectorCount_t = Eigen::Matrix<uint64_t, fNpmts, 1>;
-      //using Matrix_t      = Eigen::Matrix<double, fNpmts, fNpmts>;
-
-      //double        fe0;
-      //Vector_t      fqe;
-      //Vector_t      fq0;
-      ////Matrix_t      fQ;
-      //Vector_t      falphaU; // 'unconstrained' calib. constants
-      //Vector_t      falphaC; // the sought calibration constants
-      //Vector_t      falpha0; // initial gains
-      //Vector_t      falpha1; // unit gains
-      //VectorCount_t fHitCount;
 
       struct MatrixQuantities {
         using Vector_t      = Eigen::VectorXd;
@@ -170,6 +81,45 @@ namespace hallc {
         VectorCount_t fHitCount = VectorCount_t::Zero(fNpmts);
         Matrix_t      fQ        = Matrix_t::Zero(fNpmts, fNpmts);
       };
+
+      std::string            input_calib_file;
+      std::string            output_calib_file;
+
+      CalorimeterCalibration _calibration;
+
+      double fLoThr = 0.5; // Low and high thresholds on the normalized uncalibrated
+      double fHiThr = 2.0; // energy deposition.
+      double fMean  = 1.0;
+      double fSigma = 0.1;
+
+    public:
+      ShowerCalibrator();
+      ShowerCalibrator(std::string infile, std::string outfile);
+      ShowerCalibrator(const CalorimeterCalibration& c);
+      virtual ~ShowerCalibrator() = default;
+
+      void LoadCalibration(int run_number){
+        _calibration.LoadCalibration(run_number, input_calib_file);
+      }
+      void WriteCalibration(int run_number, std::string outfile){
+        _calibration.WriteCalibration(run_number, outfile);
+      }
+      void UpdateCalibration(int run_number){
+        _calibration.WriteCalibration(run_number, output_calib_file);
+      }
+      void Process(std::string rootfile);
+      void UpdatePlots(std::string rootfile);
+
+      void UseGui(bool v = true) { _gui = v; }
+      void NoGui() { _gui = false; }
+
+      void SavePlots(std::string plot_file) const {
+        if (_canvas)
+          _canvas->SaveAs(plot_file.c_str());
+      }
+
+      auto GetDataFrame(std::string rootfile);
+
 
       void Print() const {
         _calibration.Print();

@@ -1,0 +1,6 @@
+#ifndef hallc_replay_config_HH
+#define hallc_replay_config_HH
+
+#define HALLC_REPLAY_DIR "@HALLC_REPLAY_DIR@"
+
+#endif
