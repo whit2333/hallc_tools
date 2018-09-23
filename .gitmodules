@@ -2,3 +2,6 @@
 	path = replay/submodules/hallc_replay
 	url = https://github.com/whit2333/hallc_replay.git
         branch = master
+[submodule "src/3rd_party/fmt"]
+	path = src/3rd_party/fmt
+	url = https://github.com/fmtlib/fmt.git
