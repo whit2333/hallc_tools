@@ -4,6 +4,11 @@ project (RunPlanner VERSION 0.0.1)
 include(GNUInstallDirs)
 include(cmake/os.cmake)
 
+# --------------------------------------------------------------------------
+# Unit tests
+enable_testing()
+add_subdirectory(src/3rd_party/catch)
+
 find_package(ROOT COMPONENTS Core REQUIRED CONFIG)
 include(${ROOT_USE_FILE})
 include(cmake/root.cmake)

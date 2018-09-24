@@ -115,8 +115,10 @@ if [[ -n ${container} ]] ; then
 else 
   mkdir -p results/${run_number}
   hallc_home=$(hallc_config -d )
-  hcana -b -q "${hallc_home}/analysis/replay_coin.cxx(${run_number},50000)"
-  shms_cal_calib -F ROOTfiles/coin_replay_production_${run_number}_50000.root -R ${run_number} -g -w 0.99 -u -s results/${run_number}/shms_shower_calibration.pdf
+  #hcana -b -q "${hallc_home}/analysis/replay_coin.cxx(${run_number},50000)"
+  #shms_cal_calib -F ROOTfiles/coin_replay_production_${run_number}_50000.root -R ${run_number} -g -w 0.99 -u -s results/${run_number}/shms_shower_calibration.pdf
   hcana -b -q "${hallc_home}/analysis/replay_coin.cxx(${run_number},${n_events})"
 fi
+
+  #perf record hcana -b -q "${hallc_home}/analysis/replay_coin.cxx(${run_number},${n_events})"
 
