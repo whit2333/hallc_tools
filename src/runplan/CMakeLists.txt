@@ -4,7 +4,7 @@ find_package(InSANE QUIET)
 
 add_library(RunPlan SHARED 
   src/arrange_tables.cxx
-  #  src/arrange_tables2.cxx
+  src/arrange_tables2.cxx
   src/RunStatus.cxx
   src/hallc_settings.cxx
   $<$<BOOL:${InSANE_FOUND}>: src/sidis_settings_rate.cxx >
@@ -18,7 +18,8 @@ set(lib_HEADERS
   include/runplan/RunStatus.h
   )
 
-#get_target_property(insane_include_dir InSANE::InSANEnew_xsec INTERFACE_INCLUDE_DIRECTORIES)
+message("INSANE_FOUND : ${InSANE_INCLUDE_DIRS}")
+get_target_property(insane_include_dir InSANE::InSANEnew_xsec INTERFACE_INCLUDE_DIRECTORIES)
 
 # build root dictionaries
 root_generate_dictionary(RunPlanDict 
@@ -37,7 +38,7 @@ target_include_directories(RunPlan
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
     PUBLIC ${EIGEN3_INCLUDE_DIRS}
-    PUBLIC $<${InSANE_FOUND}:${InSANE_INCLUDE_DIRS}>
+    PUBLIC $<${InSANE_FOUND}:${insane_include_dir}>
 )
 target_compile_features(RunPlan PUBLIC cxx_std_17)
 

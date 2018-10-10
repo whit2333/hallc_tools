@@ -95,7 +95,6 @@ void arrange_tables() {
     }
     LH2_Q2_tables.push_back(Q2_table);
   }
-
   
   auto LD2_rng1 = view::zip( view::ints(1)                        , LD2_Q2_tables[0]) | to_<std::vector>();
   auto LH2_rng1 = view::zip( view::ints(1)                        , LH2_Q2_tables[0]) | to_<std::vector>();
