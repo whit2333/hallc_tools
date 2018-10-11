@@ -10,6 +10,7 @@ set(HALLC_REPLAY_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 configure_file(cmake/hallc_replay_config.h.in      hallc_replay_config.h @ONLY)
 configure_file(cmake/make_hallc_replay_symlinks.in make_hallc_replay_symlinks @ONLY)
+configure_file(cmake/make_hallc_replay.in make_hallc_replay @ONLY)
 configure_file(cmake/hallc_config.in               hallc_config @ONLY)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hallc_replay_config.h
@@ -19,6 +20,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hallc_replay_config.h
 install(FILES 
   ${CMAKE_CURRENT_BINARY_DIR}/hallc_config
   ${CMAKE_CURRENT_BINARY_DIR}/make_hallc_replay_symlinks
+  ${CMAKE_CURRENT_BINARY_DIR}/make_hallc_replay
   DESTINATION bin
   PERMISSIONS WORLD_READ WORLD_EXECUTE OWNER_EXECUTE OWNER_WRITE OWNER_READ
   )
