@@ -19,8 +19,8 @@ print_latest_run() {
 }
 
 download_singularity_image() {
-  pushd "@HALLC_REPLAY_DIR@"
-  singularity pull --name cool_halls.simg shub://whit2333/cool_halls   # pull with custom name
+  pushd "@SINGULARITY_CACHEDIR@"
+  singularity pull --force --name cool_halls.simg shub://whit2333/cool_halls   # pull with custom name
   popd
 }
 
