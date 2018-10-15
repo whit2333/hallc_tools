@@ -30,7 +30,7 @@ set(lib_HEADERS
 #get_target_property(insane_include_dir InSANE::InSANEnew_xsec INTERFACE_INCLUDE_DIRECTORIES)
 
 root_generate_dictionary(hcCalibrationDict 
-  #-I${insane_include_dir} 
+  -I${CMAKE_INSTALL_PREFIX}/include 
   -I${EIGEN3_INCLUDE_DIRS}
   -I${CMAKE_CURRENT_SOURCE_DIR}/include
   -I${CMAKE_CURRENT_SOURCE_DIR} ${lib_HEADERS} 

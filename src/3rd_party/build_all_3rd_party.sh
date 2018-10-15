@@ -26,7 +26,7 @@ git clone https://github.com/HowardHinnant/date.git
 mkdir -p build_date
 pushd build_date
 cmake ../date/. -DCMAKE_INSTALL_PREFIX=${prefix} \
-   -DENABLE_DATE_TESTING=OFF -DBUILD_SHARED_LIBS=ON
+  -DENABLE_DATE_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DCURL_LIBRARY=$(curl-config --prefix)/lib -DCURL_INCLUDE_DIR=$(curl-config --prefix)/include
 make -j4 install
 popd 
 rm -r build_date
