@@ -32,13 +32,13 @@ using floaters = ROOT::VecOps::RVec<float>;
 using shorters = ROOT::VecOps::RVec<short>;
 using FVec     = std::vector<float>;
 
-void shms_cherenkovs(int RunNumber = 3963, const char* codatype = "COIN", int nevents = 50000) {
+void shms_cherenkovs(int RunNumber = 5144, const char* codatype = "COIN", int nevents = 50000) {
 
   std::string coda_type = codatype;
   //std::string coda_type = "SHMS";
   //std::string coda_type = "COIN";
 
-  std::string hallc_replay_dir = "/home/ANL/warmstrong/work/sidis/";
+  std::string hallc_replay_dir = "./";//home/ANL/warmstrong/work/sidis/";
 
   std::string rootfile    = std::string("ROOTfiles/coin_replay_production_");
   if(coda_type == "SHMS") {
@@ -100,7 +100,7 @@ void shms_cherenkovs(int RunNumber = 3963, const char* codatype = "COIN", int ne
 
   //std::cout << j2.dump() << "\n";
 
-  ROOT::EnableImplicitMT(30);
+  ROOT::EnableImplicitMT(5);
 
   Pvec4D  Pbeam(0,0,10.6,0.000511);
 
@@ -246,11 +246,11 @@ void shms_cherenkovs(int RunNumber = 3963, const char* codatype = "COIN", int ne
   auto s_dc_xp_fp          = d33.Histo1D({"s_dc_xp_fp","xy fp; xp",100,-50,50},"P.dc.xp_fp");
   auto s_dc_yp_fp          = d33.Histo1D({"s_dc_yp_fp","xy fp; xp",100,-50,50},"P.dc.yp_fp");
 
-  auto s_hgc_npe_tdc0          = d.Histo1D({"s_hgc_npe_tdc0","HGC; tdc channel",200,0,200},"T.shms.pHGCER_tdcTime");
-  auto s_ngc_npe_tdc0          = d.Histo1D({"s_ngc_npe_tdc0","NGC; tdc channel",200,0,200},"T.shms.pNGCER_tdcTime");
+  //auto s_hgc_npe_tdc0          = d.Histo1D({"s_hgc_npe_tdc0","HGC; tdc channel",200,0,200},"T.shms.pHGCER_tdcTime");
+  //auto s_ngc_npe_tdc0          = d.Histo1D({"s_ngc_npe_tdc0","NGC; tdc channel",200,0,200},"T.shms.pNGCER_tdcTime");
 
-  auto s_hgc_npe_tdc          = d3.Histo1D({"s_hgc_npe_tdc","HGC ; tdc channel",200,0,200},"T.shms.pHGCER_tdcTime");
-  auto s_ngc_npe_tdc          = d3.Histo1D({"s_ngc_npe_tdc","NGC ; tdc channel",200,0,200},"T.shms.pNGCER_tdcTime");
+  //auto s_hgc_npe_tdc          = d3.Histo1D({"s_hgc_npe_tdc","HGC ; tdc channel",200,0,200},"T.shms.pHGCER_tdcTime");
+  //auto s_ngc_npe_tdc          = d3.Histo1D({"s_ngc_npe_tdc","NGC ; tdc channel",200,0,200},"T.shms.pNGCER_tdcTime");
 
   auto s_ngc_npe_0          = d0.Histo1D({"s_ngc_npe_0","all; SHMS ngc npe sum",100,0,50},"P.ngcer.npeSum");
   auto s_ngc_npe_2          = d2.Histo1D({"s_ngc_npe_2","with E/P cut; SHMS ngc npe sum",100,0,50},"P.ngcer.npeSum");
@@ -280,6 +280,8 @@ void shms_cherenkovs(int RunNumber = 3963, const char* codatype = "COIN", int ne
   int b2 = 0;
   double hmax = 0.0;
   TLatex latex;
+
+  gSystem->mkdir("results",false);
 
   // ---------------------------------------------------------
   //
@@ -332,24 +334,24 @@ void shms_cherenkovs(int RunNumber = 3963, const char* codatype = "COIN", int ne
   
   // ---------------------------------------------------------
   // timing cuts
-  c = new TCanvas();
+  //c = new TCanvas();
 
-  gPad->SetLogy(true);
-  s_hgc_npe_tdc0->DrawCopy();
-  s_ngc_npe_tdc0->SetLineColor(2);
+  //gPad->SetLogy(true);
+  //s_hgc_npe_tdc0->DrawCopy();
+  //s_ngc_npe_tdc0->SetLineColor(2);
 
-  s_ngc_npe_tdc0->DrawCopy("same");
+  //s_ngc_npe_tdc0->DrawCopy("same");
 
-  s_hgc_npe_tdc->SetLineColor(1);
-  s_hgc_npe_tdc->SetLineStyle(2);
-  s_hgc_npe_tdc->DrawCopy("same");
+  //s_hgc_npe_tdc->SetLineColor(1);
+  //s_hgc_npe_tdc->SetLineStyle(2);
+  //s_hgc_npe_tdc->DrawCopy("same");
 
-  s_ngc_npe_tdc->SetLineStyle(2);
-  s_ngc_npe_tdc->SetLineColor(2);
-  s_ngc_npe_tdc->DrawCopy("same");
-  
-  c->SaveAs((std::string("results/shms_cherenkov_tdc_")+std::to_string(RunNumber)+".pdf").c_str());
-  c->SaveAs((std::string("results/shms_cherenkov_tdc_")+std::to_string(RunNumber)+".png").c_str());
+  //s_ngc_npe_tdc->SetLineStyle(2);
+  //s_ngc_npe_tdc->SetLineColor(2);
+  //s_ngc_npe_tdc->DrawCopy("same");
+  //
+  //c->SaveAs((std::string("results/shms_cherenkov_tdc_")+std::to_string(RunNumber)+".pdf").c_str());
+  //c->SaveAs((std::string("results/shms_cherenkov_tdc_")+std::to_string(RunNumber)+".png").c_str());
   
   // ---------------------------------------------------------
   // HGC
