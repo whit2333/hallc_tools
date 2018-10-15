@@ -33,7 +33,6 @@
 #include <fmt/ostream.h>
 R__LOAD_LIBRARY(libfmt.so)
 
-
 using namespace ROOT;
 using namespace insane::physics;
 using namespace insane::kinematics;
@@ -41,7 +40,6 @@ using namespace insane::units;
 using namespace insane::helpers;
 using namespace ROOT::Math;
 using namespace ROOT::Experimental;
-
 
 using PDFs           = insane::physics::Stat2015_UPDFs;
 using FragFs         = insane::physics::DSSFragmentationFunctions;
@@ -51,6 +49,148 @@ using Q2_variable    = insane::kinematics::variables::MomentumTransfer;
 using Theta_variable = insane::kinematics::variables::Theta;
 
 namespace hallc {
+
+  /** Calculates the table row entry.
+   *  Computes cross section, rate, and time  based on the desired statistics.
+   */
+  RunPlanTableEntry build_table_entry(const Kinematic& kine) {
+    RunPlanTableEntry entry0;
+    entry0.kinematic = kine;
+    entry0.polarity  = 1;
+    if(kine.pid_had < 0 ) {
+      entry0.polarity  = -1;
+    }
+    //entry0.Ibeam     = 25.0;
+    entry0.counts    = 30000;
+    if (entry0.kinematic.z > 0.55) {
+      entry0.counts = 20000;
+    }
+    sidis_config_sigma_rate(entry0);
+    double scale = 50.0 / entry0.Ibeam;
+    entry0.time  = scale * (entry0.counts / entry0.rates.total_rate) / (60.0 * 60.0);
+    RunPlanTableEntry::PrintHeader();
+    entry0.Print();
+    //if( ! only_LH2 ) {
+    //  resulting_entries.push_back(entry0);
+    //}
+    // if( use_LH2 ) {
+    //  RunPlanTableEntry  entry1 = entry0;
+    //  entry1.use_LH2_target     = true;
+    //  entry1.rate               = res_rate[3]*(entry1.Ibeam/50.0);
+    //  entry1.sigma              = res_rate[4];
+    //  entry1.time = entry1.counts/entry1.rate/(60.0*60.0);
+    //  entry1.Print();
+    //  resulting_entries.push_back( entry1 );
+    //}
+    return entry0;
+  }
+
+  std::vector<RunPlanTableEntry> build_sidis_table(const csv::CSV_Settings& settings,
+                                                   double                   Q2_new) {
+
+    // The fortran code used for the fragmentation functions
+    // doesn't allow multi threaded to run without modifying
+    // the way it uses the common blocks
+    ROOT::EnableImplicitMT(1);
+
+    //{ std::ofstream json_ofile("tables/pion_rates.json", std::ios_base::trunc); }
+
+    // Copy the settings
+    auto csv_settings = settings;
+    //for (auto& setting_group : csv_all_settings) {
+
+      // We only are interested in the LH2 target rates for the two lowest Q2 settings
+      bool use_LH2 = false;
+      // if( std::get<0>(setting_group) > 5.5 ) { use_LH2 = false; }
+      bool only_LH2 = false;
+      // if( !use_LH2) {
+      //  continue;
+      //}
+
+      std::vector<RunPlanTableEntry> run_plan_table;
+
+      for (auto& a_setting : csv_settings) {
+
+        a_setting = RecomputeKinematic_SIDIS(a_setting, Q2_new);
+        //std::cout << a_setting.Q2 << " \n";
+        // a_setting.Q2 = std::get<0>(setting_group);
+
+        auto plus_entry = ROOT::Experimental::Async([&a_setting, &use_LH2, &only_LH2]() {
+          std::vector<RunPlanTableEntry> resulting_entries;
+          // pi plus
+          RunPlanTableEntry entry0;
+          entry0.kinematic = a_setting;
+          entry0.polarity  = 1;
+          entry0.Ibeam     = 25.0;
+          entry0.counts    = 30000;
+          if (entry0.kinematic.z > 0.55) {
+            entry0.counts = 20000;
+          }
+          sidis_config_sigma_rate(entry0);
+          double scale = 50.0 / entry0.Ibeam;
+          entry0.time  = scale * (entry0.counts / entry0.rates.total_rate) / (60.0 * 60.0);
+          RunPlanTableEntry::PrintHeader();
+          entry0.Print();
+
+          // if( ! only_LH2 ) {
+          resulting_entries.push_back(entry0);
+          //}
+          // if( use_LH2 ) {
+          //  RunPlanTableEntry  entry1 = entry0;
+          //  entry1.use_LH2_target     = true;
+          //  entry1.rate               = res_rate[3]*(entry1.Ibeam/50.0);
+          //  entry1.sigma              = res_rate[4];
+          //  entry1.time = entry1.counts/entry1.rate/(60.0*60.0);
+          //  entry1.Print();
+          //  resulting_entries.push_back( entry1 );
+          //}
+          return resulting_entries;
+        });
+
+        auto minus_entry = ROOT::Experimental::Async([&a_setting, &use_LH2, &only_LH2]() {
+          std::vector<RunPlanTableEntry> resulting_entries;
+          // pi minus
+          RunPlanTableEntry entry0;
+          entry0.kinematic = a_setting;
+          entry0.polarity  = -1;
+          entry0.Ibeam     = 50.0;
+          entry0.counts    = 30000;
+          if (entry0.kinematic.z > 0.55) {
+            entry0.counts = 20000;
+          }
+          sidis_config_sigma_rate(entry0);
+          double scale = 50.0 / entry0.Ibeam;
+          entry0.time  = scale * (entry0.counts / entry0.rates.total_rate) / (60.0 * 60.0);
+          RunPlanTableEntry::PrintHeader();
+          entry0.Print();
+
+          // if( ! only_LH2 ) {
+          resulting_entries.push_back(entry0);
+          //}
+          // if( use_LH2 ) {
+          //  RunPlanTableEntry  entry1 = entry0;
+          //  entry1.use_LH2_target     = true;
+          //  entry1.rate               = res_rate[3]*(entry1.Ibeam/50.0);
+          //  entry1.sigma              = res_rate[4];
+          //  entry1.time = entry1.counts/entry1.rate/(60.0*60.0);
+          //  entry1.Print();
+          //  resulting_entries.push_back( entry1 );
+          //}
+          return resulting_entries;
+        });
+
+        auto table_entry0 = plus_entry.get();
+        auto table_entry1 = minus_entry.get();
+
+        run_plan_table.insert(run_plan_table.end(), table_entry0.begin(), table_entry0.end());
+        run_plan_table.insert(run_plan_table.end(), table_entry1.begin(), table_entry1.end());
+
+      }
+      //all_tables.push_back(std::make_pair(setting_group.first, run_plan_table));
+      //all_kaon_tables.push_back(std::make_pair(setting_group.first, run_plan_kaon_table));
+    //}
+    return run_plan_table;
+  }
 
   /** Calculates a table of rates.
    *
@@ -384,12 +524,145 @@ namespace hallc {
     //}
   }
 
+  void save_tables(const std::vector<RunPlanTableEntry>& table_rows, std::string table_name){
+    //{
+    //  double total_time = 0.0;
+    //  std::ofstream ofs("tables/run_plan_table.txt",std::ios_base::trunc);
+    //  for(const auto& atable : all_tables){
+    //    //ofs << "Q2 = " << atable.first << "\n";
+    //    double Q2group_total_time = 0.0;
+    //    fmt::print(ofs, "{:^80}\n", fmt::format("Q2 = {:3.2f} GeV2",atable.first));
+    //    RunPlanTableEntry::PrintHeader(ofs);
+    //    for(const auto& entry : atable.second){
+    //      entry.Print(ofs);
+    //      total_time += entry.time;
+    //      Q2group_total_time += entry.time;
+    //    }
+    //    fmt::print(ofs, "{:-<79s}\n", "-");
+    //    ofs << fmt::format(" Time for Q2 = {:3.2f} GeV2 setting : ", atable.first)
+    //    << fmt::format("{:6.3f} hrs or {:6.3f} days\n", Q2group_total_time,
+    //                   Q2group_total_time / 24.0);
+    //    ofs << "\n";
+    //  }
+    //  fmt::print(ofs, "{:=<79s}\n", "=");
+    //  ofs << "      total time: " << total_time << " hours or " << total_time/24.0 << " days\n";
+
+    //  std::ofstream json_ofile("tables/run_plan_table.json",std::ios_base::trunc);
+    //  json_ofile << TBufferJSON::ToJSON(&all_tables);
+    //  json_ofile.close();
+    //}
+    {
+      double        total_time = 0.0;
+      std::ofstream ofs(table_name+".txt", std::ios_base::app);
+      std::ofstream wiki_file(table_name+".wiki", std::ios_base::app);
+      //for (const auto& atable : all_tables) {
+        // ofs << "Q2 = " << atable.first << "\n";
+        double Q2group_total_time = 0.0;
+
+        double Q2 =  table_rows.at(0).kinematic.Q2;
+
+        fmt::print(ofs, "{:^80}\n", fmt::format("Q2 = {:3.2f} GeV2", Q2));
+        fmt::print(wiki_file, "{:^80}\n", fmt::format("Q2 = {:3.2f} GeV2", Q2));
+
+        RunPlanTableEntry::PrintHeader(ofs);
+        RunPlanTableEntry::PrintWikiHeader(wiki_file);
+        for (const auto& entry : table_rows) {
+          if (std::abs(entry.polarity) >= 2) {
+            continue;
+          }
+          entry.Print(ofs);
+          entry.PrintWiki(wiki_file);
+          total_time += entry.time;
+          Q2group_total_time += entry.time;
+        }
+        RunPlanTableEntry::PrintWikiFooter(wiki_file);
+
+        fmt::print(ofs, "{:-<79s}\n", "-");
+        fmt::print(wiki_file, "{:-<79s}\n", "-");
+        ofs << fmt::format(" Time for Q2 = {:3.2f} GeV2 setting : ", Q2)
+            << fmt::format("{:6.3f} hrs or {:6.3f} days\n", Q2group_total_time,
+                           Q2group_total_time / 24.0)
+            << "\n";
+        wiki_file << fmt::format(" Time for Q2 = {:3.2f} GeV2 setting : ", Q2)
+                  << fmt::format("{:6.3f} hrs or {:6.3f} days\n", Q2group_total_time,
+                                 Q2group_total_time / 24.0)
+                  << "\n";
+      //}
+      //fmt::print(ofs, "{:=<79s}\n", "=");
+      //ofs << "      total time: " << total_time << " hours or " << total_time / 24.0 << " days\n";
+      //fmt::print(wiki_file, "{:=<79s}\n", "=");
+      //wiki_file << "      total time: " << total_time << " hours or " << total_time / 24.0
+      //          << " days\n";
+
+      //std::ofstream json_ofile("tables/LD2_run_plan_table.json", std::ios_base::trunc);
+      //json_ofile << TBufferJSON::ToJSON(&all_tables);
+      //json_ofile.close();
+    }
+    //{
+    //  double        total_time = 0.0;
+    //  std::ofstream ofs("tables/LD2_run_plan_kaon_table.txt", std::ios_base::trunc);
+    //  std::ofstream wiki_file("tables/LD2_run_plan_kaon_table.wiki", std::ios_base::trunc);
+    //  for (const auto& atable : all_kaon_tables) {
+    //    // ofs << "Q2 = " << atable.first << "\n";
+    //    double Q2group_total_time = 0.0;
+    //    fmt::print(ofs, "{:^80}\n", fmt::format("Q2 = {:3.2f} GeV2", atable.first));
+    //    fmt::print(wiki_file, "{:^80}\n", fmt::format("Q2 = {:3.2f} GeV2", atable.first));
+    //    RunPlanTableEntry::PrintHeader(ofs);
+    //    RunPlanTableEntry::PrintWikiHeader(wiki_file);
+    //    for (const auto& entry : atable.second) {
+    //      entry.Print(ofs);
+    //      entry.PrintWiki(wiki_file);
+    //      total_time += entry.time;
+    //      Q2group_total_time += entry.time;
+    //    }
+    //    RunPlanTableEntry::PrintWikiFooter(wiki_file);
+    //    fmt::print(ofs, "{:-<79s}\n", "-");
+    //    ofs << fmt::format(" Time for Q2 = {:3.2f} GeV2 setting : ", atable.first)
+    //        << fmt::format("{:6.3f} hrs or {:6.3f} days\n", Q2group_total_time,
+    //                       Q2group_total_time / 24.0);
+    //    ofs << "\n";
+    //  }
+    //  fmt::print(ofs, "{:=<79s}\n", "=");
+    //  ofs << "      total time: " << total_time << " hours or " << total_time / 24.0 << " days\n";
+
+    //  std::ofstream json_ofile("tables/LD2_run_plan_kaon_table.json", std::ios_base::trunc);
+    //  json_ofile << TBufferJSON::ToJSON(&all_tables);
+    //  json_ofile.close();
+    //}
+    //{
+    //  double total_time = 0.0;
+    //  std::ofstream ofs("tables/run_plan_kaon_table.txt",std::ios_base::trunc);
+    //  for(const auto& atable : all_kaon_tables){
+    //    //ofs << "Q2 = " << atable.first << "\n";
+    //    double Q2group_total_time = 0.0;
+    //    fmt::print(ofs, "{:^80}\n", fmt::format("Q2 = {:3.2f} GeV2",atable.first));
+    //    RunPlanTableEntry::PrintHeader(ofs);
+    //    for(const auto& entry : atable.second){
+    //      entry.Print(ofs);
+    //      total_time += entry.time;
+    //      Q2group_total_time += entry.time;
+    //    }
+    //    fmt::print(ofs, "{:-<79s}\n", "-");
+    //    ofs << fmt::format(" Time for Q2 = {:3.2f} GeV2 setting : ", atable.first)
+    //    << fmt::format("{:6.3f} hrs or {:6.3f} days\n", Q2group_total_time,
+    //                   Q2group_total_time / 24.0);
+    //    ofs << "\n";
+    //  }
+    //  fmt::print(ofs, "{:=<79s}\n", "=");
+    //  ofs << "      total time: " << total_time << " hours or " << total_time/24.0 << " days\n";
+
+    //  std::ofstream json_ofile("tables/run_plan_kaon_table.json",std::ios_base::trunc);
+    //  json_ofile << TBufferJSON::ToJSON(&all_tables);
+    //  json_ofile.close();
+    //}
+  }
+
   /** Compute the cross section and rate for a given setting
    *
    */
   std::vector<double> sidis_config_sigma_rate(RunPlanTableEntry& run_setting) {
 
-    hallc::HCKinematic&  kine_set = run_setting.kinematic;
+    hallc::Kinematic&  kine_set = run_setting.kinematic;
     hallc::HallCSetting& hcSet    = run_setting.hcSet;
     double               x_set    = kine_set.x;
     double               z_set    = kine_set.z;

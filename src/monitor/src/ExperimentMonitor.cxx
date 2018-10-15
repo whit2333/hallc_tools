@@ -19,7 +19,8 @@ R__LOAD_LIBRARY(libfmt.so)
 // date library (while waiting on c++20) https://github.com/HowardHinnant/date
 #include "date/date.h"
 
-#include "hallc_settings.h"
+#include "runplan/hallc_settings.h"
+#include "runplan/RunTable.h"
 
 using json        = nlohmann::json;
 using Q2Table     = std::vector<RunPlanTableEntry>;

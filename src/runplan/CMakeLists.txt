@@ -4,18 +4,22 @@ find_package(InSANE QUIET)
 
 add_library(RunPlan SHARED 
   src/arrange_tables.cxx
-  src/arrange_tables2.cxx
+  #src/arrange_tables2.cxx
   src/RunStatus.cxx
+  src/RunTable.cxx
   src/hallc_settings.cxx
-  $<$<BOOL:${InSANE_FOUND}>: src/sidis_settings_rate.cxx >
+  #$<$<BOOL:${InSANE_FOUND}>: src/sidis_settings_rate.cxx >
+  $<$<BOOL:${InSANE_FOUND}>: src/sidis_rates.cxx >
   ${CMAKE_CURRENT_BINARY_DIR}/RunPlanDict.cxx
   )
 
 message( "InSANE_FOUND :  ${InSANE_FOUND}")
 set(lib_HEADERS 
   include/runplan/arrange_tables.h
-  include/runplan/sidis_settings_rate.h
+  #include/runplan/sidis_settings_rate.h
+  include/runplan/sidis_rates.h
   include/runplan/RunStatus.h
+  include/runplan/RunTable.h
   )
 
 message("INSANE_FOUND : ${InSANE_INCLUDE_DIRS}")
@@ -24,6 +28,7 @@ get_target_property(insane_include_dir InSANE::InSANEnew_xsec INTERFACE_INCLUDE_
 # build root dictionaries
 root_generate_dictionary(RunPlanDict 
   #-I${insane_include_dir} 
+  -I${CMAKE_CURRENT_SOURCE_DIR}/include
   -I${CMAKE_CURRENT_SOURCE_DIR} ${lib_HEADERS} 
   LINKDEF include/LinkDef.h 
   OPTIONS -p)
@@ -44,6 +49,7 @@ target_compile_features(RunPlan PUBLIC cxx_std_17)
 
 target_link_libraries(RunPlan
   PUBLIC fmt::fmt
+  ${CXX_FILESYSTEM_LIB}
   #$<$<BOOL:${InSANE_FOUND}>:PUBLIC InSANE::InSANEbase InSANE::InSANEnew_xsec>
 )
 

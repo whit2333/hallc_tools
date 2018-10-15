@@ -10,9 +10,9 @@
 #pragma link C++ namespace hallc;
 #pragma link C++ namespace csv;
 
-#pragma link C++ class hallc::HCKinematic+;
-#pragma link C++ class std::vector<hallc::HCKinematic>+;
-#pragma link C++ class std::vector<std::pair<double, hallc::HCKinematic>>+;
+#pragma link C++ class hallc::SIDIS_Kinematic+;
+#pragma link C++ class std::vector<hallc::SIDIS_Kinematic>+;
+#pragma link C++ class std::vector<std::pair<double, hallc::SIDIS_Kinematic>>+;
 
 #pragma link C++ class hallc::HallCSetting+;
 #pragma link C++ class TargetRates+;
@@ -21,6 +21,9 @@
 #pragma link C++ class std::vector<RunPlanTableEntry>+;
 #pragma link C++ class std::pair<double,std::vector<RunPlanTableEntry>>+;
 #pragma link C++ class std::vector<std::pair<double,std::vector<RunPlanTableEntry>>>+;
+#pragma link C++ class std::map<int,RunPlanTableEntry>+;
+
+#pragma link C++ class RunTable+;
 
 #pragma link C++ class hallc::MonitoringHistograms+;
 #pragma link C++ class std::vector<hallc::MonitoringHistograms>+;

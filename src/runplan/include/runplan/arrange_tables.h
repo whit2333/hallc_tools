@@ -49,14 +49,15 @@ R__LOAD_LIBRARY(libfmt.so)
 using day_point = std::chrono::time_point<std::chrono::system_clock, date::days>;
 #endif
 
-#include "hallc_settings.h"
+#include "runplan/hallc_settings.h"
+#include "runplan/RunTable.h"
 
 using Q2Table     = std::vector<RunPlanTableEntry>;
 using TableVector = std::vector<std::pair<double, Q2Table>>;
 
 
 void arrange_tables();
-void arrange_tables2();
+//void arrange_tables2();
 
 
 
