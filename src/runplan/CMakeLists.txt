@@ -24,7 +24,9 @@ set(lib_HEADERS
 
 message("INSANE_FOUND : ${InSANE_INCLUDE_DIRS}")
 
-#get_target_property(insane_include_dir InSANE::InSANEnew_xsec INTERFACE_INCLUDE_DIRECTORIES)
+if(InSANE_FOUND)
+get_target_property(insane_include_dir InSANE::InSANEnew_xsec INTERFACE_INCLUDE_DIRECTORIES)
+endif(InSANE_FOUND)
 
 # build root dictionaries
 root_generate_dictionary(RunPlanDict 
