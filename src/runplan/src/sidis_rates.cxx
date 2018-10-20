@@ -310,6 +310,17 @@ namespace hallc {
     // HMS  6 msr dp +-8
     // -------------------------------------------------------
     // Phase space variables
+    //hcSet.SHMS_dP_high = -0.05;
+    IPSV lowdp_phi_SHMS_psv({hcSet.SHMS_phi_min(), hcSet.SHMS_phi_max()}, "phi_shms");
+    IPSV lowdp_phi_HMS_psv({hcSet.HMS_phi_min(), hcSet.HMS_phi_max()}, "phi_hms");
+    IPSV lowdp_theta_HMS_psv({hcSet.HMS_theta_min(), hcSet.HMS_theta_max()}, "theta_hms");
+    IPSV lowdp_theta_SHMS_psv({hcSet.SHMS_theta_min(), hcSet.SHMS_theta_max()}, "theta_shms");
+    IPSV lowdp_P_HMS_psv({hcSet.HMS_P_min(), hcSet.HMS_P_max()}, "P_hms");
+    IPSV lowdp_P_SHMS_psv({hcSet.SHMS_P_min(), hcSet.SHMS_P_max()}, "P_shms");
+
+    
+    //hcSet.SHMS_dP_high = hallc::shms::SHMS_dP_high;
+    //hcSet.SHMS_dP_low = -0.05;
     IPSV phi_SHMS_psv({hcSet.SHMS_phi_min(), hcSet.SHMS_phi_max()}, "phi_shms");
     IPSV phi_HMS_psv({hcSet.HMS_phi_min(), hcSet.HMS_phi_max()}, "phi_hms");
     IPSV theta_HMS_psv({hcSet.HMS_theta_min(), hcSet.HMS_theta_max()}, "theta_hms");
@@ -317,10 +328,17 @@ namespace hallc {
     IPSV P_HMS_psv({hcSet.HMS_P_min(), hcSet.HMS_P_max()}, "P_hms");
     IPSV P_SHMS_psv({hcSet.SHMS_P_min(), hcSet.SHMS_P_max()}, "P_shms");
 
+    hcSet.SHMS_dP_low = hallc::shms::SHMS_dP_low;
+
     auto diff_spectrometers =
         make_diff(P_HMS_psv, theta_HMS_psv, phi_HMS_psv, P_SHMS_psv, theta_SHMS_psv, phi_SHMS_psv);
     auto ps_spectrometers = make_phase_space(diff_spectrometers);
-    // diff_spectrometers.Print();
+
+    auto diff_spectrometers_lowdp =
+        make_diff(lowdp_P_HMS_psv, lowdp_theta_HMS_psv, lowdp_phi_HMS_psv, lowdp_P_SHMS_psv, lowdp_theta_SHMS_psv, lowdp_phi_SHMS_psv);
+    auto ps_spectrometers_lowdp = make_phase_space(diff_spectrometers_lowdp);
+    //diff_spectrometers.Print();
+    //diff_spectrometers_lowdp.Print();
 
     // ------------------------------
     // Prepare the initial state
@@ -537,6 +555,7 @@ namespace hallc {
     };
 
     auto diff_xs_sidis = make_diff_cross_section(ps_spectrometers, SIDIS_xs_func);
+    auto diff_xs_sidis_lowdp = make_diff_cross_section(ps_spectrometers_lowdp, SIDIS_xs_func);
 
     auto fs_parts =
         make_final_state_particles({11, 211}, {0.000511, M_pion / GeV}, Eprime_and_Ph_func);
@@ -545,6 +564,9 @@ namespace hallc {
 
     auto p_integrated_XS = make_integrated_cross_section(init_state, diff_xs_sidis);
     auto n_integrated_XS = make_integrated_cross_section(init_state, diff_xs_sidis);
+
+    //auto p_integrated_XS_lowdp = make_integrated_cross_section(init_state, diff_xs_sidis_lowdp);
+    //auto n_integrated_XS_lowdp = make_integrated_cross_section(init_state, diff_xs_sidis_lowdp);
     // auto sampler       = make_ps_sampler(p_integrated_XS);
     // auto sampler2      = make_ps_sampler(n_integrated_XS);
     // sampler.SetFoamCells(500);
@@ -556,12 +578,12 @@ namespace hallc {
 
     // auto evgen    = make_event_generator(sampler, fs_SIDIS);
     xs_select       = 1;
-    auto total_XS_p = p_integrated_XS.CalculateTotalXS();
+    auto total_XS_p = p_integrated_XS.CalculateTotalXS();// + p_integrated_XS_lowdp.CalculateTotalXS();
     // auto total_XS_p = evgen.Init();
 
     // auto evgen2    = make_event_generator(sampler2, fs_SIDIS);
     xs_select       = 0;
-    auto total_XS_n = n_integrated_XS.CalculateTotalXS();
+    auto total_XS_n = n_integrated_XS.CalculateTotalXS();// + n_integrated_XS_lowdp.CalculateTotalXS();
     // auto total_XS_n = evgen2.Init();
 
     double total_XS = total_XS_n + total_XS_p;
@@ -586,7 +608,6 @@ namespace hallc {
         Loop1_entrance_window_thickness + Loop1_exit_window_thickness, 50.0e-6);
 
     // double Lumi = Loop1_LD2_Lumi + Loop1_windows_Lumi;
-
     TargetRates targ_rates;
 
     targ_rates.LD2_Lumi    = Loop1_LD2_Lumi;

@@ -116,20 +116,32 @@ namespace hallc {
     double SHMS_p0    = 3.0; // GeV/c
     double SHMS_phi   = 0.0; // SHMS sits on the +x side
 
-    double HMS_P_min()  const { return HMS_p0 * (1.0 - hms::HMS_dP_low); }
-    double HMS_P_max()  const { return HMS_p0 * (1.0 + hms::HMS_dP_high); }
-    double SHMS_P_min() const { return SHMS_p0 * (1.0 - shms::SHMS_dP_low); }
-    double SHMS_P_max() const { return SHMS_p0 * (1.0 + shms::SHMS_dP_high); }
+    double SHMS_dtheta      = shms::SHMS_dtheta     ;
+    double SHMS_dphi        = shms::SHMS_dphi       ;
+    double SHMS_dP_low      = shms::SHMS_dP_low     ;
+    double SHMS_dP_high     = shms::SHMS_dP_high    ;
+    double SHMS_solid_angle = shms::SHMS_solid_angle;
+    double HMS_dtheta       = hms::HMS_dtheta       ;
+    double HMS_dphi         = hms::HMS_dphi         ;
+    double HMS_dP_low       = hms::HMS_dP_low       ;
+    double HMS_dP_high      = hms::HMS_dP_high      ;
+    double HMS_solid_angle  = hms::HMS_solid_angle  ;
 
-    double HMS_phi_min()  const { return HMS_phi - hms::HMS_dphi; }
-    double HMS_phi_max()  const { return HMS_phi + hms::HMS_dphi; }
-    double SHMS_phi_min() const { return SHMS_phi - shms::SHMS_dphi; }
-    double SHMS_phi_max() const { return SHMS_phi + shms::SHMS_dphi; }
 
-    double HMS_theta_min()  const { return HMS_theta - hms::HMS_dtheta; }
-    double HMS_theta_max()  const { return HMS_theta + hms::HMS_dtheta; }
-    double SHMS_theta_min() const { return SHMS_theta - shms::SHMS_dtheta; }
-    double SHMS_theta_max() const { return SHMS_theta + shms::SHMS_dtheta; }
+    double HMS_P_min()  const { return HMS_p0 * (1.0 - HMS_dP_low); }
+    double HMS_P_max()  const { return HMS_p0 * (1.0 + HMS_dP_high); }
+    double SHMS_P_min() const { return SHMS_p0 * (1.0 - SHMS_dP_low); }
+    double SHMS_P_max() const { return SHMS_p0 * (1.0 + SHMS_dP_high); }
+
+    double HMS_phi_min()  const { return HMS_phi -  HMS_dphi; }
+    double HMS_phi_max()  const { return HMS_phi +  HMS_dphi; }
+    double SHMS_phi_min() const { return SHMS_phi - SHMS_dphi; }
+    double SHMS_phi_max() const { return SHMS_phi + SHMS_dphi; }
+
+    double HMS_theta_min()  const { return HMS_theta -  HMS_dtheta; }
+    double HMS_theta_max()  const { return HMS_theta +  HMS_dtheta; }
+    double SHMS_theta_min() const { return SHMS_theta - SHMS_dtheta; }
+    double SHMS_theta_max() const { return SHMS_theta + SHMS_dtheta; }
 
     void Print() const {
       std::cout << "HMS:  \n";

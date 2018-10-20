@@ -2,3 +2,6 @@
 	path = replay/submodules/hallc_replay
 	url = https://github.com/whit2333/hallc_replay.git
         branch = master
+[submodule "replay/submodules/hallc_replay_fall2018"]
+	path = replay/submodules/hallc_replay_fall2018
+	url = https://github.com/hallc-online/hallc_replay.git
