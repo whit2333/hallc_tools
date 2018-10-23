@@ -50,6 +50,7 @@ namespace hallc {
 
       using doublers = ROOT::VecOps::RVec<double>;
 
+      std::cout << "DERPy DERP \n";
       auto collimator_cut = [&](double xptar, double ytar, double yptar, double delta) {
         // SHMS octagonal collimator cut.
         const double FullHeight = 25.; // cm
@@ -109,6 +110,7 @@ namespace hallc {
       //  return 0;
       // bool good_trk = P_tr_tg_dp > fDeltaMin && P_tr_tg_dp < fDeltaMax;
 
+      std::cout << "DERPy DERP \n";
       auto df_with_cuts =
           df.Filter([&](const double& n) { return int(n) == 1; }, {"P.tr.n"})
               .Filter(
@@ -122,11 +124,11 @@ namespace hallc {
                     return (npe[0] + npe[1] + npe[2] + npe[3]) > _calibration.fHGCerMin;
                   },
                   {"P.hgcer.npe"})
-              .Filter(
-                  [&](doublers& npe) {
-                    return (npe[0] + npe[1] + npe[2] + npe[3]) > _calibration.fNGCerMin;
-                  },
-                  {"P.ngcer.npe"})
+              //.Filter(
+              //    [&](doublers& npe) {
+              //      return (npe[0] + npe[1] + npe[2] + npe[3]) > _calibration.fNGCerMin;
+              //    },
+              //    {"P.ngcer.npe"})
               .Filter(
                   [&](doublers& beta) {
                     return (beta.at(0) > _calibration.fBetaMin) &&
@@ -189,14 +191,18 @@ namespace hallc {
     void ShowerCalibrator::Process(std::string rootfile) {
       using doublers = ROOT::VecOps::RVec<double>;
 
+      std::cout << "DERP DERP \n";
       auto     d2 = GetDataFrame(rootfile);
       if(!_canvas) {
         _canvas = new TCanvas("glcanvas");
       }
-
-      auto  h_Euncalib = d2.Histo1D({"h_Euncalib", ";E/p total", 100, 0.8, 1.8}, "E_shower_cal0");
+      auto h_Euncalib = d2.Histo1D({"h_Euncalib", ";E/p total", 100, 0.8, 1.8}, "E_shower_cal0");
+      std::cout << "done lazy eval \n";
+      auto n_events   = d2.Count();
+      std::cout <<  " entries : " << *n_events << "\n";
       TH1D* hEunc      = (TH1D*)h_Euncalib->Clone("hEunc");
-      std::cout <<  " entries : " << *(d2.Count()) << "\n";
+      std::cout << "done lazy eval \n";
+
 
       TFitResultPtr r = hEunc->Fit("gaus", "S", "", 0.8,1.8);//_calibration.fEuncGFitLo, _calibration.fEuncGFitHi);
       //hEunc->Fit("gaus", "0", "", _calibration.fEuncGFitLo, _calibration.fEuncGFitHi);

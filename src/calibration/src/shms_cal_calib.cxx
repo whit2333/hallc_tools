@@ -37,9 +37,9 @@ int main(int argc, char* argv[]) {
   int                      run_number       = 0;
   uint64_t                 start_event      = 0;
   bool                     help             = false;
-  string                   dir              = "PARAM/SHMS/CAL/";
-  string                   infile           = "pcal_calib.json";
-  string                   output_name      = "";
+  string                   dir              = "db2/";
+  string                   infile           = dir+"pcal_calib.json";
+  string                   output_name      = dir+"pcal_calib_new.json";
   string                   tree_name        = "T";
   string                   rootfile         = "";
   string                   plot_file_name   = "shms_cal_calib.pdf";
@@ -99,16 +99,16 @@ int main(int argc, char* argv[]) {
     return -127;
   }
 
-  fs::path in_path = dir + infile;
+  fs::path in_path = infile;
   if (!fs::exists(in_path)) {
-    std::cerr << "File : " << dir + infile << " not found.\n";
+    std::cerr << "File : " << infile << " not found.\n";
     return -127;
   }
   infile = in_path.string();
 
   //fs::path in_path_prefix = in_path;
   //in_path_prefix.replace_extension("");
-  fs::path out_path = dir + outfile;
+  fs::path out_path = outfile;
   if (outfile.empty()) {
     //std::cout << " empty \n";
     if (update) {
@@ -147,12 +147,14 @@ int main(int argc, char* argv[]) {
   CalorimeterCalibration cal_0(theShowerCalib._calibration);
 
   // Process data to get new calibration 
+  std::cout << "processing derp \n";
   theShowerCalib.Process(rootfile);
   if (verbose) {
     theShowerCalib.Print();
   }
   // Get the new calibraiton 
   CalorimeterCalibration cal_1(theShowerCalib._calibration);
+  std::cout << "asdfkjasdfk derp \n";
   // merge 
   cal_0.Merge(cal_1,weight);
   theShowerCalib._calibration = cal_0;
