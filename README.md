@@ -5,11 +5,17 @@
 * hcana and analyzer (cmake_demangled branches)
     * https://github.com/whit2333/analyzer/tree/cmake_demangled
     * https://github.com/whit2333/hcana/tree/cmake_demangled
-* nlohmann_json
-* fmtlib
-* date
 
-TODO: Add header-only dependencies to project
+* 3rd Party
+     * nlohmann_json
+     * fmtlib
+     * date
+
+These can be built with the command
+```
+bash ../src/3rd_party/build_all_3rd_party.sh PREFIX
+```
+
 
 
 ## Examples
