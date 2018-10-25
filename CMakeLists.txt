@@ -17,7 +17,14 @@ include(cmake/root.cmake)
 #list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3/cmake)
 #list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3)
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
+find_package (Eigen3 3.3 NO_MODULE)
+if(NOT Eigen3_FOUND)
+  message(FATAL_ERROR " to build all 3rd party run the command:\n\
+  bash ${CMAKE_SOURCE_DIR}/src/3rd_party/build_all_3rd_party.sh ${CMAKE_INSTALL_PREFIX}\n\
+  nlohmann json missing : https://github.com/nlohmann/json.git")
+  find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+endif(NOT Eigen3_FOUND)
 
 find_package(nlohmann_json CONFIG)
 if(NOT nlohmann_json_FOUND)

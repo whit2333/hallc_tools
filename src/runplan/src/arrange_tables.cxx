@@ -1,5 +1,6 @@
 #include "runplan/arrange_tables.h"
 #include "runplan/hallc_settings.h"
+#include "TGraph.h"
 
 /** Arrange the tables into a run plan.
  *
