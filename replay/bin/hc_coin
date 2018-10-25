@@ -111,15 +111,25 @@ export DB_DIR=DBASE
 #script="analysis/coin_replay.cxx"
 
 if [[ -n ${container} ]] ; then
-  singularity run -a hcana $(hallc_config -d)/cool_halls.simg -b -q "analysis/replay_coin.cxx(${run_number},${n_events})"
+  singularity run -a hcana $(hallc_config -d)/cool_halls.simg \
+                  -b -q "analysis/replay_coin.cxx(${run_number},${n_events})"
 else 
+
   mkdir -p results/${run_number}
-  hallc_home=$(hallc_config -d )
-  hcana -b -q "${hallc_home}/analysis/replay_coin.cxx(${run_number},50000)"
-  shms_cal_calib -F ROOTfiles/coin_replay_production_${run_number}_50000.root \
-                 -R ${run_number} -g -w 0.99 -u \
-                 -s results/${run_number}/shms_shower_calibration.pdf
-  hcana -b -q "${hallc_home}/analysis/replay_coin.cxx(${run_number},${n_events})"
+
+  if [[ -n ${calibrate} ]] ; then 
+    # replay some of the run for calibration
+    hcana -b -q "analysis/replay_coin.cxx(${run_number},${n_calib})"
+    if [ $? -ne 0 ]; then
+      echo "hcana calibration replay failed"
+      exit -128
+    fi
+    shms_cal_calib -F ROOTfiles/coin_replay_production_${run_number}_${n_calib}.root \
+      -R ${run_number} -g -w 0.99 -u \
+      -s results/${run_number}/shms_shower_calibration.pdf
+    
+  fi
+  hcana -b -q "analysis/replay_coin.cxx(${run_number},${n_events})"
 fi
 
   #perf record hcana -b -q "${hallc_home}/analysis/replay_coin.cxx(${run_number},${n_events})"

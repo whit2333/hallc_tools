@@ -75,7 +75,7 @@ void replay_coin (Int_t RunNumber = 0, Int_t MaxEvent = 0) {
   
   //auto* pcal = new hcana::Shower2("cal", "Calorimeter");
   //pcal->SetRunNumber(RunNumber);
-  THcShower* hcal = new THcShower("cal", "Calorimeter");
+  THcShower* pcal = new THcShower("cal", "Calorimeter");
   SHMS->AddDetector(pcal);
 
   // THcBCMCurrent* hbc = new THcBCMCurrent("H.bcm", "BCM current check");

@@ -6,7 +6,8 @@ project(HallCReplay
   #HOMEPAGE_URL https://github.com/whit2333/EXPERIMENT_replay # only cmake >3.12
   )
 
-set(HALLC_REPLAY_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(HALLC_REPLAY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/hallc_replay
+    CACHE PATH "replay directory to use (submodule)")
 
 configure_file(cmake/hallc_replay_config.h.in      hallc_replay_config.h @ONLY)
 configure_file(cmake/make_hallc_replay_symlinks.in make_hallc_replay_symlinks @ONLY)
