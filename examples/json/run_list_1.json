@@ -1,0 +1,1040 @@
+{
+  "5530": {
+    "Spectrometers": [
+      {
+        "shms_momentum": 2.58
+      }, 
+      {
+        "shms_angle": 17.92
+      }, 
+      {
+        "hms_momentum": -5.27
+      }, 
+      {
+        "hms_angle": 16.3
+      }
+    ], 
+    "beam": [
+      {
+        "beam_energy": 10.6
+      }, 
+      {
+        "beam_pol": 0.0
+      }
+    ], 
+    "counters": [
+      {
+        "Hall C beam current ibcm1": {
+          "PV": "ibcm1", 
+          "trip_events": [], 
+          "trips": 0
+        }
+      }, 
+      {
+        "Hall C beam current ibcm2": {
+          "PV": "ibcm2", 
+          "trip_events": [], 
+          "trips": 0
+        }
+      }
+    ], 
+    "integrators": [
+      {
+        "Hall C bcm1": {
+          "PV": "ibcm1", 
+          "total": 2460.3598537484
+        }
+      }, 
+      {
+        "Hall C bcm2": {
+          "PV": "ibcm2", 
+          "total": 2468.5855977922
+        }
+      }
+    ], 
+    "target": [
+      {
+        "target_id": 3
+      }, 
+      {
+        "target_name": "Loop 3 10cm"
+      }
+    ]
+  }, 
+  "5531": {
+    "Spectrometers": [
+      {
+        "shms_momentum": 2.58
+      }, 
+      {
+        "shms_angle": 17.92
+      }, 
+      {
+        "hms_momentum": -5.27
+      }, 
+      {
+        "hms_angle": 16.3
+      }
+    ], 
+    "beam": [
+      {
+        "beam_energy": 10.6
+      }, 
+      {
+        "beam_pol": 0.0
+      }
+    ], 
+    "counters": [
+      {
+        "Hall C beam current ibcm1": {
+          "PV": "ibcm1", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 18:13:32 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 18:13:18 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:14:06 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 18:13:54 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:16:08 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 18:15:46 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:23:58 2018", 
+              "id": 3, 
+              "start_time": "Sat Oct 27 18:23:42 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:24:52 2018", 
+              "id": 4, 
+              "start_time": "Sat Oct 27 18:24:28 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:25:14 2018", 
+              "id": 5, 
+              "start_time": "Sat Oct 27 18:24:58 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:27:16 2018", 
+              "id": 6, 
+              "start_time": "Sat Oct 27 18:26:58 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:29:32 2018", 
+              "id": 7, 
+              "start_time": "Sat Oct 27 18:28:56 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:29:52 2018", 
+              "id": 8, 
+              "start_time": "Sat Oct 27 18:29:38 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:33:14 2018", 
+              "id": 9, 
+              "start_time": "Sat Oct 27 18:32:52 2018"
+            }
+          ], 
+          "trips": 10
+        }
+      }, 
+      {
+        "Hall C beam current ibcm2": {
+          "PV": "ibcm2", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 18:13:32 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 18:13:18 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:14:06 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 18:13:54 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:16:08 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 18:15:46 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:23:58 2018", 
+              "id": 3, 
+              "start_time": "Sat Oct 27 18:23:42 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:24:52 2018", 
+              "id": 4, 
+              "start_time": "Sat Oct 27 18:24:28 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:25:14 2018", 
+              "id": 5, 
+              "start_time": "Sat Oct 27 18:24:58 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:27:16 2018", 
+              "id": 6, 
+              "start_time": "Sat Oct 27 18:26:58 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:29:32 2018", 
+              "id": 7, 
+              "start_time": "Sat Oct 27 18:28:56 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:29:52 2018", 
+              "id": 8, 
+              "start_time": "Sat Oct 27 18:29:38 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:33:14 2018", 
+              "id": 9, 
+              "start_time": "Sat Oct 27 18:32:52 2018"
+            }
+          ], 
+          "trips": 10
+        }
+      }
+    ], 
+    "integrators": [
+      {
+        "Hall C bcm1": {
+          "PV": "ibcm1", 
+          "total": 50102.21243883703
+        }
+      }, 
+      {
+        "Hall C bcm2": {
+          "PV": "ibcm2", 
+          "total": 50267.78582501124
+        }
+      }
+    ], 
+    "target": [
+      {
+        "target_id": 3
+      }, 
+      {
+        "target_name": "Loop 3 10cm"
+      }
+    ]
+  }, 
+  "5532": {
+    "Spectrometers": [
+      {
+        "shms_momentum": 2.58
+      }, 
+      {
+        "shms_angle": 17.92
+      }, 
+      {
+        "hms_momentum": -5.27
+      }, 
+      {
+        "hms_angle": 16.3
+      }
+    ], 
+    "beam": [
+      {
+        "beam_energy": 10.6
+      }, 
+      {
+        "beam_pol": 0.0
+      }
+    ], 
+    "counters": [
+      {
+        "Hall C beam current ibcm1": {
+          "PV": "ibcm1", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 18:54:24 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 18:53:36 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:58:26 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 18:58:02 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 19:00:16 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 18:59:52 2018"
+            }
+          ], 
+          "trips": 3
+        }
+      }, 
+      {
+        "Hall C beam current ibcm2": {
+          "PV": "ibcm2", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 18:54:24 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 18:53:36 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 18:58:26 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 18:58:02 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 19:00:16 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 18:59:52 2018"
+            }
+          ], 
+          "trips": 3
+        }
+      }
+    ], 
+    "integrators": [
+      {
+        "Hall C bcm1": {
+          "PV": "ibcm1", 
+          "total": 44569.30378256749
+        }
+      }, 
+      {
+        "Hall C bcm2": {
+          "PV": "ibcm2", 
+          "total": 44715.14869429351
+        }
+      }
+    ], 
+    "target": [
+      {
+        "target_id": 3
+      }, 
+      {
+        "target_name": "Loop 3 10cm"
+      }
+    ]
+  }, 
+  "5533": {
+    "Spectrometers": [
+      {
+        "shms_momentum": 2.58
+      }, 
+      {
+        "shms_angle": 19.92
+      }, 
+      {
+        "hms_momentum": -5.27
+      }, 
+      {
+        "hms_angle": 16.3
+      }
+    ], 
+    "beam": [
+      {
+        "beam_energy": 10.6
+      }, 
+      {
+        "beam_pol": 0.0
+      }
+    ], 
+    "counters": [
+      {
+        "Hall C beam current ibcm1": {
+          "PV": "ibcm1", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 19:18:40 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 19:17:08 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 19:24:04 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 19:23:44 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 19:33:54 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 19:33:24 2018"
+            }
+          ], 
+          "trips": 3
+        }
+      }, 
+      {
+        "Hall C beam current ibcm2": {
+          "PV": "ibcm2", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 19:18:40 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 19:17:08 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 19:24:04 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 19:23:44 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 19:33:54 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 19:33:24 2018"
+            }
+          ], 
+          "trips": 3
+        }
+      }
+    ], 
+    "integrators": [
+      {
+        "Hall C bcm1": {
+          "PV": "ibcm1", 
+          "total": 46729.95543200027
+        }
+      }, 
+      {
+        "Hall C bcm2": {
+          "PV": "ibcm2", 
+          "total": 46840.83766226064
+        }
+      }
+    ], 
+    "target": [
+      {
+        "target_id": 3
+      }, 
+      {
+        "target_name": "Loop 3 10cm"
+      }
+    ]
+  }, 
+  "5534": {
+    "Spectrometers": [
+      {
+        "shms_momentum": 2.58
+      }, 
+      {
+        "shms_angle": 19.92
+      }, 
+      {
+        "hms_momentum": -5.27
+      }, 
+      {
+        "hms_angle": 16.3
+      }
+    ], 
+    "beam": [
+      {
+        "beam_energy": 10.6
+      }, 
+      {
+        "beam_pol": 0.0
+      }
+    ], 
+    "counters": [
+      {
+        "Hall C beam current ibcm1": {
+          "PV": "ibcm1", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 19:40:26 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 19:35:52 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 19:51:12 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 19:48:16 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 19:55:40 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 19:53:38 2018"
+            }
+          ], 
+          "trips": 3
+        }
+      }, 
+      {
+        "Hall C beam current ibcm2": {
+          "PV": "ibcm2", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 19:40:26 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 19:35:52 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 19:51:12 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 19:48:16 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 19:55:40 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 19:53:38 2018"
+            }
+          ], 
+          "trips": 3
+        }
+      }
+    ], 
+    "integrators": [
+      {
+        "Hall C bcm1": {
+          "PV": "ibcm1", 
+          "total": 31724.995857294674
+        }
+      }, 
+      {
+        "Hall C bcm2": {
+          "PV": "ibcm2", 
+          "total": 31799.164642299715
+        }
+      }
+    ], 
+    "target": [
+      {
+        "target_id": 3
+      }, 
+      {
+        "target_name": "Loop 3 10cm"
+      }
+    ]
+  }, 
+  "5535": {
+    "Spectrometers": [
+      {
+        "shms_momentum": 2.58
+      }, 
+      {
+        "shms_angle": 19.92
+      }, 
+      {
+        "hms_momentum": -5.27
+      }, 
+      {
+        "hms_angle": 16.3
+      }
+    ], 
+    "beam": [
+      {
+        "beam_energy": 10.6
+      }, 
+      {
+        "beam_pol": 0.0
+      }
+    ], 
+    "counters": [
+      {
+        "Hall C beam current ibcm1": {
+          "PV": "ibcm1", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 20:04:48 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 20:04:22 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 20:07:10 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 20:06:20 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 20:11:26 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 20:10:22 2018"
+            }
+          ], 
+          "trips": 3
+        }
+      }, 
+      {
+        "Hall C beam current ibcm2": {
+          "PV": "ibcm2", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 20:04:48 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 20:04:22 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 20:07:10 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 20:06:20 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 20:11:26 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 20:10:22 2018"
+            }
+          ], 
+          "trips": 3
+        }
+      }
+    ], 
+    "integrators": [
+      {
+        "Hall C bcm1": {
+          "PV": "ibcm1", 
+          "total": 59943.38310279998
+        }
+      }, 
+      {
+        "Hall C bcm2": {
+          "PV": "ibcm2", 
+          "total": 60082.286335968
+        }
+      }
+    ], 
+    "target": [
+      {
+        "target_id": 3
+      }, 
+      {
+        "target_name": "Loop 3 10cm"
+      }
+    ]
+  }, 
+  "5536": {
+    "Spectrometers": [
+      {
+        "shms_momentum": 2.58
+      }, 
+      {
+        "shms_angle": 19.92
+      }, 
+      {
+        "hms_momentum": -5.27
+      }, 
+      {
+        "hms_angle": 16.3
+      }
+    ], 
+    "beam": [
+      {
+        "beam_energy": 10.6
+      }, 
+      {
+        "beam_pol": 0.0
+      }
+    ], 
+    "counters": [
+      {
+        "Hall C beam current ibcm1": {
+          "PV": "ibcm1", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 20:30:32 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 20:29:56 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 20:31:40 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 20:31:22 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 20:35:06 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 20:34:24 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 20:43:08 2018", 
+              "id": 3, 
+              "start_time": "Sat Oct 27 20:40:14 2018"
+            }
+          ], 
+          "trips": 4
+        }
+      }, 
+      {
+        "Hall C beam current ibcm2": {
+          "PV": "ibcm2", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 20:30:32 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 20:29:56 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 20:31:40 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 20:31:22 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 20:35:06 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 20:34:24 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 20:43:08 2018", 
+              "id": 3, 
+              "start_time": "Sat Oct 27 20:40:14 2018"
+            }
+          ], 
+          "trips": 4
+        }
+      }
+    ], 
+    "integrators": [
+      {
+        "Hall C bcm1": {
+          "PV": "ibcm1", 
+          "total": 45987.79086948869
+        }
+      }, 
+      {
+        "Hall C bcm2": {
+          "PV": "ibcm2", 
+          "total": 46124.93933348342
+        }
+      }
+    ], 
+    "target": [
+      {
+        "target_id": 5
+      }, 
+      {
+        "target_name": null
+      }
+    ]
+  }, 
+  "5537": {
+    "Spectrometers": [
+      {
+        "shms_momentum": 2.58
+      }, 
+      {
+        "shms_angle": 19.92
+      }, 
+      {
+        "hms_momentum": -5.27
+      }, 
+      {
+        "hms_angle": 16.3
+      }
+    ], 
+    "beam": [
+      {
+        "beam_energy": 10.6
+      }, 
+      {
+        "beam_pol": 0.0
+      }
+    ], 
+    "counters": [
+      {
+        "Hall C beam current ibcm1": {
+          "PV": "ibcm1", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 21:03:04 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 21:02:46 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:06:46 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 21:06:20 2018"
+            }
+          ], 
+          "trips": 2
+        }
+      }, 
+      {
+        "Hall C beam current ibcm2": {
+          "PV": "ibcm2", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 21:03:04 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 21:02:46 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:06:46 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 21:06:20 2018"
+            }
+          ], 
+          "trips": 2
+        }
+      }
+    ], 
+    "integrators": [
+      {
+        "Hall C bcm1": {
+          "PV": "ibcm1", 
+          "total": 26208.32378266676
+        }
+      }, 
+      {
+        "Hall C bcm2": {
+          "PV": "ibcm2", 
+          "total": 26285.91633901999
+        }
+      }
+    ], 
+    "target": [
+      {
+        "target_id": 5
+      }, 
+      {
+        "target_name": "0"
+      }
+    ]
+  }, 
+  "5538": {
+    "Spectrometers": [
+      {
+        "shms_momentum": 2.58
+      }, 
+      {
+        "shms_angle": 19.92
+      }, 
+      {
+        "hms_momentum": -5.27
+      }, 
+      {
+        "hms_angle": 16.3
+      }
+    ], 
+    "beam": [
+      {
+        "beam_energy": 10.6
+      }, 
+      {
+        "beam_pol": 0.0
+      }
+    ], 
+    "counters": [
+      {
+        "Hall C beam current ibcm1": {
+          "PV": "ibcm1", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 21:18:38 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 21:17:57 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:21:20 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 21:19:20 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:24:34 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 21:23:42 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:29:44 2018", 
+              "id": 3, 
+              "start_time": "Sat Oct 27 21:29:20 2018"
+            }
+          ], 
+          "trips": 4
+        }
+      }, 
+      {
+        "Hall C beam current ibcm2": {
+          "PV": "ibcm2", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 21:18:38 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 21:17:57 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:21:20 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 21:19:20 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:24:34 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 21:23:42 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:29:44 2018", 
+              "id": 3, 
+              "start_time": "Sat Oct 27 21:29:20 2018"
+            }
+          ], 
+          "trips": 4
+        }
+      }
+    ], 
+    "integrators": [
+      {
+        "Hall C bcm1": {
+          "PV": "ibcm1", 
+          "total": 59025.84636626743
+        }
+      }, 
+      {
+        "Hall C bcm2": {
+          "PV": "ibcm2", 
+          "total": 59135.502786552766
+        }
+      }
+    ], 
+    "target": [
+      {
+        "target_id": 2
+      }, 
+      {
+        "target_name": null
+      }
+    ]
+  }, 
+  "5539": {
+    "Spectrometers": [
+      {
+        "shms_momentum": 2.58
+      }, 
+      {
+        "shms_angle": 19.92
+      }, 
+      {
+        "hms_momentum": -5.27
+      }, 
+      {
+        "hms_angle": 16.3
+      }
+    ], 
+    "beam": [
+      {
+        "beam_energy": 10.6
+      }, 
+      {
+        "beam_pol": 0.0
+      }
+    ], 
+    "counters": [
+      {
+        "Hall C beam current ibcm1": {
+          "PV": "ibcm1", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 21:41:04 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 21:40:46 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:43:02 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 21:42:46 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:46:20 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 21:46:04 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:47:28 2018", 
+              "id": 3, 
+              "start_time": "Sat Oct 27 21:46:58 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:47:46 2018", 
+              "id": 4, 
+              "start_time": "Sat Oct 27 21:47:34 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:50:22 2018", 
+              "id": 5, 
+              "start_time": "Sat Oct 27 21:50:10 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:54:08 2018", 
+              "id": 6, 
+              "start_time": "Sat Oct 27 21:53:38 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:55:36 2018", 
+              "id": 7, 
+              "start_time": "Sat Oct 27 21:55:22 2018"
+            }
+          ], 
+          "trips": 8
+        }
+      }, 
+      {
+        "Hall C beam current ibcm2": {
+          "PV": "ibcm2", 
+          "trip_events": [
+            {
+              "end_time": "Sat Oct 27 21:41:04 2018", 
+              "id": 0, 
+              "start_time": "Sat Oct 27 21:40:46 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:43:02 2018", 
+              "id": 1, 
+              "start_time": "Sat Oct 27 21:42:46 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:46:20 2018", 
+              "id": 2, 
+              "start_time": "Sat Oct 27 21:46:04 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:47:28 2018", 
+              "id": 3, 
+              "start_time": "Sat Oct 27 21:46:58 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:47:46 2018", 
+              "id": 4, 
+              "start_time": "Sat Oct 27 21:47:34 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:50:22 2018", 
+              "id": 5, 
+              "start_time": "Sat Oct 27 21:50:10 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:54:08 2018", 
+              "id": 6, 
+              "start_time": "Sat Oct 27 21:53:38 2018"
+            }, 
+            {
+              "end_time": "Sat Oct 27 21:55:36 2018", 
+              "id": 7, 
+              "start_time": "Sat Oct 27 21:55:22 2018"
+            }
+          ], 
+          "trips": 8
+        }
+      }
+    ], 
+    "integrators": [
+      {
+        "Hall C bcm1": {
+          "PV": "ibcm1", 
+          "total": 64197.30316495399
+        }
+      }, 
+      {
+        "Hall C bcm2": {
+          "PV": "ibcm2", 
+          "total": 64318.56996360569
+        }
+      }
+    ], 
+    "target": [
+      {
+        "target_id": 2
+      }, 
+      {
+        "target_name": "0"
+      }
+    ]
+  }
+}
