@@ -138,8 +138,8 @@ class TripCounter:
             if not (self.latest_trip == None) :
                 self.latest_trip.stop()
                 self.trips.append(self.latest_trip)
-        if self.currently_tripped: 
-            print 'PV still tripped', pvname, char_value, time.ctime()
+        #if self.currently_tripped: 
+        #    print 'PV still tripped', pvname, char_value, time.ctime()
 
     def AddCallback(self):
         self.process_var.add_callback(self.PVChangeCallback)
@@ -168,11 +168,14 @@ class TripCounter:
 class RunSummary:
     """Run Summary class"""
     def __init__(self,run=0):
+        self.kine_was_printed = True
         self.run_number = int(run)
         self.counter_names = []
         self.counters = []
         self.integrators = []
         self.run_info = {}
+        self.shms_angle_offset = 0.075
+        self.hms_angle_offset  = 0.005
         self.shms_angle_pv = PV('ecSHMS_Angle')
         self.shms_momentum_pv = PV('SHMS_Momentum')
         self.hms_angle_pv = PV('ecHMS_Angle')
@@ -188,7 +191,6 @@ class RunSummary:
         if self.target_sel_pv_name in self.target_sel_name_pvs:
             self.target_sel_name = self.target_sel_name_pvs[self.target_sel_pv_name].get(as_string=True)
         else :
-            print "boo"
             self.target_sel_name_pvs.update({ self.target_sel_pv_name : PV(self.target_sel_pv_name)})
             self.target_sel_name = self.target_sel_name_pvs[self.target_sel_pv_name].get(as_string=True)
         self.target_changed = True
@@ -201,7 +203,6 @@ class RunSummary:
         if self.target_sel_pv_name in self.target_sel_name_pvs:
             self.target_sel_name = self.target_sel_name_pvs[self.target_sel_pv_name].get(as_string=True)
         else :
-            print "boo"
             self.target_sel_name_pvs.update({ self.target_sel_pv_name : PV(self.target_sel_pv_name)})
             self.target_sel_name = self.target_sel_name_pvs[self.target_sel_pv_name].get(as_string=True)
         #self.target_sel_name    = str(caget(self.target_sel_pv_name))
@@ -221,16 +222,16 @@ class RunSummary:
         res = {"Spectrometers" :
                 [
                     {"shms_momentum" : self.shms_momentum_pv.get()}, 
-                    {"shms_angle" : self.shms_angle_pv.get()}, 
-                    {"hms_momentum" : self.hms_momentum_pv.get()}, 
-                    {"hms_angle" : self.hms_angle_pv.get()}
+                    {"hms_momentum"  : self.hms_momentum_pv.get()}, 
+                    {"shms_angle"    : self.shms_angle_pv.get()   + self.shms_angle_offset}, 
+                    {"hms_angle"     : self.hms_angle_pv.get()    + self.hms_angle_offset   }
                     ] 
                 }
         return res 
     def BuildBeamReport(self):
         res = {"beam": 
                 [ 
-                    {"beam_energy":self.beam_energy_pv.get()}, {"beam_pol": 0.0}
+                    {"beam_energy":10.60}, {"beam_pol": 0.0}
                     ]
                 }
         return res
@@ -254,6 +255,7 @@ class RunSummary:
             name = str(pv)
         self.counters.append(( name, TripCounter(pv=pv,name=name,th=thresh))) 
     def Reset(self):
+        self.kine_was_printed = False
         for n, cnt in self.counters :
             cnt.Reset()
         for n, cnt in self.integrators :
@@ -279,12 +281,14 @@ class RunSummary:
 
     def start(self):
         """start the counting"""
+        self.PrintKinematics()
         self.SetCallbacks()
         self.GetTargetName()
 
     def stop(self):
         """stop the counting"""
         self.ClearCallbacks()
+        #self.PrintKinematics()
 
     def GetJSONObject(self):
         all_counters = []
@@ -303,6 +307,36 @@ class RunSummary:
 
     def PrintJSON(self):
         print json.dumps(self.GetJSONObject(), sort_keys=True, indent=4, separators=(',', ': '))
+
+    def PrintKinematics(self):
+        P0_shms = self.shms_momentum_pv.get()
+        th_shms = self.shms_angle_pv.get()   + self.shms_angle_offset
+        th_hms  = self.hms_angle_pv.get() + self.hms_angle_offset 
+        P0_hms  = self.hms_momentum_pv.get()
+        E_hallc = 10.60
+        print self.run_number, '-', self.run_number
+        print 'pbeam = ',E_hallc
+        print 'gtargmass_amu = ',2.014101
+        print 'htheta_lab = ',th_hms
+        print 'ptheta_lab = ',th_shms
+        print 'hpcentral = ',P0_hms
+        print 'ppcentral = ',P0_shms
+        print 'ppartmass = ', 0.1395706
+        print 'hpartmass = ', 0.0005109 
+        if not self.kine_was_printed:
+            with open('standard.kinematics', 'a') as f:
+                f.write(str('{} - {}\n').format(self.run_number, self.run_number))
+                f.write(str('pbeam = {}\n').format(E_hallc))
+                f.write(str('gtargmass_amu = {}\n').format(2.014101))
+                f.write(str('htheta_lab = {}\n').format(th_hms))
+                f.write(str('ptheta_lab = {}\n').format(th_shms))
+                f.write(str('hpcentral = {}\n').format(P0_hms))
+                f.write(str('ppcentral = {}\n').format(P0_shms))
+                f.write(str('ppartmass = {}\n').format(0.1395706))
+                f.write(str('hpartmass = {}\n').format( 0.0005109 ))
+                f.write('\n')
+        self.kine_was_printed = True
+
 
 class SummaryList:
     """Run summary list.
@@ -412,13 +446,13 @@ def codaInProgress(pvname=None, value=None, char_value=None, **kws):
 
 results = []
 #pool = Pool(5)
-coda_in_progress_pv = PV("hcSHMSRunInProgress")
-coda_run_number_pv  = PV("hcSHMSRunNumber")
+coda_in_progress_pv = PV("hcCOINRunInProgress")
+coda_run_number_pv  = PV("hcCOINRunNumber")
 coda_running = False
 coda_run_number = coda_run_number_pv.get()
 run_list = SummaryList()
 #summary = run_list.current
-out_file_name = 'test2.json'
+out_file_name = 'run_list_1.json'
 def main():
     """Runs continuously"""
     #bcm_pv = PV("IBC3H00CRCUR4")
