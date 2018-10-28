@@ -63,7 +63,7 @@ class PVIntegrator:
             #self.output_pv.put(self.total*0.001)
             #caput(self.output_name,float(self.total*0.001))
             #print "put ",self.output_name
-        #print(self.total*0.001, " mC")
+        print(self.total*0.001, " mC")
         #print 'PV :', pvname, char_value, time.ctime(), " thresh ", self.trip_threshold
         #if (value < self.trip_threshold) and not self.currently_tripped: 
         #    self.latest_trip = Trip(len(self.trips))
