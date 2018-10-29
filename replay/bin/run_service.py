@@ -12,6 +12,9 @@ import threading
 
 #latest_run_number = subprocess.check_output(['latest_run'])
 
+target_mass_amu = {"1":2.014101, "2":26.92,  "3":1.00794} 
+
+
 class Trip:
     """Simple trip data"""
     def __init__(self,num=0):
@@ -34,7 +37,6 @@ class PVIntegrator:
     def __init__(self,pv = "IBC1H04CRCUR2",name=None,outpv=None):
         self.output_name = outpv
         if self.output_name != None :
-            print "created pv ", self.output_name
             self.output_pv = PV(self.output_name)
         #else :
         #    self.output_pv  = None
@@ -49,32 +51,8 @@ class PVIntegrator:
         self.total = 0.0
 
     def PVChangeCallback(self,pvname=None, value=None, char_value=None, **kws):
-        """Call back for epics PV."""
-        #self.trip_count
-        #self.trip_threshold
-        #self.currently_tripped
         value = float(char_value)
         self.total = self.total + 2.0*value # 2.0 s readout 
-        #if self.output_name != None :
-            #self.output_pv.put(self.total*0.001)
-            #caput(self.output_name,float(self.total*0.001))
-            #print "put ",self.output_name
-        #print(self.total*0.001, " mC")
-        #print 'PV :', pvname, char_value, time.ctime(), " thresh ", self.trip_threshold
-        #if (value < self.trip_threshold) and not self.currently_tripped: 
-        #    self.latest_trip = Trip(len(self.trips))
-        #    print 'PV tripped!', pvname, char_value, time.ctime()
-        #    self.trip_count = self.trip_count +1
-        #    print self.trip_count
-        #    self.currently_tripped = True
-        #if self.currently_tripped and (value > self.trip_threshold): 
-        #    print 'PV restored', pvname, char_value, time.ctime()
-        #    self.currently_tripped = False
-        #    if not (self.latest_trip == None) :
-        #        self.latest_trip.stop()
-        #        self.trips.append(self.latest_trip)
-        #if self.currently_tripped: 
-        #    print 'PV still tripped', pvname, char_value, time.ctime()
 
     def AddCallback(self):
         self.process_var.add_callback(self.PVChangeCallback)
@@ -83,11 +61,11 @@ class PVIntegrator:
         self.process_var.clear_callbacks()
 
     def Dump(self):
-        print(self.pv_name, " total ", self.total )
+        print str("total charge from {} = {} mC").format(self.pv_name, self.total*0.001)
 
     def Print(self):
         self.ClearCallback()
-        print(self.pv_name, "total ", self.total )
+        print str("total charge from {} = {} mC").format(self.pv_name, self.total*0.001)
 
     def GetJSONObject(self):
         self.ClearCallback()
@@ -276,6 +254,7 @@ class RunSummary:
             cnt.ClearCallback()
 
     def Dump(self):
+        print str("Run Number : {} ").format(  self.run_number ) 
         #for n, cnt in self.counters :
         #    cnt.Dump()
         for n, cnt in self.integrators :
@@ -353,6 +332,9 @@ class MyThread(threading.Thread):
         self.damon = True
         self.stopped = False
         self.function = func
+        self.functions = []
+    def add_func(self, func):
+        self.functions.append(func)
 
     def run(self):
         while not self.stopped:
@@ -361,8 +343,9 @@ class MyThread(threading.Thread):
             threading.Thread(target=self._run).start()
 
     def _run(self):
-        print "run"
         self.function()
+        for f in self.functions :
+            f()
 
 class SummaryList:
     """Run summary list.
@@ -370,35 +353,46 @@ class SummaryList:
     """
     def __init__(self):
         self.results = {}
-        self.current = RunSummary(0)
+        self.current_run = RunSummary(0)
         self.is_ready = False
         self.printing_thread = MyThread(self.Dump)
+        self.printing_thread.add_func(self.check_run_number)
         self.printing_thread.start()
+
     def CreateSummary(self,run=0):
         self.stop()
-        self.current.run_number = int(run)
+        self.current_run.run_number = int(run)
         self.is_ready = True
 
     def CreateTripCounter(self, pv=None, thresh=0.0, name=None):
-        self.current.CreateTripCounter(pv, thresh, name)
+        self.current_run.CreateTripCounter(pv, thresh, name)
 
     def CreateIntegrator(self, pv=None, name=None,outpv=None):
-        self.current.CreateIntegrator(pv,  name,outpv)
+        self.current_run.CreateIntegrator(pv,  name,outpv)
 
     def Reset(self):
         self.stop()
-        self.current.Reset()
+        self.current_run.Reset()
 
     def StartNewRun(self,run):
         self.CreateSummary(run)
-        self.current.start()
+        self.current_run.start()
+
+    def check_run_number(self):
+        global coda_run_number_pv
+        epics_val = coda_run_number_pv.get()
+        if int(epics_val) !=  int(self.current_run.run_number):
+            print str("DAQ must have crashed. Starting new counts for run {}").format(int(epics_val))
+            self.Reset()
+            self.StartNewRun(epics_val)
 
     def stop(self):
         """Stop the counting and append to list"""
         if self.is_ready:
-            self.current.stop()
-            self.results.update(self.current.GetJSONObject())
+            self.current_run.stop()
+            self.results.update(self.current_run.GetJSONObject())
             self.is_ready = False
+
     def GetJSONObject(self):
         self.stop()
         return self.results
@@ -408,12 +402,10 @@ class SummaryList:
         #return runs
 
     def Dump(self):
-        self.current.Dump()
-        print( " res lengh: ", len(self.results))
+        self.current_run.Dump()
 
     def Print(self):
         self.stop()
-        print( " res lengh: ", len(self.results))
 
     def PrintJSON(self):
         self.stop()
@@ -452,19 +444,19 @@ def codaInProgress(pvname=None, value=None, char_value=None, **kws):
     if not in_progress and coda_running: 
         print("end of run: ",coda_run_number)
         coda_running = False
-        run_list.current.stop()
-        #run_list.current.Print()
+        run_list.current_run.stop()
+        #run_list.current_run.Print()
         your_json = {}
         if os.path.isfile(out_file_name) :
             with open(out_file_name) as data_file:
                 your_json = json.loads(data_file.read())
-        your_json.update(run_list.current.GetJSONObject())
+        your_json.update(run_list.current_run.GetJSONObject())
         #with open(out_file_name,'w') as data_file:
         #    json.dump(your_json,data_file)
         print your_json
         with open(out_file_name, 'w') as f:
               f.write(json.dumps(your_json, sort_keys=True, ensure_ascii=False, indent=2))
-        run_list.current.PrintJSON()
+        run_list.current_run.PrintJSON()
 
 ##################################################################
 #parser = OptionParser()
@@ -478,13 +470,13 @@ def codaInProgress(pvname=None, value=None, char_value=None, **kws):
 
 results = []
 #pool = Pool(5)
-coda_in_progress_pv = PV("hcSHMSRunInProgress")
-coda_run_number_pv  = PV("hcSHMSRunNumber")
+coda_in_progress_pv = PV("hcCOINRunInProgress")
+coda_run_number_pv  = PV("hcCOINRunNumber")
 coda_running = False
 coda_run_number = coda_run_number_pv.get()
 run_list = SummaryList()
-#summary = run_list.current
-out_file_name = 'run_list_test.json'
+#summary = run_list.current_run
+out_file_name = 'run_list_3.json'
 
 def main():
     """Runs continuously"""
@@ -493,7 +485,7 @@ def main():
     #print_everything("x", "Y", "ZZZZ")
     #IBC1H04CRCUR2
     #run_list.CreateTripCounter("CFI60DLP",name="cryo pressure",thresh=7.5)
-    #run_list.current.CreateTripCounter("IBC3H00CRCUR4",name="Hall C bcm",thresh=1.0)
+    #run_list.current_run.CreateTripCounter("IBC3H00CRCUR4",name="Hall C bcm",thresh=1.0)
     run_list.CreateTripCounter("ibcm1",name="Hall C beam current ibcm1",thresh=1.0)
     run_list.CreateTripCounter("ibcm2",name="Hall C beam current ibcm2",thresh=1.0)
     run_list.CreateIntegrator("ibcm1",name="Hall C bcm1",outpv="hcRunTotalCharge")
@@ -511,7 +503,7 @@ def main():
             run_list.printing_thread.sleep_event.set()
     except KeyboardInterrupt:
         if coda_running:
-           run_list.current.Print()
+           run_list.current_run.Print()
         print 'All runs...'
         #run_list.Print()
         run_list.printing_thread.stopped = True
@@ -519,14 +511,15 @@ def main():
         print 'Done.'
         sys.exit(0)
     
-    #run_list.current.Print()
-    #run_list.current.PrintJSON()
+    #run_list.current_run.Print()
+    #run_list.current_run.PrintJSON()
     print 'derp.'
     #m1 = caget("IBC3H00CRCUR4")
     #print m1
 
 if __name__ == "__main__":
     main()
+
 
 
 
