@@ -8,7 +8,7 @@ import sys
 #from multiprocessing import Pool
 import copy
 import os.path
-
+import threading
 
 #latest_run_number = subprocess.check_output(['latest_run'])
 
@@ -28,10 +28,6 @@ class Trip:
             self.stop()
     def GetJSONObject(self):
         return {"id":self.num, "start_time":self.start_time, "end_time":self.end_time}
-
-#bcm_pv = PV("IBC1H04CRCUR2") # Hall A
-#bcm_pv = PV("IBC3H00CRCUR4") # Hall C
-#flow_rate = PV("CFI60DLP")
 
 class PVIntegrator:
     """PVIntegrator"""
@@ -63,7 +59,7 @@ class PVIntegrator:
             #self.output_pv.put(self.total*0.001)
             #caput(self.output_name,float(self.total*0.001))
             #print "put ",self.output_name
-        print(self.total*0.001, " mC")
+        #print(self.total*0.001, " mC")
         #print 'PV :', pvname, char_value, time.ctime(), " thresh ", self.trip_threshold
         #if (value < self.trip_threshold) and not self.currently_tripped: 
         #    self.latest_trip = Trip(len(self.trips))
@@ -85,6 +81,9 @@ class PVIntegrator:
 
     def ClearCallback(self):
         self.process_var.clear_callbacks()
+
+    def Dump(self):
+        print(self.pv_name, " total ", self.total )
 
     def Print(self):
         self.ClearCallback()
@@ -146,6 +145,9 @@ class TripCounter:
 
     def ClearCallback(self):
         self.process_var.clear_callbacks()
+
+    def Dump(self):
+        print(self.pv_name, "counts ", self.trip_count )
 
     def Print(self):
         self.ClearCallback()
@@ -273,6 +275,12 @@ class RunSummary:
         for n, cnt in self.integrators :
             cnt.ClearCallback()
 
+    def Dump(self):
+        #for n, cnt in self.counters :
+        #    cnt.Dump()
+        for n, cnt in self.integrators :
+            cnt.Dump()
+
     def Print(self):
         for n, cnt in self.counters :
             cnt.Print()
@@ -324,7 +332,7 @@ class RunSummary:
         print 'ppartmass = ', 0.1395706
         print 'hpartmass = ', 0.0005109 
         if not self.kine_was_printed:
-            with open('standard.kinematics', 'a') as f:
+            with open('test.standard.kinematics', 'a') as f:
                 f.write(str('{} - {}\n').format(self.run_number, self.run_number))
                 f.write(str('pbeam = {}\n').format(E_hallc))
                 f.write(str('gtargmass_amu = {}\n').format(2.014101))
@@ -337,6 +345,24 @@ class RunSummary:
                 f.write('\n')
         self.kine_was_printed = True
 
+class MyThread(threading.Thread):
+
+    def __init__(self,func=None):
+        threading.Thread.__init__(self)
+        self.sleep_event = threading.Event()
+        self.damon = True
+        self.stopped = False
+        self.function = func
+
+    def run(self):
+        while not self.stopped:
+            self.sleep_event.clear()
+            self.sleep_event.wait(10)
+            threading.Thread(target=self._run).start()
+
+    def _run(self):
+        print "run"
+        self.function()
 
 class SummaryList:
     """Run summary list.
@@ -346,6 +372,8 @@ class SummaryList:
         self.results = {}
         self.current = RunSummary(0)
         self.is_ready = False
+        self.printing_thread = MyThread(self.Dump)
+        self.printing_thread.start()
     def CreateSummary(self,run=0):
         self.stop()
         self.current.run_number = int(run)
@@ -379,6 +407,10 @@ class SummaryList:
         #    runs.update({rn,asummary})
         #return runs
 
+    def Dump(self):
+        self.current.Dump()
+        print( " res lengh: ", len(self.results))
+
     def Print(self):
         self.stop()
         print( " res lengh: ", len(self.results))
@@ -389,16 +421,6 @@ class SummaryList:
         print json.dumps(self.GetJSONObject(), sort_keys=True, indent=4, separators=(',', ': '))
         self.Print()
 
-
-
-#parser = OptionParser()
-#parser.add_option("-f", "--file", dest="filename",
-#                  help="write report to FILE", metavar="FILE")
-#parser.add_option("-q", "--quiet",
-#                  action="store_false", dest="verbose", default=True,
-#                                    help="don't print status messages to stdout")
-#
-#(options, args) = parser.parse_args()
 
 def print_everything(*args):
     for count, thing in enumerate(args):
@@ -444,15 +466,26 @@ def codaInProgress(pvname=None, value=None, char_value=None, **kws):
               f.write(json.dumps(your_json, sort_keys=True, ensure_ascii=False, indent=2))
         run_list.current.PrintJSON()
 
+##################################################################
+#parser = OptionParser()
+#parser.add_option("-f", "--file", dest="filename",
+#                  help="write report to FILE", metavar="FILE")
+#parser.add_option("-q", "--quiet",
+#                  action="store_false", dest="verbose", default=True,
+#                                    help="don't print status messages to stdout")
+#
+#(options, args) = parser.parse_args()
+
 results = []
 #pool = Pool(5)
-coda_in_progress_pv = PV("hcCOINRunInProgress")
-coda_run_number_pv  = PV("hcCOINRunNumber")
+coda_in_progress_pv = PV("hcSHMSRunInProgress")
+coda_run_number_pv  = PV("hcSHMSRunNumber")
 coda_running = False
 coda_run_number = coda_run_number_pv.get()
 run_list = SummaryList()
 #summary = run_list.current
-out_file_name = 'run_list_1.json'
+out_file_name = 'run_list_test.json'
+
 def main():
     """Runs continuously"""
     #bcm_pv = PV("IBC3H00CRCUR4")
@@ -474,11 +507,14 @@ def main():
     try:
         while True:
             time.sleep(1.e-2)
+            raw_input("Hit ENTER to print at anytime\n")
+            run_list.printing_thread.sleep_event.set()
     except KeyboardInterrupt:
         if coda_running:
            run_list.current.Print()
         print 'All runs...'
         #run_list.Print()
+        run_list.printing_thread.stopped = True
         run_list.PrintJSON()
         print 'Done.'
         sys.exit(0)
