@@ -13,6 +13,7 @@ import threading
 #latest_run_number = subprocess.check_output(['latest_run'])
 
 target_mass_amu = {"1":2.014101, "2":26.92,  "3":1.00794} 
+target_desc   = {"2":"LH2", "3": "LD2", "5":"DUMMY"}
 
 
 class Trip:
@@ -193,27 +194,23 @@ class RunSummary:
 
     def BuildTargetReport(self):
         res = {"target" :
-                [
-                    {"target_id" : self.target_sel_val}, 
-                    {"target_name": self.target_sel_name} ] 
-                }
+                { "target_id" : self.target_sel_val, 
+                    "target_name": self.target_sel_name,
+                    "target_label": target_desc[ str(int(self.target_sel_val))]
+                    } }
         return res 
     def BuildSpecReport(self):
         res = {"Spectrometers" :
-                [
-                    {"shms_momentum" : self.shms_momentum_pv.get()}, 
-                    {"hms_momentum"  : self.hms_momentum_pv.get()}, 
-                    {"shms_angle"    : self.shms_angle_pv.get()   + self.shms_angle_offset}, 
-                    {"hms_angle"     : self.hms_angle_pv.get()    + self.hms_angle_offset   }
-                    ] 
+                {
+                    "shms_momentum" : self.shms_momentum_pv.get(), 
+                    "hms_momentum"  : self.hms_momentum_pv.get(), 
+                    "shms_angle"    : self.shms_angle_pv.get()   + self.shms_angle_offset, 
+                    "hms_angle"     : self.hms_angle_pv.get()    + self.hms_angle_offset   
+                    } 
                 }
         return res 
     def BuildBeamReport(self):
-        res = {"beam": 
-                [ 
-                    {"beam_energy":10.60}, {"beam_pol": 0.0}
-                    ]
-                }
+        res = {"beam": {"beam_energy":10.60, "beam_pol": 0.0} }
         return res
 
     def TargetBusyCallback(self,pvname=None, value=None, char_value=None, **kws):
@@ -278,13 +275,13 @@ class RunSummary:
         #self.PrintKinematics()
 
     def GetJSONObject(self):
-        all_counters = []
+        all_counters = { }
         for n, cnt in self.counters :
-            all_counters.append(cnt.GetJSONObject())
+            all_counters.update(cnt.GetJSONObject())
         counters_dict = {"counters": all_counters}
-        all_inte = []
+        all_inte = { }
         for n, cnt in self.integrators :
-            all_inte.append(cnt.GetJSONObject())
+            all_inte.update(cnt.GetJSONObject())
         integ_dict = {"integrators": all_inte}
         counters_dict.update(integ_dict)
         counters_dict.update(self.BuildTargetReport())
@@ -382,9 +379,9 @@ class SummaryList:
         global coda_run_number_pv
         epics_val = coda_run_number_pv.get()
         if int(epics_val) !=  int(self.current_run.run_number):
-            print str("DAQ must have crashed. Starting new counts for run {}").format(int(epics_val))
-            self.Reset()
-            self.StartNewRun(epics_val)
+            print str("Error DAQ must have crashed. Starting new counts for run {}").format(int(epics_val))
+            #self.Reset()
+            #self.StartNewRun(epics_val)
 
     def stop(self):
         """Stop the counting and append to list"""
@@ -470,13 +467,13 @@ def codaInProgress(pvname=None, value=None, char_value=None, **kws):
 
 results = []
 #pool = Pool(5)
-coda_in_progress_pv = PV("hcCOINRunInProgress")
-coda_run_number_pv  = PV("hcCOINRunNumber")
+coda_in_progress_pv = PV("hcSHMSRunInProgress")
+coda_run_number_pv  = PV("hcSHMSRunNumber")
 coda_running = False
 coda_run_number = coda_run_number_pv.get()
 run_list = SummaryList()
 #summary = run_list.current_run
-out_file_name = 'run_list_3.json'
+out_file_name = 'run_list_4.json'
 
 def main():
     """Runs continuously"""
@@ -486,10 +483,10 @@ def main():
     #IBC1H04CRCUR2
     #run_list.CreateTripCounter("CFI60DLP",name="cryo pressure",thresh=7.5)
     #run_list.current_run.CreateTripCounter("IBC3H00CRCUR4",name="Hall C bcm",thresh=1.0)
-    run_list.CreateTripCounter("ibcm1",name="Hall C beam current ibcm1",thresh=1.0)
-    run_list.CreateTripCounter("ibcm2",name="Hall C beam current ibcm2",thresh=1.0)
-    run_list.CreateIntegrator("ibcm1",name="Hall C bcm1",outpv="hcRunTotalCharge")
-    run_list.CreateIntegrator("ibcm2",name="Hall C bcm2")
+    run_list.CreateTripCounter("ibcm1",name="ibcm1",thresh=1.0)
+    run_list.CreateTripCounter("ibcm2",name="ibcm2",thresh=1.0)
+    run_list.CreateIntegrator("ibcm1",name="bcm1",outpv="hcRunTotalCharge")
+    run_list.CreateIntegrator("ibcm2",name="bcm2")
     #summary.SetCallbacks()
     coda_in_progress_pv.add_callback(codaInProgress)
     
