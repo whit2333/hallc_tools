@@ -18,16 +18,69 @@ namespace fs = std::experimental::filesystem;
 
 #include "TBufferJSON.h"
 
+void RunPlanTableEntry::PrintWikiHeader2(std::ostream& s) {
+  //s << R"foo(<span style="tr:nth-child(even){background-color: #f2f2f2}">)foo";
+  s <<   "{|class=\"wikitable\" style=\"width: 85\%\"\n";
+  fmt::print(s,
+             "! colspan=\"2\" style=\"border: 1px solid black; padding: 5px; background: #ffdead;\" | Setting|| "
+             "colspan=\"3\" style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Kinematics || "
+             "colspan=\"5\" style=\"border: 1px solid black; padding: 5px; background: #ffdead;\" | Spectrometer settings || "
+             "colspan=\"2\"  style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Charge Goals|| "
+             "{:^9}|| {:^6}|| {:^6}||{:^6}\n",
+             "rate", "time"," x " , " x");
+  fmt::print(s,
+             "|- \n"
+             "!{:^6}|| {:^6}|| {:^5}|| {:^5}|| {:^5}|| "
+             "{:^9}|| {:^9}|| {:^8}|| {:^9}|| {:^8}|| "
+             "{:^6}|| {:^9}|| {:^6}|| {:^6}||{:^6}\n",
+             "number", "target", "Q2", "x", "z", 
+             "th_HMS", "P HMS","th_SHMS",  "P0 SHMS", "pol", 
+             "Ibeam", "sigma", "rate", "time", "charge");
+}
+
+void RunPlanTableEntry::PrintWiki2(std::ostream& s) const {
+  std::string target = "LD2";
+  double      xs     = rates.LD2_XS;
+  if ((Z_target==1) && (A_target == 1)) {
+    target    = "LH2";
+    double xs = rates.LH2_XS;
+  }
+  if ((Z_target==13) && (A_target == 27)) {
+    target    = "DUM";
+    double xs = rates.window_XS;
+  }
+  std::string row = "|- style=\"background: #ffffff;\"\n";
+  if( _number%2 == 0 ) {
+    row = "|- style=\"background: #efeff5;\"\n";
+  }
+  s << row;
+  fmt::print(s,
+             "|{:>2d}-{:<2d}|| {:^6}||"
+             "{:>5.3f}||{:>5.3f}|| {:>5.3f}|| "
+             "{:>6.2f}|| {:>6.2f}|| {:>6.3f}|| {:>6.3f}|| {:>+3d}|| "
+             "{:>6.3f}|| {:>6.3e}|| {:>6.3f}|| {:>6.3f}|| {:>6.0f}\n",
+             _group, _number, target, 
+             kinematic.Q2, kinematic.x, kinematic.z
+             , kinematic.th_e, kinematic.th_q, kinematic.Ee, polarity*kinematic.Ppi, polarity, 
+             Ibeam, xs, rates.total_rate, time, counts);
+}
+
 void RunPlanTableEntry::PrintWikiHeader(std::ostream& s) {
   fmt::print(s,
              "{{|class=\"wikitable\"\n"
-             "!{:^6}||{:^6}|| {:^5}|| {:^5}|| {:^5}|| {:^9}|| {:^9}|| {:^8}|| {:^9}|| {:^8}|| {:^6}|| {:^9}|| {:^6}|| {:^6}||{:^6}\n|- \n",
-             "group","target", "Q2",    "x",  "z", "th_e(hms)", "th_q(shms)","Pe(hms)","Ph(shms)", "pol(shms)", "Ibeam", "sigma","rate", "time","count");
+             "!{:^6}||{:^6}|| {:^5}|| {:^5}|| {:^5}|| {:^9}|| {:^9}|| {:^8}|| {:^9}|| {:^8}|| "
+             "{:^6}|| {:^9}|| {:^6}|| {:^6}||{:^6}\n|- \n",
+             "setting", "target", "Q2", "x", "z", "th_e(hms)", "th_q(shms)", "Pe(hms)", "Ph(shms)",
+             "pol(shms)", "Ibeam", "sigma", "rate", "time", "charge");
 }
 void RunPlanTableEntry::PrintWikiFooter(std::ostream& s) {
   fmt::print(s,
-             "!{:^6}||{:^6}|| {:^5}|| {:^5}|| {:^5}|| {:^9}|| {:^9}|| {:^8}|| {:^9}|| {:^8}|| {:^6}|| {:^9}|| {:^6}|| {:^6} ||{:^6}\n|}}\n",
-             "group","target", "Q2",    "x",  "z", "th_e(hms)","th_q(shms)","Pe(hms)","Ph(shms)", "pol(shms)", "Ibeam", "sigma","rate", "time","count");
+             "|- \n"
+             "!{:^6}||{:^6}|| {:^5}|| {:^5}|| {:^5}|| {:^9}|| {:^9}|| {:^8}|| {:^9}|| {:^8}|| "
+             "{:^6}|| {:^9}|| {:^6}|| {:^6} ||{:^6}\n|}}\n",
+             "setting", "target", "Q2", "x", "z", "th_e(hms)", "th_q(shms)", "Pe(hms)", "Ph(shms)",
+             "pol(shms)", "Ibeam", "sigma", "rate", "time", "count");
+  //s<< "</span>\n";
 }
 
 void RunPlanTableEntry::PrintWiki(std::ostream& s) const {
@@ -70,8 +123,8 @@ void RunPlanTableEntry::PrintHeader(std::ostream& s ) {
   fmt::print(s,
              "{:^6},{:^6}, {:^5}, {:^5}, {:^5}, {:^6}, {:^6}, {:^6}, {:^6}, {:^3}, {:^6}, {:^9}, "
              "{:^6}, {:^6}\n",
-             "group","target", "Q2", "x", "z", "th_e", "th_q", "Ee", "Ppi", "pol", "I", "sigma", "rate",
-             "time");
+             "group", "target", "Q2", "x", "z", "th_e", "th_q", "Ee", "Ppi", "pol", "I", "sigma",
+             "rate", "time");
 }
 
 void RunPlanTableEntry::SetTarget(int Z, int A) {
@@ -91,6 +144,22 @@ void RunPlanTableEntry::SetTarget(int Z, int A) {
   if (Z == 13) {
     rates.total_rate = rates.window_rate;
     time             = scale * (counts / rates.total_rate) / (60.0 * 60.0);
+  }
+}
+
+void RunTable::Number() {
+  int n          = 0;
+  int sn         = 0;
+  int prev_group = 1;
+  for (auto& row : _rows) {
+    if (prev_group != row._group) {
+      n          = 0;
+      prev_group = row._group;
+    }
+    n++;
+    sn++;
+    row._number = n;
+    row._set    = sn;
   }
 }
 
@@ -114,22 +183,21 @@ void RunTable::PrintWiki(std::ostream& os) const {
 void RunTable::PrintWikiByGroup(std::ostream& os) const {
   double group_time = 0;
   int group = 0;
-  RunPlanTableEntry::PrintWikiHeader(os);
+  RunPlanTableEntry::PrintWikiHeader2(os);
   for(const auto& row : _rows) {
     if(group != row._group){
       RunPlanTableEntry::PrintWikiFooter(os);
       // print group summary
       os << "Kinematic group " << group << " total time : " << group_time << " hrs ("
          << group_time / 24.0 << " days)\n";
-
       // start new group 
       group = row._group;
       group_time = 0.0;
       os << "==== Kinematic Group " << group << ":  Q2 = " << row.kinematic.Q2 << " GeV2, x = " << row.kinematic.x << " ====\n";
-      RunPlanTableEntry::PrintWikiHeader(os);
+      RunPlanTableEntry::PrintWikiHeader2(os);
     }
     group_time += row.time;
-    row.PrintWiki(os);
+    row.PrintWiki2(os);
   }
   RunPlanTableEntry::PrintWikiFooter(os);
   os << " total time : " << _total_time << " hrs (" << _total_time/24.0 << " days)\n";

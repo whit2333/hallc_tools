@@ -72,6 +72,9 @@ public:
   int    _group         = 0;
   int    _set           = 0;
   int    _number        = 0;
+  //int  _charge_goal ;
+  //int  _charge_total ;
+  //int  _charge_this_run ;
 
 public:
   RunPlanTableEntry() {}
@@ -85,6 +88,9 @@ public:
 
   static void PrintWikiHeader(std::ostream& s = std::cout);
   static void PrintWikiFooter(std::ostream& s = std::cout);
+
+  static void PrintWikiHeader2(std::ostream& s = std::cout);
+  void        PrintWiki2(std::ostream& s = std::cout) const;
 
   void        PrintWiki(std::ostream& s = std::cout) const;
   void        Print(std::ostream& s = std::cout) const;
@@ -124,6 +130,10 @@ struct RunTable {
 
   const std::vector<RunPlanTableEntry>& GetVector() const { return _rows; }
   std::vector<RunPlanTableEntry>& GetVector() { return _rows; }
+
+  /** Sets the _number for each entry in the current order.
+   */
+  void             Number();
 
   void             Print(std::ostream& os = std::cout) const;
   void             PrintWiki(std::ostream& os) const;
