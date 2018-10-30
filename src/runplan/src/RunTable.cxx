@@ -22,20 +22,25 @@ void RunPlanTableEntry::PrintWikiHeader2(std::ostream& s) {
   //s << R"foo(<span style="tr:nth-child(even){background-color: #f2f2f2}">)foo";
   s <<   "{|class=\"wikitable\" style=\"width: 85\%\"\n";
   fmt::print(s,
-             "! colspan=\"2\" style=\"border: 1px solid black; padding: 5px; background: #ffdead;\" | Setting|| "
+             "! colspan=\"3\" style=\"border: 1px solid black; padding: 5px; background: #ffdead;\" | Setting|| "
              "colspan=\"3\" style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Kinematics || "
              "colspan=\"5\" style=\"border: 1px solid black; padding: 5px; background: #ffdead;\" | Spectrometer settings || "
              "colspan=\"2\"  style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Charge Goals|| "
-             "{:^9}|| {:^6}|| {:^6}||{:^6}\n",
-             "rate", "time"," x " , " x");
+             "{:^9}|| {:^6} ||"
+             "colspan=\"2\" style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Rates \n",
+             "est.", " ");
   fmt::print(s,
              "|- \n"
-             "!{:^6}|| {:^6}|| {:^5}|| {:^5}|| {:^5}|| "
-             "{:^9}|| {:^9}|| {:^8}|| {:^9}|| {:^8}|| "
-             "{:^6}|| {:^9}|| {:^6}|| {:^6}||{:^6}\n",
-             "number", "target", "Q2", "x", "z", 
-             "th_HMS", "P HMS","th_SHMS",  "P0 SHMS", "pol", 
-             "Ibeam", "sigma", "rate", "time", "charge");
+             "! {:^6} || {:^6} || {:^6} || {:^5} || {:^5} || {:^5} || "
+             "{:^6} || {:^5} || {:^7} || {:^6} || {:^3} || "
+             "{} || {} || {:^6} || {:^6} || {:^6} || {:^6}\n",
+             "number", "target", "Ibeam", "Q2", "x", "z", 
+             "th_HMS", "P HMS","th_SHMS",  "P SHMS", "pol", 
+             "desired", "actual", "time", "# runs","coin","HMS");
+}
+void RunPlanTableEntry::PrintWikiFooter2(std::ostream& s) {
+  s << "|- \n"
+   << "|}\n";
 }
 
 void RunPlanTableEntry::PrintWiki2(std::ostream& s) const {
@@ -49,20 +54,20 @@ void RunPlanTableEntry::PrintWiki2(std::ostream& s) const {
     target    = "DUM";
     double xs = rates.window_XS;
   }
-  std::string row = "|- style=\"background: #ffffff;\"\n";
+  std::string row = "|- style=\"text-align:center; background: #ffffff;\"\n";
   if( _number%2 == 0 ) {
-    row = "|- style=\"background: #efeff5;\"\n";
+    row = "|- style=\"text-align:center; background: #efeff5;\"\n";
   }
   s << row;
   fmt::print(s,
-             "|{:>2d}-{:<2d}|| {:^6}||"
-             "{:>5.3f}||{:>5.3f}|| {:>5.3f}|| "
-             "{:>6.2f}|| {:>6.2f}|| {:>6.3f}|| {:>6.3f}|| {:>+3d}|| "
-             "{:>6.3f}|| {:>6.3e}|| {:>6.3f}|| {:>6.3f}|| {:>6.0f}\n",
-             _group, _number, target, 
-             kinematic.Q2, kinematic.x, kinematic.z
-             , kinematic.th_e, kinematic.th_q, kinematic.Ee, polarity*kinematic.Ppi, polarity, 
-             Ibeam, xs, rates.total_rate, time, counts);
+             "| {:>3d}-{:<2d} || {:^6} || {:>6.3f} || "
+             "{:>4.3f} || {:>4.3f} || {:>4.3f} || "
+             "{:>6.2f} || {:>6.2f} || {:>6.3f} || {:>6.3f} || {:>+3d} || "
+             "{:^7.1f} || {:^6} || {:>6.3f} || {:^6} || {:^6} || {:^6}\n",
+             _group, _number, target, Ibeam,  
+             kinematic.Q2, kinematic.x, kinematic.z ,
+             kinematic.th_e, kinematic.th_q, kinematic.Ee, polarity*kinematic.Ppi, polarity, 
+             time*Ibeam*60.*60./1000.0, "xx", time, "NN", "x", "x");
 }
 
 void RunPlanTableEntry::PrintWikiHeader(std::ostream& s) {
@@ -186,7 +191,7 @@ void RunTable::PrintWikiByGroup(std::ostream& os) const {
   RunPlanTableEntry::PrintWikiHeader2(os);
   for(const auto& row : _rows) {
     if(group != row._group){
-      RunPlanTableEntry::PrintWikiFooter(os);
+      RunPlanTableEntry::PrintWikiFooter2(os);
       // print group summary
       os << "Kinematic group " << group << " total time : " << group_time << " hrs ("
          << group_time / 24.0 << " days)\n";
@@ -199,7 +204,7 @@ void RunTable::PrintWikiByGroup(std::ostream& os) const {
     group_time += row.time;
     row.PrintWiki2(os);
   }
-  RunPlanTableEntry::PrintWikiFooter(os);
+  RunPlanTableEntry::PrintWikiFooter2(os);
   os << " total time : " << _total_time << " hrs (" << _total_time/24.0 << " days)\n";
 }
 

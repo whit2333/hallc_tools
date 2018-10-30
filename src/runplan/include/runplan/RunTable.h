@@ -91,6 +91,7 @@ public:
 
   static void PrintWikiHeader2(std::ostream& s = std::cout);
   void        PrintWiki2(std::ostream& s = std::cout) const;
+  static void PrintWikiFooter2(std::ostream& s = std::cout);
 
   void        PrintWiki(std::ostream& s = std::cout) const;
   void        Print(std::ostream& s = std::cout) const;
