@@ -43,6 +43,7 @@ class PVIntegrator:
         #    self.output_pv  = None
         self.total = 0.0
         self.name = name
+        self.total_time = 0.000000001
         if name is None:
             self.name = pv
         self.pv_name = pv
@@ -50,10 +51,13 @@ class PVIntegrator:
 
     def Reset(self):
         self.total = 0.0
+        self.total_time = 0.000000001
+
 
     def PVChangeCallback(self,pvname=None, value=None, char_value=None, **kws):
         value = float(char_value)
         self.total = self.total + 2.0*value # 2.0 s readout 
+        self.total_time = self.total_time + 2.0
 
     def AddCallback(self):
         self.process_var.add_callback(self.PVChangeCallback)
@@ -62,11 +66,13 @@ class PVIntegrator:
         self.process_var.clear_callbacks()
 
     def Dump(self):
-        print str("total charge from {} = {} mC").format(self.pv_name, self.total*0.001)
+        print str("{:^10}   total charge     = {} mC").format(self.pv_name, self.total*0.001)
+        print str("{:^10}   average current  = {} uA").format("", self.total/self.total_time)
 
     def Print(self):
         self.ClearCallback()
-        print str("total charge from {} = {} mC").format(self.pv_name, self.total*0.001)
+        print str("{:^10}   total charge     = {} mC").format(self.pv_name, self.total*0.001)
+        print str("{:^10}   average current  = {} uA").format("", self.total/self.total_time)
 
     def GetJSONObject(self):
         self.ClearCallback()
@@ -155,8 +161,8 @@ class RunSummary:
         self.counters = []
         self.integrators = []
         self.run_info = {}
-        self.shms_angle_offset = 0.075
-        self.hms_angle_offset  = 0.005
+        self.shms_angle_offset = 0.0
+        self.hms_angle_offset  = 0.0
         self.shms_angle_pv = PV('ecSHMS_Angle')
         self.shms_momentum_pv = PV('SHMS_Momentum')
         self.hms_angle_pv = PV('ecHMS_Angle')
@@ -467,8 +473,8 @@ def codaInProgress(pvname=None, value=None, char_value=None, **kws):
 
 results = []
 #pool = Pool(5)
-coda_in_progress_pv = PV("hcSHMSRunInProgress")
-coda_run_number_pv  = PV("hcSHMSRunNumber")
+coda_in_progress_pv = PV("hcCOINRunInProgress")
+coda_run_number_pv  = PV("hcCOINRunNumber")
 coda_running = False
 coda_run_number = coda_run_number_pv.get()
 run_list = SummaryList()

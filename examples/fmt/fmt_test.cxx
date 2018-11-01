@@ -1,6 +1,5 @@
 #include <fmt/core.h>
 #include <fmt/ostream.h>
-
 R__LOAD_LIBRARY(libfmt.so)
 
 void fmt_test() {
