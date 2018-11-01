@@ -201,7 +201,7 @@ done
 
 for adir in bin analysis
 do
-  my_link=${replay_base_dir}/${adir}
+  my_link=${replay_base_dir}/../../${adir}
   dolinks ${adir} ${my_link}
 done
 
