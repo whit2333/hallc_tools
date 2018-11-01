@@ -8,6 +8,7 @@ CREATE_DIRS=
 RAW_DIR=
 ROOTFILE_DIR=
 MONITOR_DIR=
+BASE_REPLAY_DIR=$(@CMAKE_INSTALL_PREFIX@/bin/hallc_config --dir)
 
 while test $# -gt 0; do
   case "$1" in
@@ -23,6 +24,7 @@ while test $# -gt 0; do
       echo "     -m, --monitor <dir>  create link to monitoring directory "
       echo "     -d, --remove         remove symlinks"
       echo "     -h, --help           show brief help"
+      echo "     -b, --replay-base    the replay directory to mirror"
       #echo "-o, --output-dir=DIR      specify a directory to store output in"
       exit 0
       ;;
@@ -91,6 +93,29 @@ while test $# -gt 0; do
       fi
       if [ ! -e "${MONITOR_DIR}" ] ; then
         echo "${MONITOR_DIR} does not exist"  >&2
+        exit 1
+      fi
+      shift
+      ;;
+    -b|--base-replay)
+      shift
+      if test $# -gt 0; then
+        BASE_REPLAY_DIR=$1
+        if [ "${BASE_REPLAY_DIR:0:1}" = "-" ] ; then
+          echo "option -b,--base-replay requires a directory argument"  >&2
+          exit 1
+        fi
+        if [ ! -d "${BASE_REPLAY_DIR}/DBASE" ] ; then
+          echo "${BASE_REPLAY_DIR}/DBASE does not exist"  >&2
+          exit 1
+        fi
+      else
+        echo "option -b,--base-replay requires a directory argument"  >&2
+        echo "no base replay path specified"  >&2
+        exit 1
+      fi
+      if [ ! -e "${BASE_REPLAY_DIR}" ] ; then
+        echo "${BASE_REPLAY_DIR} does not exist"  >&2
         exit 1
       fi
       shift
@@ -189,8 +214,9 @@ function make_output_dirs(){
 #  main script 
 # -------------------------------------
 
-replay_base_dir=$(@CMAKE_INSTALL_PREFIX@/bin/hallc_config --dir)
+#replay_base_dir=$(@CMAKE_INSTALL_PREFIX@/bin/hallc_config --dir)
 current_dir=$(pwd)
+replay_base_dir=${BASE_REPLAY_DIR}
 
 for adir in CALIBRATION
 do
@@ -206,7 +232,7 @@ done
 
 for adir in bin analysis db2
 do
-  my_link=@CMAKE_CURRENT_SOURCE_DIR@/${adir}
+  my_link=${replay_base_dir}/../../${adir}
   do_copy_dirs ${adir} ${my_link}
 done
 
