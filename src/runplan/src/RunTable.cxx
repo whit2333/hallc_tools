@@ -66,7 +66,7 @@ void RunPlanTableEntry::PrintWiki2(std::ostream& s) const {
              "{:^7.1f} || {:^6} || {:>6.3f} || {:^6} || {:^6} || {:^6}\n",
              _group, _number, target, Ibeam,  
              kinematic.Q2, kinematic.x, kinematic.z ,
-             kinematic.th_e, kinematic.th_q, kinematic.Ee, polarity*kinematic.Ppi, polarity, 
+             kinematic.th_e, kinematic.Ee, kinematic.th_q, polarity*kinematic.Ppi, polarity, 
              time*Ibeam*60.*60./1000.0, "xx", time, "NN", "x", "x");
 }
 
