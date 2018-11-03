@@ -1,4 +1,5 @@
 #include "sidis_rates.h"
+#include "runplan/CSV_settings.h"
 #include <iostream>
 
 #include "Math/Vector3Dfwd.h"

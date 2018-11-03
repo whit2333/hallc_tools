@@ -69,12 +69,15 @@ public:
   int    Z_target      = 1;
   int    A_target      = 2;
 
-  int    _group         = 0;
-  int    _set           = 0;
-  int    _number        = 0;
-  //int  _charge_goal ;
-  //int  _charge_total ;
-  //int  _charge_this_run ;
+  int    _group           = 0;
+  int    _set             = 0;
+  int    _number          = 0;
+  double _charge_goal     = 0.0;
+  double _charge_total    = 0.0;
+  double _charge_this_run = 0.0;
+  int    _count_goal      = 0;
+  int    _count_total     = 0;
+  int    _count_this_run  = 0;
 
 public:
   RunPlanTableEntry() {}

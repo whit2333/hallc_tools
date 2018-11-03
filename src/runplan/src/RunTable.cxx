@@ -25,7 +25,7 @@ void RunPlanTableEntry::PrintWikiHeader2(std::ostream& s) {
              "! colspan=\"3\" style=\"border: 1px solid black; padding: 5px; background: #ffdead;\" | Setting|| "
              "colspan=\"3\" style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Kinematics || "
              "colspan=\"5\" style=\"border: 1px solid black; padding: 5px; background: #ffdead;\" | Spectrometer settings || "
-             "colspan=\"2\"  style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Charge Goals|| "
+             "colspan=\"2\"  style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Count/Charge Goals|| "
              "{:^9}|| {:^6} ||"
              "colspan=\"2\" style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Rates \n",
              "est.", " ");
@@ -33,10 +33,10 @@ void RunPlanTableEntry::PrintWikiHeader2(std::ostream& s) {
              "|- \n"
              "! {:^6} || {:^6} || {:^6} || {:^5} || {:^5} || {:^5} || "
              "{:^6} || {:^5} || {:^7} || {:^6} || {:^3} || "
-             "{} || {} || {:^6} || {:^6} || {:^6} || {:^6}\n",
+             "{:^11} || {:^11} || {:^6} || {:^6} || {:^6} || {:^6}\n",
              "number", "target", "Ibeam", "Q2", "x", "z", 
              "th_HMS", "P HMS","th_SHMS",  "P SHMS", "pol", 
-             "desired", "actual", "time", "# runs","coin","HMS");
+             "desired", "actual", "time", "# runs","SHMS","coin");
 }
 void RunPlanTableEntry::PrintWikiFooter2(std::ostream& s) {
   s << "|- \n"
@@ -62,12 +62,12 @@ void RunPlanTableEntry::PrintWiki2(std::ostream& s) const {
   fmt::print(s,
              "| {:>3d}-{:<2d} || {:^6} || {:>6.3f} || "
              "{:>4.3f} || {:>4.3f} || {:>4.3f} || "
-             "{:>6.2f} || {:>6.2f} || {:>6.3f} || {:>6.3f} || {:>+3d} || "
-             "{:^7.1f} || {:^6} || {:>6.3f} || {:^6} || {:^6} || {:^6}\n",
+             "{:>6.3f} || {:>6.3f} || {:>6.3f} || {:>6.3f} || {:>+3d} || "
+             "{:>6d}/{:>4.0f} || {:^11} || {:>6.3f} || {:^6} || {:^6} || {:^6}\n",
              _group, _number, target, Ibeam,  
              kinematic.Q2, kinematic.x, kinematic.z ,
              kinematic.th_e, kinematic.Ee, kinematic.th_q, polarity*kinematic.Ppi, polarity, 
-             time*Ibeam*60.*60./1000.0, "xx", time, "NN", "x", "x");
+             int(counts),time*Ibeam*60.*60./1000.0, "nn/xx", time, "NN", "x", "x");
 }
 
 void RunPlanTableEntry::PrintWikiHeader(std::ostream& s) {
