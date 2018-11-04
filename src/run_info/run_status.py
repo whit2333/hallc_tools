@@ -44,28 +44,44 @@ def inputThread(stdscr):
         #sleep(0.05)
         #stdscr.addstr("inputThread:" + str(x) + "\n" + "c:" + str(c))
 
+class PVWithDefault:
+    def onChange(self,pvname=None, value=None, host=None, **kws):
+        self.value = value
+
+    def __init__(self,name=None, default = None):
+        self.named_pv  = PV(name,callback=self.onChange )
+        self.value     = default
+
+    def get(self):
+        return self.named_pv.get()
+
 class HallcEpics :
 
     def onBCMChange(self,pvname=None, value=None, host=None, **kws):
         self.bcm1 = float(value)
+
     def onChargeChange(self,pvname=None, value=None, host=None, **kws):
         self.run_charge = float(value)/1000.0
+
     def onTotChargeChange(self,pvname=None, value=None, host=None, **kws):
         self.setting_charge = float(value)/1000.0
+
     def onTargetChange(self,pvname=None, value=None, host=None, **kws):
         self.target = int(value)
+
     def onBeamCurrentChange(self,pvname=None, value=None, host=None, **kws):
         self.beam_current = int(value)
+
     def __init__(self):
         self.target = 0
+        self.run_number_pv     = PVWithDefault(name='hcCOINRunNumber',default=int(0))
         self.target_sel_pv     = PV('hcBDSSELECT_mirror',callback=self.onTargetChange )
-        self.run_number_pv     = PV('hcCOINRunNumber')
         self.bcm1_pv           = PV('ibcm1',callback=self.onBCMChange)
         self.bcm1              = self.bcm1_pv.get()
         self.beam_current_pv   = PV('hcCOINRunAverageBeamCurrent',callback=self.onBeamCurrentChange)
         self.run_charge_pv     = PV('hcCOINRunAccumulatedCharge',callback=self.onChargeChange)
         self.setting_charge_pv = PV('hcRunSettingAccumulatedCharge',callback=self.onTotChargeChange)
-        self.run_number     = self.run_number_pv.get()
+        self.run_number     = self.run_number_pv.value
         self.run_charge     = float(self.run_charge_pv.get())*0.001
         self.beam_current     = self.beam_current_pv.get()
         self.setting_charge = float(self.setting_charge_pv.get())*0.001
@@ -172,7 +188,7 @@ class HallcEpics :
             #stdscr.addstr(start_y + 5, start_x_keystr, keystr)
             #stdscr.move(cursor_y, cursor_x)
     
-            begin_x = 5; begin_y = 7
+            begin_x = 2; begin_y = 2
             height = 20; width =60 
             win = stdscr.subwin(height, width, begin_y, begin_x)
             win.box()
