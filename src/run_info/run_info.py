@@ -3,7 +3,6 @@
 
 import npyscreen
 #npyscreen.disableColor()
-
 class TestApp(npyscreen.NPSApp):
     def main(self):
         F = npyscreen.Form(name = "Welcome to Npyscreen",)

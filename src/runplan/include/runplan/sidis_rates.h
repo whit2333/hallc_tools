@@ -12,6 +12,8 @@
 
 
 #include "hallc_settings.h"
+#include "CSV_settings.h"
+
 #include "RunTable.h"
 
 

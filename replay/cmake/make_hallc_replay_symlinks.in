@@ -8,7 +8,7 @@ CREATE_DIRS=
 RAW_DIR=
 ROOTFILE_DIR=
 MONITOR_DIR=
-BASE_REPLAY_DIR=
+BASE_REPLAY_DIR=$(@CMAKE_INSTALL_PREFIX@/bin/hallc_config --dir)
 
 while test $# -gt 0; do
   case "$1" in
@@ -25,7 +25,7 @@ while test $# -gt 0; do
       echo "     -d, --remove         remove symlinks"
       echo "     -h, --help           show brief help"
       echo "     -b, --replay-base    the replay directory to mirror"
-      #echo "-o, --output-dir=DIR      specify a directory to store output in"
+#echo "-o, --output-dir=DIR      specify a directory to store output in"
       exit 0
       ;;
     -d|--remove)
@@ -184,23 +184,24 @@ function make_output_dirs(){
 #  main script 
 # -------------------------------------
 
-replay_base_dir=$(@CMAKE_INSTALL_PREFIX@/bin/hallc_config --dir)
+#replay_base_dir=$(@CMAKE_INSTALL_PREFIX@/bin/hallc_config --dir)
+replay_base_dir=${BASE_REPLAY_DIR}
 
 for adir in CALIBRATION
 do
-  my_link=${replay_base_dir}/submodules/hallc_replay/${adir}
+  my_link=${replay_base_dir}/${adir}
   dolinks ${adir} ${my_link}
 done
 
 for adir in  DATFILES DBASE DEF-files MAPS PARAM TEMPLATES SCRIPTS onlineGUI
 do
-  my_link=${replay_base_dir}/submodules/hallc_replay/${adir}
+  my_link=${replay_base_dir}/${adir}
   dolinks ${adir} ${my_link}
 done
 
 for adir in bin analysis
 do
-  my_link=${replay_base_dir}/${adir}
+  my_link=${replay_base_dir}/../../${adir}
   dolinks ${adir} ${my_link}
 done
 
