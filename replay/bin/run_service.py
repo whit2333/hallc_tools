@@ -2,7 +2,6 @@
 from epics import caget, caput, camonitor, PV
 import time
 import subprocess
-from optparse import OptionParser
 import json
 import sys
 #from multiprocessing import Pool
@@ -10,10 +9,24 @@ import copy
 import os.path
 import threading
 
-#latest_run_number = subprocess.check_output(['latest_run'])
+import argparse
 
-target_mass_amu = {"1":2.014101, "2":26.92,  "3":1.00794} 
-target_desc   = {"2":"LH2", "3": "LD2", "5":"DUMMY"}
+parser = argparse.ArgumentParser(description='Accumulate run information.')
+parser.add_argument('-k', '--kine', 
+        default = 'DBASE/COIN/auto_standard.kinematics', 
+        help = 'output put for automatic standard.kinematics',
+        dest='kinematics')
+parser.add_argument('-o','--output', 
+        default = 'db2/run_list.json', 
+        help='output json run database',
+        dest='output_file')
+args = parser.parse_args()
+
+print args.kinematics
+print args.output_file
+
+target_mass_amu = {"2":1.00794,"3":2.014101, "5":26.92} 
+target_desc     = {"2":"LH2",  "3": "LD2",   "5":"DUMMY"}
 
 
 class Trip:
@@ -81,7 +94,8 @@ class PVIntegrator:
         return {self.name: trip_dict }
 
     def PrintJSON(self):
-        print json.dumps(self.GetJSONObject(), sort_keys=True, indent=2, separators=(',', ': '))
+        print "writing json"
+        #print json.dumps(self.GetJSONObject(), sort_keys=True, indent=2, separators=(',', ': '))
 
 class TripCounter:
     """Trip Counter"""
@@ -149,7 +163,8 @@ class TripCounter:
         return {self.name: trip_dict }
 
     def PrintJSON(self):
-        print json.dumps(self.GetJSONObject(), sort_keys=True, indent=2, separators=(',', ': '))
+        print "printing "
+        #print json.dumps(self.GetJSONObject(), sort_keys=True, indent=2, separators=(',', ': '))
 
 
 class RunSummary:
@@ -163,12 +178,15 @@ class RunSummary:
         self.run_info = {}
         self.shms_angle_offset = 0.0
         self.hms_angle_offset  = 0.0
+        self.start_time = None
+        self.end_time   = None
         self.shms_angle_pv = PV('ecSHMS_Angle')
         self.shms_momentum_pv = PV('SHMS_Momentum')
         self.hms_angle_pv = PV('ecHMS_Angle')
         self.hms_momentum_pv = PV('HMS_Momentum')
         self.beam_energy_pv = PV('HALLC:p')
         self.target_select_pv =  PV('hcBDSSELECT')
+        self.target_select_pv.add_callback(self.TargetSelCallback)
         self.target_busy_pv   =  PV('hcBDSBUSY')
         self.target_busy_pv.add_callback(self.TargetBusyCallback)
         self.target_sel_val  = int(self.target_select_pv.get())
@@ -206,7 +224,7 @@ class RunSummary:
                     } }
         return res 
     def BuildSpecReport(self):
-        res = {"Spectrometers" :
+        res = {"spectrometers" :
                 {
                     "shms_momentum" : self.shms_momentum_pv.get(), 
                     "hms_momentum"  : self.hms_momentum_pv.get(), 
@@ -215,9 +233,15 @@ class RunSummary:
                     } 
                 }
         return res 
+
     def BuildBeamReport(self):
+        # FIXME
         res = {"beam": {"beam_energy":10.60, "beam_pol": 0.0} }
         return res
+
+    def TargetSelCallback(self,pvname=None, value=None, char_value=None, **kws):
+        #global pool
+        self.target_sel_val = int(value)
 
     def TargetBusyCallback(self,pvname=None, value=None, char_value=None, **kws):
         #global pool
@@ -271,6 +295,7 @@ class RunSummary:
 
     def start(self):
         """start the counting"""
+        self.start_time = time.ctime()
         self.PrintKinematics()
         self.SetCallbacks()
         self.GetTargetName()
@@ -278,9 +303,11 @@ class RunSummary:
     def stop(self):
         """stop the counting"""
         self.ClearCallbacks()
+        self.end_time = time.ctime()
         #self.PrintKinematics()
 
     def GetJSONObject(self):
+        run_json = {"start_time": self.start_time, "end_time": self.end_time}
         all_counters = { }
         for n, cnt in self.counters :
             all_counters.update(cnt.GetJSONObject())
@@ -289,39 +316,42 @@ class RunSummary:
         for n, cnt in self.integrators :
             all_inte.update(cnt.GetJSONObject())
         integ_dict = {"integrators": all_inte}
-        counters_dict.update(integ_dict)
-        counters_dict.update(self.BuildTargetReport())
-        counters_dict.update(self.BuildSpecReport())
-        counters_dict.update(self.BuildBeamReport())
-        return {str(int(self.run_number)): counters_dict}
+        run_json.update(counters_dict)
+        run_json.update(integ_dict)
+        run_json.update(self.BuildTargetReport())
+        run_json.update(self.BuildSpecReport())
+        run_json.update(self.BuildBeamReport())
+        return {str(int(self.run_number)): run_json}
 
     def PrintJSON(self):
-        print json.dumps(self.GetJSONObject(), sort_keys=True, indent=4, separators=(',', ': '))
+        print "printing run"
+        #print json.dumps(self.GetJSONObject(), sort_keys=True, indent=4, separators=(',', ': '))
 
     def PrintKinematics(self):
-        P0_shms = self.shms_momentum_pv.get()
-        th_shms = self.shms_angle_pv.get()   + self.shms_angle_offset
-        th_hms  = self.hms_angle_pv.get() + self.hms_angle_offset 
-        P0_hms  = self.hms_momentum_pv.get()
+        global args
+        P0_shms = float(self.shms_momentum_pv.get())
+        th_shms = float(self.shms_angle_pv.get()   + self.shms_angle_offset)
+        th_hms  = float(self.hms_angle_pv.get() + self.hms_angle_offset )
+        P0_hms  = float(self.hms_momentum_pv.get())
         E_hallc = 10.60
         print self.run_number, '-', self.run_number
         print 'pbeam = ',E_hallc
-        print 'gtargmass_amu = ',2.014101
-        print 'htheta_lab = ',th_hms
-        print 'ptheta_lab = ',th_shms
-        print 'hpcentral = ',P0_hms
-        print 'ppcentral = ',P0_shms
+        print 'gtargmass_amu = {}'.format(target_mass_amu[str(self.target_sel_val)])
+        print 'htheta_lab = ', -1.0*abs(th_hms)
+        print 'ptheta_lab = ',abs(th_shms)
+        print 'hpcentral = ',abs(P0_hms)
+        print 'ppcentral = ',abs(P0_shms)
         print 'ppartmass = ', 0.1395706
         print 'hpartmass = ', 0.0005109 
         if not self.kine_was_printed:
-            with open('test.standard.kinematics', 'a') as f:
+            with open(str(args.kinematics), 'a') as f:
                 f.write(str('{} - {}\n').format(self.run_number, self.run_number))
                 f.write(str('pbeam = {}\n').format(E_hallc))
-                f.write(str('gtargmass_amu = {}\n').format(2.014101))
-                f.write(str('htheta_lab = {}\n').format(th_hms))
-                f.write(str('ptheta_lab = {}\n').format(th_shms))
-                f.write(str('hpcentral = {}\n').format(P0_hms))
-                f.write(str('ppcentral = {}\n').format(P0_shms))
+                f.write(str('gtargmass_amu = {}\n').format(target_mass_amu[str(self.target_sel_val)]))
+                f.write(str('htheta_lab = {}\n').format(-1.0*abs(float(th_hms))))
+                f.write(str('ptheta_lab = {}\n').format(abs(float(th_shms))))
+                f.write(str('hpcentral = {}\n').format( abs(float(P0_hms ))))
+                f.write(str('ppcentral = {}\n').format( abs(float(P0_shms))))
                 f.write(str('ppartmass = {}\n').format(0.1395706))
                 f.write(str('hpartmass = {}\n').format( 0.0005109 ))
                 f.write('\n')
@@ -386,8 +416,8 @@ class SummaryList:
         epics_val = coda_run_number_pv.get()
         if int(epics_val) !=  int(self.current_run.run_number):
             print str("Error DAQ must have crashed. Starting new counts for run {}").format(int(epics_val))
-            #self.Reset()
-            #self.StartNewRun(epics_val)
+            self.Reset()
+            self.StartNewRun(epics_val)
 
     def stop(self):
         """Stop the counting and append to list"""
@@ -413,19 +443,41 @@ class SummaryList:
     def PrintJSON(self):
         self.stop()
         print "Printing JSON ...."
-        print json.dumps(self.GetJSONObject(), sort_keys=True, indent=4, separators=(',', ': '))
+        #print json.dumps(self.GetJSONObject(), sort_keys=True, indent=4, separators=(',', ': '))
         self.Print()
 
 
-def print_everything(*args):
-    for count, thing in enumerate(args):
-        print( '{0}. {1}'.format(count, thing))
 
 def mycallback(x):
     print('mycallback is called')
     global results
     x.Print()
     results.append(x)
+
+
+def codaEndOfRun():
+    global coda_running
+    global coda_run_number
+    global summary
+    #global pool
+    global res
+    global run_list
+    global out_file_name
+    print("end of run: ",coda_run_number)
+    run_list.current_run.stop()
+    #run_list.current_run.Print()
+    your_json = {}
+    if os.path.isfile(out_file_name) :
+        with open(out_file_name) as data_file:
+            your_json = json.loads(data_file.read())
+    your_json.update(run_list.current_run.GetJSONObject())
+    #with open(out_file_name,'w') as data_file:
+    #    json.dump(your_json,data_file)
+    #print your_json
+    print "Writing to output file : {}".format(out_file_name)
+    with open(out_file_name, 'w') as f:
+          f.write(json.dumps(your_json, sort_keys=True, ensure_ascii=False, indent=2))
+    run_list.current_run.PrintJSON()
     
 
 def codaInProgress(pvname=None, value=None, char_value=None, **kws):
@@ -457,6 +509,7 @@ def codaInProgress(pvname=None, value=None, char_value=None, **kws):
         #with open(out_file_name,'w') as data_file:
         #    json.dump(your_json,data_file)
         print your_json
+        print "Writing to output file : {}".format(out_file_name)
         with open(out_file_name, 'w') as f:
               f.write(json.dumps(your_json, sort_keys=True, ensure_ascii=False, indent=2))
         run_list.current_run.PrintJSON()
@@ -479,7 +532,7 @@ coda_running = False
 coda_run_number = coda_run_number_pv.get()
 run_list = SummaryList()
 #summary = run_list.current_run
-out_file_name = 'run_list_4.json'
+out_file_name = str(args.output_file) #'run_list_4.json'
 
 def main():
     """Runs continuously"""
@@ -507,8 +560,8 @@ def main():
     except KeyboardInterrupt:
         if coda_running:
            run_list.current_run.Print()
-        print 'All runs...'
         #run_list.Print()
+        codaEndOfRun()
         run_list.printing_thread.stopped = True
         run_list.PrintJSON()
         print 'Done.'
