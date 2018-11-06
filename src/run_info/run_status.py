@@ -6,6 +6,8 @@ import epics
 import threading
 from time import sleep
 
+
+
 cursor_x = 0
 cursor_y = 0
 k = 0
@@ -213,7 +215,7 @@ class HallcEpics:
             win.attron(curses.color_pair(5))
             win.attron(curses.A_BOLD)
             win.addstr(
-                1, 1, "             RUN {}  , setting {}".format(
+                1, 1, "             RUN {}  , setting {} (arbitrary)".format(
                     int(self.run_number),
                     int(epics.pv.get_pv("hcRunSettingNumber").get())))
             win.addstr(
