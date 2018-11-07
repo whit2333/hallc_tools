@@ -1,5 +1,6 @@
 #!/usr/bin/python
 from epics import caget, caput, camonitor, PV
+import epics
 import time
 import subprocess
 import json
@@ -33,18 +34,37 @@ class Trip:
     """Simple trip data"""
     def __init__(self,num=0):
         self.num = num
-        self.start_time = time.ctime()
+        self.start_time = time.strftime('%X %x %Z')
         self.end_time = None
         self.pv_name = "IBC1H04CRCUR2"
         self.is_tripped = False
     def stop(self):
-        self.end_time = time.ctime()
+        self.end_time = time.strftime('%X %x %Z')
     def start(self):
-        self.start_time = time.ctime()
+        self.start_time = time.strftime('%X %x %Z')
         if self.is_tripped :
             self.stop()
     def GetJSONObject(self):
         return {"id":self.num, "start_time":self.start_time, "end_time":self.end_time}
+
+class PVTracker:
+    def __init__(self, pvname = "hcCOINRunAccumulatedCharge",name=None):
+        self.pv_name = pvname
+        self.name = name
+        self.process_var = PV(pvname)
+        self.value = self.process_var.get()
+
+    def PVChangeCallback(self,pvname=None, value=None, char_value=None, **kws):
+        self.value = value
+
+    def AddCallback(self):
+        self.process_var.add_callback(self.PVChangeCallback)
+
+    def ClearCallback(self):
+        self.process_var.clear_callbacks()
+
+    def Dump(self):
+        print str("{}   value  =  {} ").format(self.name, self.value)
 
 class PVIntegrator:
     """PVIntegrator"""
@@ -126,12 +146,12 @@ class TripCounter:
         #print 'PV :', pvname, char_value, time.ctime(), " thresh ", self.trip_threshold
         if (value < self.trip_threshold) and not self.currently_tripped: 
             self.latest_trip = Trip(len(self.trips))
-            print 'PV tripped!', pvname, char_value, time.ctime()
+            print 'PV tripped!', pvname, char_value, time.strftime('%X %x %Z')
             self.trip_count = self.trip_count +1
             print self.trip_count
             self.currently_tripped = True
         if self.currently_tripped and (value > self.trip_threshold): 
-            print 'PV restored', pvname, char_value, time.ctime()
+            print 'PV restored', pvname, char_value, time.strftime('%X %x %Z')
             self.currently_tripped = False
             if not (self.latest_trip == None) :
                 self.latest_trip.stop()
@@ -175,15 +195,16 @@ class RunSummary:
         self.counter_names = []
         self.counters = []
         self.integrators = []
+        self.pv_trackers = []
         self.run_info = {}
         self.shms_angle_offset = 0.0
         self.hms_angle_offset  = 0.0
         self.start_time = None
         self.end_time   = None
-        self.shms_angle_pv = PV('ecSHMS_Angle')
-        self.shms_momentum_pv = PV('SHMS_Momentum')
-        self.hms_angle_pv = PV('ecHMS_Angle')
-        self.hms_momentum_pv = PV('HMS_Momentum')
+        self.shms_angle_pv = PV('hcSHMSCorrectedAngle')
+        self.shms_momentum_pv = PV('hcSHMSMomentum')
+        self.hms_angle_pv = PV('hcHMSCorrectedAngle')
+        self.hms_momentum_pv = PV('hcHMSMomentum')
         self.beam_energy_pv = PV('HALLC:p')
         self.target_select_pv =  PV('hcBDSSELECT')
         self.target_select_pv.add_callback(self.TargetSelCallback)
@@ -261,6 +282,12 @@ class RunSummary:
         if name == None :
             name = str(pv)
         self.counters.append(( name, TripCounter(pv=pv,name=name,th=thresh))) 
+
+    def CreatePVTracker(self, pv=None,  name=None):
+        if name == None :
+            name = str(pv)
+        self.pv_trackers.append(( name, PVTracker(pv,name=name))) 
+
     def Reset(self):
         self.kine_was_printed = False
         for n, cnt in self.counters :
@@ -273,11 +300,15 @@ class RunSummary:
             cnt.AddCallback()
         for n, cnt in self.integrators :
             cnt.AddCallback()
+        for n, cnt in self.pv_trackers :
+            cnt.AddCallback()
 
     def ClearCallbacks(self):
         for n, cnt in self.counters :
             cnt.ClearCallback()
         for n, cnt in self.integrators :
+            cnt.ClearCallback()
+        for n, cnt in self.pv_trackers :
             cnt.ClearCallback()
 
     def Dump(self):
@@ -285,6 +316,8 @@ class RunSummary:
         #for n, cnt in self.counters :
         #    cnt.Dump()
         for n, cnt in self.integrators :
+            cnt.Dump()
+        for n, cnt in self.pv_trackers :
             cnt.Dump()
 
     def Print(self):
@@ -295,7 +328,7 @@ class RunSummary:
 
     def start(self):
         """start the counting"""
-        self.start_time = time.ctime()
+        self.start_time = time.strftime('%X %x %Z')
         self.PrintKinematics()
         self.SetCallbacks()
         self.GetTargetName()
@@ -303,11 +336,14 @@ class RunSummary:
     def stop(self):
         """stop the counting"""
         self.ClearCallbacks()
-        self.end_time = time.ctime()
+        self.end_time = time.strftime('%X %x %Z')
         #self.PrintKinematics()
 
     def GetJSONObject(self):
-        run_json = {"start_time": self.start_time, "end_time": self.end_time}
+        run_json = { 
+                "start_time": self.start_time, 
+                "end_time": self.end_time
+                }
         all_counters = { }
         for n, cnt in self.counters :
             all_counters.update(cnt.GetJSONObject())
@@ -316,6 +352,8 @@ class RunSummary:
         for n, cnt in self.integrators :
             all_inte.update(cnt.GetJSONObject())
         integ_dict = {"integrators": all_inte}
+        for n, cnt in self.pv_trackers :
+            run_json.update({n:cnt.value})
         run_json.update(counters_dict)
         run_json.update(integ_dict)
         run_json.update(self.BuildTargetReport())
@@ -358,7 +396,6 @@ class RunSummary:
         self.kine_was_printed = True
 
 class MyThread(threading.Thread):
-
     def __init__(self,func=None):
         threading.Thread.__init__(self)
         self.sleep_event = threading.Event()
@@ -402,6 +439,9 @@ class SummaryList:
 
     def CreateIntegrator(self, pv=None, name=None,outpv=None):
         self.current_run.CreateIntegrator(pv,  name,outpv)
+
+    def CreatePVTracker(self, pv=None, name=None):
+        self.current_run.CreatePVTracker(pv,  name)
 
     def Reset(self):
         self.stop()
@@ -546,6 +586,8 @@ def main():
     run_list.CreateTripCounter("ibcm2",name="ibcm2",thresh=1.0)
     run_list.CreateIntegrator("ibcm1",name="bcm1",outpv="hcRunTotalCharge")
     run_list.CreateIntegrator("ibcm2",name="bcm2")
+    run_list.CreatePVTracker(pv="hcCOINRunAccumulatedCharge",name="total_charge")
+
     #summary.SetCallbacks()
     coda_in_progress_pv.add_callback(codaInProgress)
     
