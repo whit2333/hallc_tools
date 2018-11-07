@@ -231,7 +231,7 @@ class HallcEpics:
             win.attron(curses.A_BOLD)
             win.addstr(
                 1, 1, "             RUN {}  , setting {} (arbitrary)".format(
-                    int(self.run_number),
+                    int(epics.pv.get_pv("hcCOINRunNumber").get()),
                     int(epics.pv.get_pv("hcRunSettingNumber").get())))
             win.addstr(
                 2, 1, "      run time   : {:.2f} minutes".format(
@@ -249,6 +249,15 @@ class HallcEpics:
             win.addstr(
                 7, 1,
                 "Target           : {}".format(self.target_names[self.target]))
+
+            win.addstr( 9, 1, "  HMS   : {:.2f} GeV/c".format(
+                        float(epics.pv.get_pv("hcHMSMomentum").get()) ))
+            win.addstr(10, 1, "        : {:.2f} degrees".format(
+                    float(epics.pv.get_pv("hcHMSCorrectedAngle").get()) ))
+            win.addstr(12, 1, "  SHMS  : {:.2f} GeV/c".format(
+                    float(epics.pv.get_pv("hcSHMSMomentum").get()) ))
+            win.addstr( 13, 1,"        : {:.2f} degrees".format(
+                    float(epics.pv.get_pv("hcSHMSCorrectedAngle").get()) ))
             #win.refresh()
             # Refresh the screen
             stdscr.refresh()
