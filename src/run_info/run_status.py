@@ -6,6 +6,21 @@ import epics
 import threading
 from time import sleep
 
+import argparse
+
+parser = argparse.ArgumentParser(description='Accumulate run information.')
+#parser.add_argument('-k', '--kine', 
+#        default = 'DBASE/COIN/auto_standard.kinematics', 
+#        help = 'output put for automatic standard.kinematics',
+#        dest='kinematics')
+parser.add_argument('-i','--input', 
+        default = 'db2/run_list.json', 
+        help='input json run database',
+        dest='input_file')
+args = parser.parse_args()
+
+#print args.kinematics
+print args.input_file
 
 
 cursor_x = 0
