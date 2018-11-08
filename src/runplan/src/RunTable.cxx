@@ -28,15 +28,15 @@ void RunPlanTableEntry::PrintWikiHeader2(std::ostream& s) {
              "colspan=\"2\"  style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Count/Charge Goals|| "
              "{:^9}|| {:^6} ||"
              "colspan=\"2\" style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Rates \n",
-             "est.", " ");
+             "est. time", " ");
   fmt::print(s,
              "|- \n"
              "! {:^6} || {:^6} || {:^6} || {:^5} || {:^5} || {:^5} || "
              "{:^6} || {:^5} || {:^7} || {:^6} || {:^3} || "
              "{:^11} || {:^11} || {:^6} || {:^6} || {:^6} || {:^6}\n",
              "number", "target", "Ibeam", "Q2", "x", "z", 
-             "th_HMS", "P HMS","th_SHMS",  "P SHMS", "pol", 
-             "desired", "actual", "time", "# runs","SHMS","coin");
+             "P HMS","th_HMS",  "P SHMS","th_SHMS",  "pol", 
+             "desired", "actual", "hr:min", "# runs","SHMS","coin");
 }
 void RunPlanTableEntry::PrintWikiFooter2(std::ostream& s) {
   s << "|- \n"
@@ -44,6 +44,12 @@ void RunPlanTableEntry::PrintWikiFooter2(std::ostream& s) {
 }
 
 void RunPlanTableEntry::PrintWiki2(std::ostream& s) const {
+  static double last_momentum = 0;
+  static int color_num = 0;
+  if( last_momentum != polarity*kinematic.Ppi ) {
+    last_momentum = polarity*kinematic.Ppi;
+    color_num++;
+  }
   std::string target = "LD2";
   double      xs     = rates.LD2_XS;
   if ((Z_target==1) && (A_target == 1)) {
@@ -55,19 +61,21 @@ void RunPlanTableEntry::PrintWiki2(std::ostream& s) const {
     double xs = rates.window_XS;
   }
   std::string row = "|- style=\"text-align:center; background: #ffffff;\"\n";
-  if( _number%2 == 0 ) {
+  if( color_num%2 == 0 ) {
     row = "|- style=\"text-align:center; background: #efeff5;\"\n";
   }
   s << row;
   fmt::print(s,
-             "| {:>3d}-{:<2d} || {:^6} || {:>6.3f} || "
+             "| {:>3d}-{:<2d} || {:^6} || {:>6.1f} || "
              "{:>4.3f} || {:>4.3f} || {:>4.3f} || "
-             "{:>6.3f} || {:>6.3f} || {:>6.3f} || {:>6.3f} || {:>+3d} || "
-             "{:>6d}/{:>4.0f} || {:^11} || {:>6.3f} || {:^6} || {:^6} || {:^6}\n",
+             "{:>6.3f} || {:>6.2f} || {:>6.3f} || {:>6.2f} || {:>+3d} || "
+             "{:>6d}/{:>4.0f} || {:^11} || "
+             "{:>2d}:{:0=2d} || {:^6} || {:^6} || {:^6}\n",
              _group, _number, target, Ibeam,  
              kinematic.Q2, kinematic.x, kinematic.z ,
-             kinematic.th_e, kinematic.Ee, kinematic.th_q, polarity*kinematic.Ppi, polarity, 
-             int(counts),time*Ibeam*60.*60./1000.0, "nn/xx", time, "NN", "x", "x");
+             -1.0*kinematic.Ee, kinematic.th_e,   polarity*kinematic.Ppi, kinematic.th_q,polarity, 
+             int(counts), time*Ibeam*60.*60./1000.0, "nn/xx", 
+             int(std::floor(time)),int(std::max(0.0,time-std::floor(time))*60), "NN", "x", "x");
 }
 
 void RunPlanTableEntry::PrintWikiHeader(std::ostream& s) {
@@ -149,6 +157,26 @@ void RunPlanTableEntry::SetTarget(int Z, int A) {
   if (Z == 13) {
     rates.total_rate = rates.window_rate;
     time             = scale * (counts / rates.total_rate) / (60.0 * 60.0);
+  }
+}
+void RunPlanTableEntry::SetTargetTime(int Z, int A,double run_time) {
+  // All rates are calculated with 50 uA beam.
+  double scale = 50.0 / Ibeam;
+  Z_target     = Z;
+  A_target     = A;
+  time         = run_time;
+  if (Z == 1) {
+    if (A == 1) {
+      rates.total_rate = rates.total_LH2_rate/scale;
+      counts           = time*rates.total_rate*(60.0 * 60.0);
+    } else if (A == 2) {
+      rates.total_rate = rates.total_LD2_rate/scale;
+      counts           = time*rates.total_rate*(60.0 * 60.0);
+    }
+  }
+  if (Z == 13) {
+    rates.total_rate = rates.window_rate/scale;
+    counts           = time*(60.0 * 60.0)*rates.total_rate;
   }
 }
 
