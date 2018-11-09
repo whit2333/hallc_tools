@@ -197,8 +197,6 @@ class RunSummary:
         self.integrators = []
         self.pv_trackers = []
         self.run_info = {}
-        self.shms_angle_offset = 0.0
-        self.hms_angle_offset  = 0.0
         self.start_time = None
         self.end_time   = None
         self.shms_angle_pv = PV('hcSHMSCorrectedAngle')
@@ -214,6 +212,12 @@ class RunSummary:
         self.target_sel_pv_name = str("hcBDSSEL1:but"+str(int(self.target_sel_val+1)))
         self.target_sel_name_pvs = {}
         self.target_sel_name = ""
+        self.ps1_pv = PV("hcDAQ_ps1")
+        self.ps2_pv = PV("hcDAQ_ps2")
+        self.ps3_pv = PV("hcDAQ_ps3")
+        self.ps4_pv = PV("hcDAQ_ps4")
+        self.ps5_pv = PV("hcDAQ_ps5")
+        self.ps6_pv = PV("hcDAQ_ps6")
         if self.target_sel_pv_name in self.target_sel_name_pvs:
             self.target_sel_name = self.target_sel_name_pvs[self.target_sel_pv_name].get(as_string=True)
         else :
@@ -249,9 +253,21 @@ class RunSummary:
                 {
                     "shms_momentum" : self.shms_momentum_pv.get(), 
                     "hms_momentum"  : self.hms_momentum_pv.get(), 
-                    "shms_angle"    : self.shms_angle_pv.get()   + self.shms_angle_offset, 
-                    "hms_angle"     : self.hms_angle_pv.get()    + self.hms_angle_offset   
+                    "shms_angle"    : self.shms_angle_pv.get(), 
+                    "hms_angle"     : self.hms_angle_pv.get() 
                     } 
+                }
+        return res 
+    def BuildDAQReport(self):
+        res = {"daq" :
+                {
+                    "ps1" : self.ps1_pv.get(), 
+                    "ps2" : self.ps2_pv.get(), 
+                    "ps3" : self.ps3_pv.get(), 
+                    "ps4" : self.ps4_pv.get(),
+                    "ps5" : self.ps5_pv.get(),
+                    "ps6" : self.ps6_pv.get()
+                    }
                 }
         return res 
 
@@ -358,6 +374,7 @@ class RunSummary:
         run_json.update(integ_dict)
         run_json.update(self.BuildTargetReport())
         run_json.update(self.BuildSpecReport())
+        run_json.update(self.BuildDAQReport())
         run_json.update(self.BuildBeamReport())
         return {str(int(self.run_number)): run_json}
 
@@ -368,8 +385,8 @@ class RunSummary:
     def PrintKinematics(self):
         global args
         P0_shms = float(self.shms_momentum_pv.get())
-        th_shms = float(self.shms_angle_pv.get()   + self.shms_angle_offset)
-        th_hms  = float(self.hms_angle_pv.get() + self.hms_angle_offset )
+        th_shms = float(self.shms_angle_pv.get())
+        th_hms  = float(self.hms_angle_pv.get())
         P0_hms  = float(self.hms_momentum_pv.get())
         E_hallc = 10.60
         print self.run_number, '-', self.run_number

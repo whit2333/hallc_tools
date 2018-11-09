@@ -223,40 +223,60 @@ class HallcEpics:
 
             begin_x = 2
             begin_y = 2
-            height = 20
-            width = 42
-            win = stdscr.subwin(height, width, begin_y, begin_x)
+            height = 25
+            width  = 42
+            win    = stdscr.subwin(height, width, begin_y, begin_x)
             win.box()
             win.bkgd(' ', curses.color_pair(5))
             win.attron(curses.color_pair(5))
             win.attron(curses.A_BOLD)
+            the_line = 1
             win.addstr(
-                1, 1, "     RUN {}  , setting {} (arbitrary)".format(
-                    int(epics.pv.get_pv("hcCOINRunNumber").get()),
-                    int(epics.pv.get_pv("hcRunSettingNumber").get())))
-            win.addstr(
-                2, 1, "      run time   : {:.2f} minutes".format(
-                    float(epics.pv.get_pv("hcCOINRunTime").get()) / 60.0))
+                    the_line, 1, "     RUN {}  , setting {} (arbitrary)".format(
+                        int(epics.pv.get_pv("hcCOINRunNumber").get()),
+                        int(epics.pv.get_pv("hcRunSettingNumber").get())))
+            the_line = the_line+1
+            win.addstr( the_line, 1, "{:20} : {:.2f} minutes".format("beam on run time",
+                        float(epics.pv.get_pv("hcCOINRunTime").get()) / 60.0))
             #win.attroff(curses.A_BOLD)
-            win.addstr(3, 1,
-                       "total run charge : {:.2f} mC".format(self.run_charge))
-            win.addstr( 4, 1,
+            the_line = the_line+1
+            win.addstr(the_line, 1,
+                    "{:20} : {:.2f} mC".format("total run charge",self.run_charge))
+            the_line = the_line+1
+
+            the_line = the_line+1
+            win.addstr( the_line, 1, "Beam Current     : {:.2f} uA".format(self.beam_current))
+            the_line = the_line+1
+            win.addstr( the_line, 1, "    run avg.     : {:.2f} uA ".format(self.beam_current))
+            the_line = the_line+1
+
+            the_line = the_line+1
+
+            win.addstr( the_line, 1,
                 "setting charge   : {:.2f} mC".format(self.setting_charge))
-            win.addstr( 6, 1, "Beam Current     : {:.2f} uA".format(self.beam_current))
-            win.addstr( 7, 1, "    run avg.     : {:.2f} uA ".format(self.beam_current))
+            the_line = the_line+1
+            the_line = the_line+1
 
             win.attron(curses.color_pair(6))
-            win.addstr( 9, 1, "Target           : {}".format(self.target_names[self.target]))
+
+            win.addstr( the_line, 1, "Target           : {}".format(self.target_names[self.target]))
+            the_line = the_line+1
 
             win.attron(curses.color_pair(5))
-            win.addstr(11, 1, "  HMS   : {:.2f} GeV/c".format(
+
+            the_line = the_line+1
+            win.addstr(the_line, 1, "  HMS   : {:.2f} GeV/c".format(
                         float(epics.pv.get_pv("hcHMSMomentum").get()) ))
-            win.addstr(12, 1, "        : {:.2f} degrees".format(
+            the_line = the_line+1
+            win.addstr(the_line, 1, "        : {:.2f} degrees".format(
                     float(epics.pv.get_pv("hcHMSCorrectedAngle").get()) ))
-            win.addstr(14, 1, "  SHMS  : {:.2f} GeV/c".format(
+            the_line = the_line+1
+            win.addstr(the_line, 1, "  SHMS  : {:.2f} GeV/c".format(
                     float(epics.pv.get_pv("hcSHMSMomentum").get()) ))
-            win.addstr( 15, 1,"        : {:.2f} degrees".format(
+            the_line = the_line+1
+            win.addstr(the_line, 1,"        : {:.2f} degrees".format(
                     float(epics.pv.get_pv("hcSHMSCorrectedAngle").get()) ))
+            the_line = the_line+1
             #win.refresh()
             # Refresh the screen
             stdscr.refresh()
