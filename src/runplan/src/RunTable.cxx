@@ -21,22 +21,23 @@ namespace fs = std::experimental::filesystem;
 void RunPlanTableEntry::PrintWikiHeader2(std::ostream& s) {
   //s << R"foo(<span style="tr:nth-child(even){background-color: #f2f2f2}">)foo";
   s <<   "{|class=\"wikitable\" style=\"width: 85\%\"\n";
-  fmt::print(s,
+  s <<
              "! colspan=\"3\" style=\"border: 1px solid black; padding: 5px; background: #ffdead;\" | Setting|| "
              "colspan=\"3\" style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Kinematics || "
              "colspan=\"5\" style=\"border: 1px solid black; padding: 5px; background: #ffdead;\" | Spectrometer settings || "
-             "colspan=\"2\"  style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Count/Charge Goals|| "
-             "{:^9}|| {:^6} ||"
-             "colspan=\"2\" style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Rates \n",
-             "est. time", " ");
+             "colspan=\"2\"  style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Good Count Goals|| "
+             "colspan=\"2\" style=\"border: 1px solid black; padding: 5px; background: #ffdead;\" | Estimates || "
+             "style=\"border: 1px solid black; padding: 5px; background: #99ccff;\" | Runs \n";
   fmt::print(s,
              "|- \n"
              "! {:^6} || {:^6} || {:^6} || {:^5} || {:^5} || {:^5} || "
-             "{:^6} || {:^5} || {:^7} || {:^6} || {:^3} || "
-             "{:^11} || {:^11} || {:^6} || {:^6} || {:^6} || {:^6}\n",
+             "{:^6} || {:^5} || {:^6} || {:^6} || {:^3} || "
+             "{:^7} || {:^7} || "
+             "{:^6} || {:^8} || {:^6} \n",
              "number", "target", "Ibeam", "Q2", "x", "z", 
              "P HMS","th_HMS",  "P SHMS","th_SHMS",  "pol", 
-             "desired", "actual", "hr:min", "# runs","SHMS","coin");
+             "desired", "actual", 
+             "hr:min","charge mC","# runs");
 }
 void RunPlanTableEntry::PrintWikiFooter2(std::ostream& s) {
   s << "|- \n"
@@ -68,14 +69,14 @@ void RunPlanTableEntry::PrintWiki2(std::ostream& s) const {
   fmt::print(s,
              "| {:>3d}-{:<2d} || {:^6} || {:>6.1f} || "
              "{:>4.3f} || {:>4.3f} || {:>4.3f} || "
-             "{:>6.3f} || {:>6.2f} || {:>6.3f} || {:>6.2f} || {:>+3d} || "
-             "{:>6d}/{:>4.0f} || {:^11} || "
-             "{:>2d}:{:0=2d} || {:^6} || {:^6} || {:^6}\n",
+             "{:>6.3f} || {:>6.2f} || {:>6.3f} || {:>7.2f} || {:>+3d} || "
+             "{:>7d} || {:^7} || "
+             "{:>2d}:{:0=2d}  || {:^6.1f}    || {:^12} \n",
              _group, _number, target, Ibeam,  
              kinematic.Q2, kinematic.x, kinematic.z ,
              -1.0*kinematic.Ee, kinematic.th_e,   polarity*kinematic.Ppi, kinematic.th_q,polarity, 
-             int(counts), time*Ibeam*60.*60./1000.0, "nn/xx", 
-             int(std::floor(time)),int(std::max(0.0,time-std::floor(time))*60), "NN", "x", "x");
+             int(counts),  "n",
+             int(std::floor(time)),int(std::max(0.0,time-std::floor(time))*60), _charge_goal, "NN");
 }
 
 void RunPlanTableEntry::PrintWikiHeader(std::ostream& s) {
@@ -158,6 +159,7 @@ void RunPlanTableEntry::SetTarget(int Z, int A) {
     rates.total_rate = rates.window_rate;
     time             = scale * (counts / rates.total_rate) / (60.0 * 60.0);
   }
+  _charge_goal = time*Ibeam*60.*60./1000.0;
 }
 void RunPlanTableEntry::SetTargetTime(int Z, int A,double run_time) {
   // All rates are calculated with 50 uA beam.
@@ -165,6 +167,28 @@ void RunPlanTableEntry::SetTargetTime(int Z, int A,double run_time) {
   Z_target     = Z;
   A_target     = A;
   time         = run_time;
+  if (Z == 1) {
+    if (A == 1) {
+      rates.total_rate = rates.total_LH2_rate/scale;
+      counts           = time*rates.total_rate*(60.0 * 60.0);
+    } else if (A == 2) {
+      rates.total_rate = rates.total_LD2_rate/scale;
+      counts           = time*rates.total_rate*(60.0 * 60.0);
+    }
+  }
+  if (Z == 13) {
+    rates.total_rate = rates.window_rate/scale;
+    counts           = time*(60.0 * 60.0)*rates.total_rate;
+  }
+  _charge_goal = time*Ibeam*60.*60./1000.0;
+}
+
+void RunPlanTableEntry::SetTargetCharge(int Z, int A,double charge) {
+  double scale = 50.0 / Ibeam;
+  Z_target     = Z;
+  A_target     = A;
+  _charge_goal = charge;
+  time         = charge/(Ibeam*60.*60./1000.0);
   if (Z == 1) {
     if (A == 1) {
       rates.total_rate = rates.total_LH2_rate/scale;
