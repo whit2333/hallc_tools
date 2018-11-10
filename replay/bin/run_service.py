@@ -355,6 +355,28 @@ class RunSummary:
         self.end_time = time.strftime('%X %x %Z')
         #self.PrintKinematics()
 
+    def GetInitJSONObject(self):
+        run_json = { 
+                "start_time": self.start_time, 
+                }
+        #all_counters = { }
+        #for n, cnt in self.counters :
+        #    all_counters.update(cnt.GetJSONObject())
+        #counters_dict = {"counters": all_counters}
+        #all_inte = { }
+        #for n, cnt in self.integrators :
+        #    all_inte.update(cnt.GetJSONObject())
+        #integ_dict = {"integrators": all_inte}
+        #for n, cnt in self.pv_trackers :
+        #    run_json.update({n:cnt.value})
+        #run_json.update(counters_dict)
+        #run_json.update(integ_dict)
+        run_json.update(self.BuildTargetReport())
+        run_json.update(self.BuildSpecReport())
+        run_json.update(self.BuildDAQReport())
+        run_json.update(self.BuildBeamReport())
+        return {str(int(self.run_number)): run_json}
+
     def GetJSONObject(self):
         run_json = { 
                 "start_time": self.start_time, 
@@ -390,7 +412,7 @@ class RunSummary:
         P0_hms  = float(self.hms_momentum_pv.get())
         E_hallc = 10.60
         print self.run_number, '-', self.run_number
-        print 'pbeam = ',E_hallc
+        print 'gpbeam = ',E_hallc
         print 'gtargmass_amu = {}'.format(target_mass_amu[str(self.target_sel_val)])
         print 'htheta_lab = ', -1.0*abs(th_hms)
         print 'ptheta_lab = ',abs(th_shms)
@@ -553,6 +575,14 @@ def codaInProgress(pvname=None, value=None, char_value=None, **kws):
         coda_running = True
         run_list.Reset()
         run_list.StartNewRun(coda_run_number)
+        your_json = {}
+        if os.path.isfile(out_file_name) :
+            with open(out_file_name) as data_file:
+                your_json = json.loads(data_file.read())
+        your_json.update(run_list.current_run.GetInitJSONObject())
+        with open(out_file_name, 'w') as f:
+              f.write(json.dumps(your_json, sort_keys=True, ensure_ascii=False, indent=2))
+
     if not in_progress and coda_running: 
         print("end of run: ",coda_run_number)
         coda_running = False
