@@ -88,6 +88,8 @@ public:
   ~RunPlanTableEntry()                              = default;
 
   void SetTarget(int Z, int A);
+  void SetTargetTime(int Z, int A,double run_time);
+  void SetTargetCharge(int Z, int A,double charge);
 
   static void PrintWikiHeader(std::ostream& s = std::cout);
   static void PrintWikiFooter(std::ostream& s = std::cout);
