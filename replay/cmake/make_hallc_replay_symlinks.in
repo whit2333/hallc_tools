@@ -193,7 +193,7 @@ do
   dolinks ${adir} ${my_link}
 done
 
-for adir in  DATFILES DBASE DEF-files MAPS PARAM TEMPLATES SCRIPTS onlineGUI
+for adir in  DATFILES DBASE DEF-files MAPS PARAM TEMPLATES SCRIPTS onlineGUI UTIL_SIDIS
 do
   my_link=${replay_base_dir}/${adir}
   dolinks ${adir} ${my_link}
