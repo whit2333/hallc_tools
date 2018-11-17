@@ -423,7 +423,7 @@ class RunSummary:
         if not self.kine_was_printed:
             with open(str(args.kinematics), 'a') as f:
                 f.write(str('{} - {}\n').format(self.run_number, self.run_number))
-                f.write(str('pbeam = {}\n').format(E_hallc))
+                f.write(str('gpbeam = {}\n').format(E_hallc))
                 f.write(str('gtargmass_amu = {}\n').format(target_mass_amu[str(self.target_sel_val)]))
                 f.write(str('htheta_lab = {}\n').format(-1.0*abs(float(th_hms))))
                 f.write(str('ptheta_lab = {}\n').format(abs(float(th_shms))))
