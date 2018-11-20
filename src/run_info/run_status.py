@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import sys, os
 import curses
 #import epics
@@ -108,13 +109,14 @@ class HallcEpics:
     def onSHMSAngleChange(self, pvname=None, value=None, host=None, **kws):
         print "onSHMSAngleChange"
         if self.shms_change_value != value :
-            self.shms_ask_angle = True
+            # turning off temporarily
+            #self.shms_ask_angle = True
             self.shms_change_value = value
 
     def onHMSAngleChange(self, pvname=None, value=None, host=None, **kws):
         print "onHMSAngleChange"
         if self.hms_change_value != value :
-            self.hms_ask_angle = True
+            #self.hms_ask_angle = True
             self.hms_change_value = value
     def __init__(self):
         self.target = 0
@@ -283,9 +285,9 @@ class HallcEpics:
             the_line = 1
             try: 
                 win.addstr(
-                        the_line, 1, "     RUN {}    setting {} (arb.)".format(
+                        the_line, 1, "     RUN {}      setting ID {} ".format(
                             int(epics.pv.get_pv("hcCOINRunNumber").get()),
-                            int(epics.pv.get_pv("hcRunSettingNumber").get())))
+                            int(epics.pv.get_pv("hcKinematicSettingID").get())))
             except TypeError:
                 win.addstr( the_line, 1, "Error : Hall C run information " )
                 win.addstr( the_line+1, 1, "IOC is probably not running " )
@@ -390,7 +392,6 @@ class HallcEpics:
             stdscr.refresh()
             height, width = stdscr.getmaxyx()
 
-            curses.flushinp()
             stdscr.bkgd(' ', curses.color_pair(7))
             stdscr.attron(curses.A_BOLD)
 
