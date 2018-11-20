@@ -129,7 +129,7 @@ else
       -s results/${run_number}/shms_shower_calibration.pdf
     
   fi
-  hcana -b -q "analysis/replay_coin.cxx(${run_number},${n_events})"
+  hcana -b -q "analysis/replay_production_coin_sidis.cxx(${run_number},${n_events})"
 fi
 
   #perf record hcana -b -q "${hallc_home}/analysis/replay_coin.cxx(${run_number},${n_events})"

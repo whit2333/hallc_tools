@@ -1,0 +1,142 @@
+#!/bin/bash
+
+function print_the_help {
+  echo "USAGE:    do_good_coin -c count_goal [-r run_number] [-n nevents]"
+  echo "OPTIONS:                    "
+  echo "            -c,--count      count goal. "
+  echo "            -I,--no-update  Don't update run info or charge goals. Also set when count goal = 0."
+  echo "            -r,--run        run number [default: most current run]"
+  echo "            -n,--nevents    Number of events to replay. [default: 100000, full:-1]"
+  echo "            -h,--help       print help"
+  echo "                                                                         "
+  echo "  This script will do the following:            "
+  echo "   1. Replay the data using the latest run and 100k events if not specified. "
+  echo "   2. Run the good event counters"
+  echo "   3. Update the charge goal on the blue screen (on the big display)."
+  echo "   4. Fill a json database with useful run information."
+  echo "        db2/run_list.json         (read only)"
+  echo "        db2/run_list_extra.json"
+  echo "        db2/run_count_list.json"
+  echo "         "
+  echo "  Note the replay used is **not the standard hcana**. It has been modified to"
+  echo "  pause when it reaches the end of the coda file unless a coda end-of-run event,"
+  echo "  is read or nevents has been processed. An end-of-run event is produced when "
+  echo "  stop is pressed in the DAQ GUI."
+  echo " " 
+  echo "  Also, a full replay can be started soon after a run start. After the first coda "
+  echo "  events are written to disk,  and using  the option '-n -1' the full replay "
+  echo "  will only stop at the end of run event."
+  echo " " 
+  echo "  Finally, the output ROOT file can also be read while it is being written. So "
+  echo "  monitoring scripts will work even if the run is still being replayed. "
+  echo "  "
+  echo "EXAMPLES:"
+  echo "          "
+  echo "Set the charge goal to be equivalent to 30k good coin events.         "
+  echo "    $ do_good_coin -c 30000        "
+  echo "           "
+  echo "Set process the latest a full run but not update the charge/count goals."
+  echo "    $ do_good_coin -c 0 -n -1  -r 1234    "
+  echo "           "
+  echo "Update the estimated charge goals using 100k event replay. "
+  echo "    $ do_good_coin -c 5000 -n 100000     "
+  echo "          "
+  echo "CONTACT:  Whit Armstrong  (whit@jlab.org) 717-341-1080 "
+  exit 
+}
+
+function yes_or_no {
+  while true; do
+    read -p "$* [y/n]: " yn
+    case $yn in
+      [Yy]*) return 0 ;;
+      [Nn]*) echo "No entered" ; return 1 ;;
+    esac
+  done
+}
+
+
+if [[ $# -eq 0 ]] ; then
+  print_the_help
+  exit 
+fi
+
+count_goal=
+num_events=100000
+run_number=$(latest_run)
+update_run_info=1
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+  key="$1"
+
+  case $key in
+    -h|--help)
+      shift # past argument
+      print_the_help
+      ;;
+    -r|--run)
+      run_number="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -n|--nevents)
+      num_events="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -c|--count)
+      count_goal="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -I|--no-update)
+      update_run_info=0
+      shift # past argument
+      ;;
+    *)    # unknown option
+      #POSITIONAL+=("$1") # save it in an array for later
+      echo "unknown option $1"
+      print_the_help
+      shift # past argument
+      ;;
+  esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+## target
+if [[ -z "$count_goal"  ]] ; 
+then 
+  echo "Error: provide count goal with '-c number' or '--count number' argument "
+  exit
+fi
+if [[ "$count_goal" -eq "0"  ]] ; 
+then 
+  update_run_info=0
+fi
+
+
+#pushd /home/cdaq/hallc-online/hallc_replay_sidis_fall18
+#./run_full_auto_sidis.sh ${run_number} ${num_events}
+#popd
+
+#run_good_counter(){
+#  echo " running counter...."
+#  root -l -b -q  "good_coin_counter.cxx(${run_number},${num_events},0,${update_run_info},${count_goal})" & 
+#}
+#trap run_good_counter SIGINT
+
+pushd /home/cdaq/whit/online/replay_test
+./bin/hc_coin -r ${run_number} -n ${num_events}
+popd
+
+pushd /home/cdaq/whit/online/replay_test
+root -l -b -q  "good_coin_counter.cxx(${run_number},${num_events},0,${update_run_info},${count_goal})"
+root -l -b -q  "good_hms_counter.cxx(${run_number},${num_events})"
+popd
+
+
+
+
+
