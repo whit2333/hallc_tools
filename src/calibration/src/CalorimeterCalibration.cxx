@@ -177,7 +177,6 @@ namespace hallc {
           arr_gain_cor = j["cal"]["arr_gain_cor"].get<std::vector<double>>();
         }
       }
-      std::cout << " derp \n";
     }
 
     void CalorimeterCalibration::WriteCalibration(int run_num, const std::string& fname) const {

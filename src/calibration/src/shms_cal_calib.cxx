@@ -82,6 +82,8 @@ int main(int argc, char* argv[]) {
   char*   dum_argv[] = {(char*)"app"};
   TRint*  app    = nullptr;
 
+  gPrintViaErrorHandler = kTRUE;
+  gErrorIgnoreLevel     = kError;
   if (use_gui) {
     app = new TRint("App", &dum_argc, dum_argv);
   }
@@ -147,14 +149,12 @@ int main(int argc, char* argv[]) {
   CalorimeterCalibration cal_0(theShowerCalib._calibration);
 
   // Process data to get new calibration 
-  std::cout << "processing derp \n";
   theShowerCalib.Process(rootfile);
   if (verbose) {
     theShowerCalib.Print();
   }
   // Get the new calibraiton 
   CalorimeterCalibration cal_1(theShowerCalib._calibration);
-  std::cout << "asdfkjasdfk derp \n";
   // merge 
   cal_0.Merge(cal_1,weight);
   theShowerCalib._calibration = cal_0;
