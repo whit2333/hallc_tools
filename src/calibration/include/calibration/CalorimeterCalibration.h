@@ -116,6 +116,89 @@ namespace hallc {
     //    }
     //  };
     //} // namespace fmt
+    
+    /** HMS Calorimeter Calibration.
+     *
+     * Stores the calibration and provides various read/write methods.
+     * Actual calibration method is handeled by ShowerCalibrator.
+     *
+     * \todo Add (non-member?) functions  to combine multiple calibrations.
+     *
+     */
+    struct HMSCalorimeterCalibration  {
+
+      // Coordinate correction constants for Preshower blocks
+      //static constexpr double fAcor = 106.73;
+      //static constexpr double fBcor = 2.329;
+      using Config = CalorimeterConfig<0,0,13,4>;
+      // Calorimeter geometry constants.
+      static const unsigned int fNrows_pr = Config::N_rows_preshower;
+      static const unsigned int fNcols_pr = Config::N_cols_preshower;
+      static const unsigned int fNrows_sh = Config::N_rows_shower;
+      static const unsigned int fNcols_sh = Config::N_cols_shower;
+      static const unsigned int fNpmts_pr = fNrows_pr * fNcols_pr;
+      static const unsigned int fNpmts    = fNpmts_pr + fNrows_sh * fNcols_sh;
+
+      double       fDeltaMin    = 0.;
+      double       fDeltaMax    = 1.;
+      double       fBetaMin     = 0.5;
+      double       fBetaMax     = 2.;
+      double       fHGCerMin    = 2.;
+      double       fNGCerMin    = 2.;
+      double       fMinHitCount = 10;
+      double       fEuncLoLo    = 0.0;
+      double       fEuncHiHi    = 0.0; // Range of uncalibrated Edep histogram
+      unsigned int fEuncNBin    = 0;   // Binning of uncalibrated Edep histogram
+      double       fEuncGFitLo  = 0.0;
+      double       fEuncGFitHi  = 0.0; // Gaussian fit range of uncalib. Edep histo.
+
+      std::vector<double> neg_gain_cor;
+      std::vector<double> pos_gain_cor;
+      std::vector<double> arr_gain_cor;
+
+      mutable std::string input_cal_file_name  = "pcal_calib.json";
+      mutable std::string output_cal_file_name = "pcal_calib_new.json";
+      mutable int         run_number           = 0;
+
+    protected:
+      static void MergeHelper(double w1, double w2, std::vector<double>& vec1,
+                              const std::vector<double>& vec2);
+
+    public:
+      HMSCalorimeterCalibration() {}
+      HMSCalorimeterCalibration(int rn);
+      HMSCalorimeterCalibration(const HMSCalorimeterCalibration&) = default;
+      HMSCalorimeterCalibration& operator=(const HMSCalorimeterCalibration&) = default;
+
+      void Merge(const HMSCalorimeterCalibration&, double weight = 0.5);
+
+      double GetGainCoeff(uint64_t block) const;
+
+      /** Sets the calibration coeffs.
+       *  (neg_gain_cor, pos_gain_cor, arr_gain_cor)
+       */
+      void SetGainCoeffs(const std::array<double, fNpmts>& coeffs);
+
+      /** Leagcy reader.
+       */
+      void ReadLegacyCalibration(const std::string& fname = "input.dat");
+
+      /** Load the calibration constants for a specific run.
+       */
+      void LoadCalibration(int run_num, const std::string& fname = "pcal_calib.json");
+      void LoadJsonCalibration(int run_num, const std::string& fname = "pcal_calib.json");
+
+      void WriteCalibration(int run_num, const std::string& fname = "pcal_calib_new.json") const;
+
+      /** Load the calibration constants for a specific run.
+       *  Takes the current values and builds a json object string for the main database file.
+       */
+      std::string PrepareJson() const;
+
+      void BuildTester(int run_num) const;
+
+      void Print() const;
+    };
   }
 } // namespace hallc
 

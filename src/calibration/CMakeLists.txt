@@ -129,6 +129,21 @@ target_link_libraries(shms_cal_calib
   PUBLIC ${CXX_FILESYSTEM_LIB}
 )
 
+# hms_cal_calib
+add_executable(hms_cal_calib src/hms_cal_calib.cxx)
+
+target_compile_features(hms_cal_calib PUBLIC cxx_std_17)
+target_include_directories(hms_cal_calib
+  PRIVATE include    
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+target_link_libraries(hms_cal_calib
+  PUBLIC hcCalibration
+  PRIVATE nlohmann_json::nlohmann_json
+  #PUBLIC InSANEbase
+  PUBLIC ${CXX_FILESYSTEM_LIB}
+)
+
 
 #file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR} / include / CSV/*)
 #install(FILES ${headers}
@@ -148,7 +163,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hcCalibrationDict_rdict.pcm
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 
-install(TARGETS hcCalibration shms_cal_calib
+install(TARGETS hcCalibration shms_cal_calib hms_cal_calib
     EXPORT RunPlannerTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
