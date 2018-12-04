@@ -10,7 +10,7 @@
 #include "TMath.h"
 #include "TObject.h"
 
-#include "calibration/THcPShHit.h"
+//#include "calibration/THcPShHit.h"
 
 namespace hallc {
   namespace calibration {
@@ -33,24 +33,32 @@ namespace hallc {
       double _Yp = 0.0; // slope
       //ClassDef(ShowerTrackInfo,1)
     };
+
+    /**  Calorimeter block layout.
+     *
+     */
+    template<size_t Nlayers, size_t Npos, size_t Nneg, size_t Nx_arr = 0, size_t Ny_arr = 0>
+    struct CalBlockLayout {
+      static const size_t N_PS_layers = Nlayers;
+      static const size_t N_PS_pos    = Nlayers * Npos;  // Number of preshower pmts per layer on pos side
+      static const size_t N_PS_neg    = Nlayers * Nneg;  // Number of preshower pmts per layer on neg side
+      static const size_t N_arr_x     = Nx_arr;          // Row number for Shower
+      static const size_t N_arr_y     = Ny_arr;          // column number for Shower
+      static const size_t N_arr       = Nx_arr * Ny_arr; // total size of array
+    };
+
+
     /**
      * Track class for the SHMS calorimeter calibration.
      * Comprises the spectrometer track parameters and calorimeter hits.
      *
-     *
      * Container (collection) of hits and its iterator.
      *
-     *typedef vector<THcPShHit*> THcPShHitList;
-     *typedef THcPShHitList::iterator THcPShHitIt;
+     * typedef vector<THcPShHit*> THcPShHitList;
+     * typedef THcPShHitList::iterator THcPShHitIt;
      */
     class ShowerTrack   {
     public:
-      //double _P  = 0.0; // track momentum
-      //double _Dp = 0.0; // track momentum deviation, %/
-      //double _X  = 0.0; // at the Preshower face
-      //double _Xp = 0.0; // slope
-      //double _Y  = 0.0; // at the Preshower face
-      //double _Yp = 0.0; // slope
       ShowerTrackInfo         _track;
       CalorimeterCalibration* _calibration = nullptr;
       std::vector<CalHit>     _Hits;

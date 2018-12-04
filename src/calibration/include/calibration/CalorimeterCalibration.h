@@ -12,12 +12,12 @@
 namespace hallc {
   namespace calibration {
 
-    template<size_t NShowerRows = 16, size_t NShowerCols = 14, size_t NPreshowerRows = 14>
+    template<size_t NShowerRows = 16, size_t NShowerCols = 14, size_t NPreshowerRows = 14, size_t NPreshowerLayers = 2>
     struct CalorimeterConfig {
       static const size_t N_rows_shower    = NShowerRows;
       static const size_t N_cols_shower    = NShowerCols;
       static const size_t N_rows_preshower = NPreshowerRows;
-      static const size_t N_cols_preshower = 2;
+      static const size_t N_cols_preshower = NPreshowerLayers;
     };
 
     /** Calorimeter Calibration.
@@ -62,6 +62,7 @@ namespace hallc {
       mutable std::string input_cal_file_name  = "pcal_calib.json";
       mutable std::string output_cal_file_name = "pcal_calib_new.json";
       mutable int         run_number           = 0;
+
     protected:
       static void MergeHelper(double w1, double w2, std::vector<double>& vec1,
                               const std::vector<double>& vec2);

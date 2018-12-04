@@ -1,5 +1,5 @@
 #include "calibration/ShowerTrack.h"
-#include "calibration/THcPShHit.h"
+//#include "calibration/THcPShHit.h"
 #include "calibration/CalorimeterCalibration.h"
 
 #include "TMath.h"
@@ -137,10 +137,8 @@ namespace hallc {
 
     // Coordinate correction for Preshower modules.
     // Fit to GEANT pion data @ 5 GeV/c (Simon).
-
     float ShowerTrack::Ycor(double yhit, uint64_t ncol) const {
       float cor;
-
       // Warn if hit does not belong to Preshower.
       //
       if (ncol > fNcols_pr || ncol < 1)

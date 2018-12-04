@@ -18,7 +18,7 @@ using namespace clipp;
 #include <TStyle.h>
 #include <TRint.h>
 
-#include "calibration/THcPShowerCalib.h"
+//#include "calibration/THcPShowerCalib.h"
 #include "calibration/ShowerCalibrator.h"
 #include "calibration/CalorimeterCalibration.h"
 

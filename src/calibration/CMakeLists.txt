@@ -7,9 +7,9 @@ cmake_minimum_required (VERSION 3.1)
 ###########################
 # ExpMonitor library
 add_library(hcCalibration SHARED 
-  src/THcPShHit.cxx
-  src/THcPShowerCalib.cxx
-  src/THcPShTrack.cxx
+  #src/THcPShHit.cxx
+  #src/THcPShowerCalib.cxx
+  #src/THcPShTrack.cxx
   #src/hcCalibration.cxx
   src/CalorimeterCalibration.cxx
   src/ShowerCalibrator.cxx
@@ -19,9 +19,9 @@ add_library(hcCalibration SHARED
 
 set(lib_HEADERS 
   #include/calibration/hcCalibration.h
-  include/calibration/THcPShHit.h
-  include/calibration/THcPShowerCalib.h
-  include/calibration/THcPShTrack.h
+  #include/calibration/THcPShHit.h
+  #include/calibration/THcPShowerCalib.h
+  #include/calibration/THcPShTrack.h
   include/calibration/CalorimeterCalibration.h
   include/calibration/ShowerCalibrator.h
   include/calibration/ShowerTrack.h
@@ -100,20 +100,19 @@ target_compile_features(hcCalibration PUBLIC cxx_std_17)
 ##################################
 
 # hc_cal_calib
-add_executable(hc_cal_calib src/pcal_calib.cxx)
-
-target_compile_features(hc_cal_calib PUBLIC cxx_std_17)
-target_include_directories(hc_cal_calib
-  PRIVATE include    
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
-  )
-target_link_libraries(hc_cal_calib
-  PUBLIC hcCalibration
-  PRIVATE nlohmann_json::nlohmann_json
-  #PUBLIC InSANEbase
-  PUBLIC ${CXX_FILESYSTEM_LIB}
-  #PRIVATE hcana::HallC
-)
+#add_executable(hc_cal_calib src/pcal_calib.cxx)
+#target_compile_features(hc_cal_calib PUBLIC cxx_std_17)
+#target_include_directories(hc_cal_calib
+#  PRIVATE include    
+#  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+#  )
+#target_link_libraries(hc_cal_calib
+#  PUBLIC hcCalibration
+#  PRIVATE nlohmann_json::nlohmann_json
+#  #PUBLIC InSANEbase
+#  PUBLIC ${CXX_FILESYSTEM_LIB}
+#  #PRIVATE hcana::HallC
+#)
 
 # shms_cal_calib
 add_executable(shms_cal_calib src/shms_cal_calib.cxx)
@@ -149,7 +148,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hcCalibrationDict_rdict.pcm
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 
-install(TARGETS hcCalibration hc_cal_calib shms_cal_calib
+install(TARGETS hcCalibration shms_cal_calib
     EXPORT RunPlannerTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
