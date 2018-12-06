@@ -22,7 +22,7 @@ bash ../src/3rd_party/build_all_3rd_party.sh PREFIX
 
 ### Quick use case demo
 
-[Auger batch submission script](../examples/auger/csv_template.xml) 
+[Auger batch submission script](examples/auger/csv_template.xml) 
 
 ### Getting your replay started 
 
