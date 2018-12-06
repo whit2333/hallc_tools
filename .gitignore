@@ -1,1 +1,3 @@
 build/*
+replay/scratch
+replay/scratch/*
