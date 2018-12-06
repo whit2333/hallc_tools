@@ -199,7 +199,7 @@ do
   dolinks ${adir} ${my_link}
 done
 
-for adir in bin analysis
+for adir in bin analysis db2
 do
   my_link=${replay_base_dir}/../../${adir}
   dolinks ${adir} ${my_link}

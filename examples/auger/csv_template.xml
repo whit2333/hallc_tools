@@ -1,0 +1,37 @@
+<Request>
+  <Email email="whit@jlab.org" request="false" job="false"/>
+  <Project name="c-comm2017"/>
+  <Track  name="reconstruction"/>
+  <Name   name="csv_2018"/>
+  <OS     name="centos7"/>
+  <Memory space="3024" unit="MB"/>
+  <List name="runs">
+6006
+6583
+  </List>
+  <ForEach list="runs">
+    <Job>
+      <Input src="mss:/mss/hallc/spring17/raw/coin_all_0${runs}.dat" 
+        dest="coin_all_0${runs}.dat"/>
+      <Output src="ROOTfiles/coin_replay_production_${runs}_-1.root" 
+        dest="/volatile/hallc/c-csv/whit/ROOTfiles/coin_replay_production_${runs}_-1.root"/>
+      <Output src="REPORT_OUTPUT/COIN/PRODUCTION/replay_coin_production_${runs}_-1.report" 
+        dest="/volatile/hallc/c-csv/whit/REPORT_OUTPUT/COIN/PRODUCTION/replay_coin_production_${runs}_-1.report"/>
+      <Output src="REPORT_OUTPUT/COIN/PRODUCTION/summary_production_${runs}_-1.report" 
+        dest="/volatile/hallc/c-csv/whit/REPORT_OUTPUT/COIN/PRODUCTION/summary_production_${runs}_-1.report"/>
+      <Command><![CDATA[
+/bin/bash <<EOF
+source /home/whit/.bashrc
+ls -lrth 
+make_hallc_replay_symlinks -c
+make_hallc_replay -c
+mkdir ROOTfiles
+./bin/hc_coin -n -1 -r ${runs}
+ls -lrth ROOTfiles
+ls -lrth 
+EOF
+        ]]></Command>
+    </Job>
+  </ForEach> 
+</Request>
+
