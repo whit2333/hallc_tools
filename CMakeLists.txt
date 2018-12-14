@@ -17,6 +17,7 @@ include(cmake/root.cmake)
 #list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3/cmake)
 #list(APPEND CMAKE_PREFIX_PATH /usr/local/share/eigen3)
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
 find_package (Eigen3 3.3 NO_MODULE)
 if(NOT Eigen3_FOUND)
@@ -41,6 +42,7 @@ find_package(range-v3 REQUIRED)
 add_subdirectory(src/runplan)
 add_subdirectory(src/monitor)
 add_subdirectory(src/calibration)
+add_subdirectory(src/epics)
 add_subdirectory(replay)
 
 # -------------------------
