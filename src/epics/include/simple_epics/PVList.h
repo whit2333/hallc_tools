@@ -8,6 +8,7 @@
 #include <mutex>
 #include <map>
 
+#include "simple_epics/PVBuffer.h"
 //#include "pva/client.h"
 namespace pvac {
   class ClientChannel;
@@ -15,34 +16,6 @@ namespace pvac {
 }
 
 namespace hallc {
-
-  /** PV Buffer.
-   *  Actuall the buffer is twice the size of fBufferMaxSize so that when 
-   *  it gets full the buffer is rotated about the middle. This avoids 
-   *  constantly moving memory around. Only half the buffer (index to fBufferMaxSize)
-   *  should be considered valid at any moment.
-   *
-   */
-  class PVBuffer {
-  public:
-    int                fBufferMaxSize = 1000;
-    int                fArrayIndex    = 0;
-    std::vector<float> fBuffer;
-    std::vector<float> fBufferCopy;
-
-    PVBuffer(float init_val = 0.0);
-
-    int                 GetIndex() const { return fArrayIndex; }
-    int                 GetMaxSize() const { return fBufferMaxSize; }
-    void                Add(float val);
-    int                 GetOffset() const;
-    std::vector<float>& GetBufferCopy();
-
-  private:
-    class Impl;
-    std::shared_ptr<Impl> m_impl;
-  };
-
 
   /** PV Get-List. Continuously updated list of variables.
    *
@@ -93,8 +66,14 @@ namespace hallc {
     std::vector<float>&  GetBufferCopy(int n) ;
 
     void TestPut(std::string pvname, double val);
+    
+    /** Put pv value. 
+     * PV put is processed in a detached thread
+     */
+    void Put(std::string pvname, double val);
 
 
+    void PollAndPrintAll() ;
     void PrintAll() const;
 
     /** This actually goes to CA and gets new values for all variables.

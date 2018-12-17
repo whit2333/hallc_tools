@@ -47,13 +47,15 @@ message(STATUS "EPICS_DEFINITIONS=${EPICS_DEFINITIONS}")
 # --------------------------------------------------------
 # Because epics' build system is really stupid
 add_library(simple_epics SHARED
-  src/PVList.cpp
+  src/PVList.cxx
+  src/PVBuffer.cxx
   )
 
 target_include_directories(simple_epics
   PUBLIC ${EPICS_INCLUDE_DIRS}
   PRIVATE ${EPICS_INCLUDE_DIRS}
   INTERFACE ${EPICS_INCLUDE_DIRS}
+  PRIVATE include
   PRIVATE include/simple_epics
 )
 target_compile_definitions(simple_epics
