@@ -1,5 +1,5 @@
-#ifndef epics_PVGETLIST_H
-#define epics_PVGETLIST_H
+#ifndef epics_PVList_H
+#define epics_PVList_H
 
 #include <iostream>
 #include <string>
@@ -10,8 +10,8 @@
 
 //#include "pva/client.h"
 namespace pvac {
-class ClientChannel;
-class ClientProvider;
+  class ClientChannel;
+  class ClientProvider;
 }
 
 namespace hallc {
@@ -47,7 +47,7 @@ namespace hallc {
   /** PV Get-List. Continuously updated list of variables.
    *
    */
-  class PVGetList {
+  class PVList {
   public:
     using PV_index_name_map  = std::map<std::string,int>;
     using PV_name_map        = std::map<int,std::string>;
@@ -66,10 +66,10 @@ namespace hallc {
     std::vector<PVBuffer> m_pv_buffers;
 
   public:
-    PVGetList();
-    PVGetList(const PVGetList&) = default ;
-    PVGetList(const std::vector<std::string>& names);
-    ~PVGetList();
+    PVList();
+    PVList(const PVList&) = default ;
+    PVList(const std::vector<std::string>& names);
+    ~PVList();
 
     /** Add a new process variable to list. 
      * Returns the list index for a new or existing variable.

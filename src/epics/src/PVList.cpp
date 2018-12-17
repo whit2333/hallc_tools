@@ -1,4 +1,4 @@
-#include "PVGetList.h"
+#include "PVList.h"
 
 #include <algorithm>
 #include <sstream>
@@ -83,7 +83,7 @@ namespace hallc {
   }
   //______________________________________________________________________________
 
-  class PVGetList::Impl {
+  class PVList::Impl {
   public:
     std::mutex m;
   };
@@ -91,12 +91,12 @@ namespace hallc {
 
 
 
-  PVGetList::PVGetList() : 
+  PVList::PVList() : 
     m_N_pvs(0), m_provider(std::make_shared<pvac::ClientProvider>("pva")), m_impl(std::make_shared<Impl>())
   { }
   //______________________________________________________________________________
 
-  PVGetList::PVGetList(const std::vector<std::string>& names) : 
+  PVList::PVList(const std::vector<std::string>& names) : 
     m_N_pvs(0), m_provider(std::make_shared<pvac::ClientProvider>("pva")), m_impl(std::make_shared<Impl>())
   {
     for(const auto& name : names ){
@@ -135,7 +135,7 @@ namespace hallc {
   }
   //______________________________________________________________________________
 
-  PVGetList::~PVGetList()
+  PVList::~PVList()
   { }
   //______________________________________________________________________________
 
@@ -143,7 +143,7 @@ namespace hallc {
    * Returns the list index for 
    * new or already existing variable.
    */
-  int PVGetList::AddPV(const std::string& name)
+  int PVList::AddPV(const std::string& name)
   {
     std::lock_guard<std::mutex> lockGuard(m_impl->m);
     if (m_pv_index.count(name) == 0 ) {
@@ -167,7 +167,7 @@ namespace hallc {
 
   /** Thread safe get latest cached value.
    */
-  float PVGetList::GetValue(int n) const
+  float PVList::GetValue(int n) const
   {
     std::lock_guard<std::mutex> lockGuard(m_impl->m);
     if (n >= m_N_pvs ) {
@@ -180,7 +180,7 @@ namespace hallc {
 
   /** Thread safe get latest cached value.
    */
-  float PVGetList::GetValue(const std::string& n) const
+  float PVList::GetValue(const std::string& n) const
   {
     std::lock_guard<std::mutex> lockGuard(m_impl->m);
     if (m_pv_index.count(n) == 0 ) {
@@ -191,7 +191,7 @@ namespace hallc {
   }
   //______________________________________________________________________________
 
-  void PVGetList::PrintAll() const
+  void PVList::PrintAll() const
   {
     std::lock_guard<std::mutex> lockGuard(m_impl->m);
     for(const auto& index_pair : m_pv_index) {
@@ -202,7 +202,7 @@ namespace hallc {
   }
   //______________________________________________________________________________
 
-  void PVGetList::Poll()
+  void PVList::Poll()
   {
     std::lock_guard<std::mutex> lockGuard(m_impl->m);
     if(m_N_pvs > 0) {
@@ -243,7 +243,7 @@ namespace hallc {
       //  m_pv_buffers[index].erase(m_pv_buffers[index].begin(),m_pv_buffers[index].begin()+m_buffer_extra);
       //}
 
-  PVBuffer& PVGetList::GetBuffer(int n)
+  PVBuffer& PVList::GetBuffer(int n)
   {
     //if ( (n >= 0) && (n < GetNBuffers()) ) {
     return m_pv_buffers.at(n);
@@ -251,7 +251,7 @@ namespace hallc {
   }
   //______________________________________________________________________________
 
-  std::vector<float>& PVGetList::GetBufferCopy(int n)
+  std::vector<float>& PVList::GetBufferCopy(int n)
   {
     std::lock_guard<std::mutex> lockGuard(m_impl->m);
     //if ( (n >= 0) && (n < m_buffer_copy.size()) ) {
@@ -269,7 +269,7 @@ namespace hallc {
   }
   //______________________________________________________________________________
 
-  int PVGetList::GetBufferSize(int n) const
+  int PVList::GetBufferSize(int n) const
   {
     int sz = m_pv_buffers.at(n).GetIndex();
     auto buf_max = m_pv_buffers.at(n).GetMaxSize();
@@ -285,7 +285,7 @@ namespace hallc {
   }
   //______________________________________________________________________________
     
-  int PVGetList::GetBufferOffset(int n) const
+  int PVList::GetBufferOffset(int n) const
   {
     //int off = (int)m_pv_buffers.at(n).size() - m_buffer_max;
     int current_index = m_pv_buffers.at(n).GetIndex();
@@ -300,7 +300,7 @@ namespace hallc {
     //return 0;
   }
 
-  void PVGetList::TestPut(std::string pvname, double val) {
+  void PVList::TestPut(std::string pvname, double val) {
     if (m_pv_index.count(pvname) != 0) {
       int ind1 = m_pv_index[pvname];
       std::cout << "Before " << m_pv_channels.at(ind1).name() << " : " << m_pv_channels.at(ind1).get()

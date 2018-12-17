@@ -47,13 +47,8 @@ message(STATUS "EPICS_DEFINITIONS=${EPICS_DEFINITIONS}")
 # --------------------------------------------------------
 # Because epics' build system is really stupid
 add_library(simple_epics SHARED
-  src/PVGetList.cpp
-  #src/PassiveCAGetter.cpp
-  #src/PVMonitor.cpp
+  src/PVList.cpp
   )
-#  include/PVGetList.h
-#  include/PassiveCAGetter.h
-#  include/PVMonitor.h
 
 target_include_directories(simple_epics
   PUBLIC ${EPICS_INCLUDE_DIRS}
