@@ -6,8 +6,11 @@ project(HallCReplay
   #HOMEPAGE_URL https://github.com/whit2333/EXPERIMENT_replay # only cmake >3.12
   )
 
-set(HALLC_REPLAY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/hallc_replay_sidis_fall18
-    CACHE PATH "replay directory to use (submodule)")
+set(HALLC_REPLAY_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/hallc_replay_sidis_fall18
+  CACHE PATH "replay directory to use (submodule)")
+
+set(HALLC_REPLAY_DIR ${CMAKE_INSTALL_PREFIX}/share/hallc_tools/hallc_replay
+  CACHE PATH "install location of default hallc_replay directory")
 
 configure_file(cmake/hallc_replay_config.h.in      hallc_replay_config.h @ONLY)
 configure_file(cmake/make_hallc_replay_symlinks.in make_hallc_replay_symlinks @ONLY)
@@ -73,4 +76,21 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/HallCReplayConfigVersion.cmake
   DESTINATION lib/HallCReplay
   )
+
+install(DIRECTORY ${HALLC_REPLAY_SOURCE_DIR}/
+  DESTINATION share/hallc_tools/hallc_replay
+  )
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin
+  DESTINATION share/hallc_tools/hallc_replay
+  )
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/db2
+  DESTINATION share/hallc_tools/hallc_replay
+  )
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/params
+  DESTINATION share/hallc_tools/hallc_replay
+  )
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/analysis
+  DESTINATION share/hallc_tools/hallc_replay
+  )
+
 
