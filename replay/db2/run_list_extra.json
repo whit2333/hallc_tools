@@ -1,0 +1,87 @@
+{
+  "6206": {
+    "comment": "Junk"
+  }, 
+  "6207": {
+    "comment": "Junk"
+  }, 
+  "6268": {
+    "comment": "junk maybe, DAQ problems at start (scaler rates not reading out) "
+  }, 
+  "6269": {
+    "comment": "maybe junk, DAQ problems maybe during data taking."
+  }, 
+  "6272": {
+    "comment": "good, good", 
+    "kinematic": "9-10"
+  }, 
+  "6278": {
+    "comment": "junk"
+  }, 
+  "6279": {
+    "comment": "junk"
+  }, 
+  "6280": {
+    "comment": "junk"
+  }, 
+  "6283": {
+    "comment": "junk"
+  }, 
+  "6299": {
+    "comment": "took about 1kHz HMS singles to study daq"
+  }, 
+  "6303": {
+    "comment": "junk"
+  }, 
+  "6330": {
+    "comment": "junk"
+  }, 
+  "6333": {
+    "comment": "1MHz singles for a hot minute"
+  }, 
+  "6366": {
+    "comment": "Junk"
+  }, 
+  "6392": {
+    "comment": "junk"
+  }, 
+  "6437": {
+    "comment": "this run is junk"
+  }, 
+  "6438": {
+    "comment": "this run is junk"
+  }, 
+  "6457": {
+    "comment": "this run is junk"
+  }, 
+  "6458": {
+    "comment": "this run is junk"
+  }, 
+  "6461": {
+    "comment": "current is 55 uA for this run"
+  }, 
+  "6480": {
+    "comment": "this run is junk"
+  }, 
+  "6481": {
+    "comment": "this run is junk"
+  }, 
+  "6482": {
+    "comment": "shms electron singles run"
+  }, 
+  "6483": {
+    "comment": "shms electron singles run"
+  }, 
+  "6484": {
+    "comment": "shms electron singles run"
+  }, 
+  "6485": {
+    "comment": "shms electron singles run"
+  }, 
+  "6491": {
+    "comment": "junk"
+  }, 
+  "6492": {
+    "comment": "junk"
+  }
+}

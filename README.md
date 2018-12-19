@@ -20,6 +20,14 @@ bash ../src/3rd_party/build_all_3rd_party.sh PREFIX
 
 ## Examples
 
+### Quick use case demo
+
+Look at this [Auger batch submission script](examples/auger/csv_template.xml).  
+Note that the job script calls `make_hallc_replay(_symlink)` to setup a replay 
+directory from scratch. Of course it is symlinking to the files but the output 
+files are local to the node and copied to work/tape disks when the job is 
+finished. 
+
 ### Getting your replay started 
 
 We will use the helper script that is installed with `hallc_tools`
