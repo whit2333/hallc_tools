@@ -28,9 +28,11 @@ endif(NOT Eigen3_FOUND)
 
 find_package(nlohmann_json CONFIG)
 if(NOT nlohmann_json_FOUND)
-  message(FATAL_ERROR " to build all 3rd party run the command:\n\
+  message("Building all 3rd party with command:\n\
   bash ${CMAKE_SOURCE_DIR}/src/3rd_party/build_all_3rd_party.sh ${CMAKE_INSTALL_PREFIX}\n\
    nlohmann json missing : https://github.com/nlohmann/json.git")
+  execute_process(COMMAND bash ${CMAKE_SOURCE_DIR}/src/3rd_party/build_all_3rd_party.sh ${CMAKE_INSTALL_PREFIX})
+
   find_package(nlohmann_json REQUIRED)
 endif(NOT nlohmann_json_FOUND)
 

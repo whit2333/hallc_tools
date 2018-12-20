@@ -185,6 +185,7 @@ function make_output_dirs(){
 # -------------------------------------
 
 #replay_base_dir=$(@CMAKE_INSTALL_PREFIX@/bin/hallc_config --dir)
+#
 replay_base_dir=${BASE_REPLAY_DIR}
 
 for adir in CALIBRATION
@@ -201,7 +202,7 @@ done
 
 for adir in bin analysis db2
 do
-  my_link=${replay_base_dir}/../../${adir}
+  my_link=${replay_base_dir}/${adir}
   dolinks ${adir} ${my_link}
 done
 
