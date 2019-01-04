@@ -182,10 +182,9 @@ int main(int argc, char* argv[]) {
   auto doc_filter = param_filter{}.prefix("--");
 
   if (opts.use_help == 1) {
-    //cout << make_man_page(cli, argv[0]);
     cout << "\033[1mspectrometer_settings\033[0m\n";
-    cout << "Usage:\n" << usage_lines(cli, "specset", clipp_format)
-    << "\nOptions:\n" << documentation(cli, clipp_format,doc_filter) << '\n';
+    cout << "Usage:\n" << usage_lines(cli, "hcspec", clipp_format)
+       << "\nOptions:\n" << documentation(cli, clipp_format,doc_filter) << '\n';
     std::exit(0);
   } else if (opts.use_help == 2) {
     cout << make_man_page(cli, argv[0])
@@ -355,6 +354,16 @@ int main(int argc, char* argv[]) {
                   (std::get<1>(t1)["shms"]["angle"] == std::get<1>(t2)["shms"]["angle"]) &&
                   (std::get<1>(t1)["shms"]["momentum"] == std::get<1>(t2)["shms"]["momentum"]));
         }) |
+        to_<std::vector>();
+  } 
+  if(opts.use_first_unique){
+    output_settings =
+        output_settings | view::reverse | view::adjacent_remove_if([&](auto t1, auto t2) {
+          return ((std::get<1>(t1)["hms"]["angle"] == std::get<1>(t2)["hms"]["angle"]) &&
+                  (std::get<1>(t1)["hms"]["momentum"] == std::get<1>(t2)["hms"]["momentum"]) &&
+                  (std::get<1>(t1)["shms"]["angle"] == std::get<1>(t2)["shms"]["angle"]) &&
+                  (std::get<1>(t1)["shms"]["momentum"] == std::get<1>(t2)["shms"]["momentum"]));
+        }) | view::reverse|
         to_<std::vector>();
   }
 
