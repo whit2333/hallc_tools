@@ -11,6 +11,10 @@ namespace fs = std::filesystem;
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 #endif
+#if !defined(__CLING__)
+#include <fmt/core.h>
+#include <fmt/ostream.h>
+#endif
 
 #include "TCanvas.h"
 #include "TGraph.h"
@@ -186,8 +190,19 @@ int main(int argc, char* argv[]) {
   } else if (opts.use_help == 2) {
     cout << make_man_page(cli, argv[0])
                 .prepend_section("DESCRIPTION" , "              things don't have to be difficult.")
-                .prepend_section("NAME"        , "              \033[1mspectrometer_settings\033[0m")
-                .append_section("LICENSE"      , "              GPL3");
+                .prepend_section("NAME"        , "              \033[1mhcspec : hallc spectrometer_settings\033[0m")
+                .append_section("LICENSE"      , "              GPL3")
+                .append_section("EXAMPLES"      , 
+                                "\n"
+                                "    hcspec -S 6000 -N 1000 -u print \n"
+                                "\n"
+                                "    hcspec -S 6000 -N 1000 -u  print | hcspec  filter hms angle 14 1\n"
+                                "\n"
+                                " Dump runs to JSON then use json file (which is much faster)\n"
+                                "    hcspec -S 0 -N 7000  -J print > all.json\n"
+                                "    hcspec -a -j all.json print  | hcspec filter hms angle 14 0.25 -u\n"
+                                "\n"
+                                );
     std::exit(0);
   }
 
@@ -376,16 +391,22 @@ int main(int argc, char* argv[]) {
 
       for (auto en : output_settings) {
         int arun_num = std::get<0>(en);
-        std::cout << arun_num << " :";
+
+        fmt::print("{:<9} ", arun_num);
+        //std::cout << arun_num << " :";
         if (opts.use_hms) {
-          std::cout << " HMS : ";
-          std::cout << std::get<1>(en)["hms"]["momentum"] << " GeV/c at ";
-          std::cout << std::get<1>(en)["hms"]["angle"] << " deg  ";
+          fmt::print("HMS: {:>7.3f} GeV/c at {:<7.3f} deg    ", std::get<1>(en)["hms"]["momentum"],
+                     std::get<1>(en)["hms"]["angle"]);
+          //std::cout << " HMS : ";
+          //std::cout << std::get<1>(en)["hms"]["momentum"] << " GeV/c at ";
+          //std::cout << std::get<1>(en)["hms"]["angle"] << " deg  ";
         }
         if (opts.use_shms) {
-          std::cout << "SHMS : ";
-          std::cout << std::get<1>(en)["shms"]["momentum"] << " GeV/c at ";
-          std::cout << std::get<1>(en)["shms"]["angle"] << " deg";
+          fmt::print("SHMS: {:>7.3f} GeV/c at {:<7.3f} deg  ", std::get<1>(en)["shms"]["momentum"],
+                     std::get<1>(en)["shms"]["angle"]);
+          //std::cout << "SHMS : ";
+          //std::cout << std::get<1>(en)["shms"]["momentum"] << " GeV/c at ";
+          //std::cout << std::get<1>(en)["shms"]["angle"] << " deg";
         }
         std::cout << "\n";
       }
