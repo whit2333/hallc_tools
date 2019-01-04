@@ -11,9 +11,10 @@
 #pragma link C++ namespace calibration;
 
 #pragma link C++ class std::vector<Double_t>+;
-#pragma link C++ class hallc::calibration::THcPShHit+;
-#pragma link C++ class hallc::calibration::THcPShTrack+;
-#pragma link C++ class hallc::calibration::pmt_hit+;
+
+//#pragma link C++ class hallc::calibration::THcPShHit+;
+//#pragma link C++ class hallc::calibration::THcPShTrack+;
+//#pragma link C++ class hallc::calibration::pmt_hit+;
 #pragma link C++ class hallc::calibration::CalHit+;
 #pragma link C++ class hallc::calibration::ShowerTrack+;
 #pragma link C++ class hallc::calibration::ShowerTrackInfo+;

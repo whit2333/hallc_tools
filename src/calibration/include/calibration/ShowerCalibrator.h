@@ -23,7 +23,7 @@
 #include "TVectorD.h"
 #include "TCanvas.h"
 
-#include "calibration/THcPShTrack.h"
+//#include "calibration/THcPShTrack.h"
 #include "calibration/CalorimeterCalibration.h"
 
 #include <Eigen/Dense>
@@ -38,6 +38,15 @@
 
 #define PR_ADC_THR 0
 #define SH_ADC_THR 0
+
+
+#define HMS_D_CALO_FP 338.69    //distance from FP to the calorimeter face
+
+//Whole calorimeter
+#define HMS_XMIN -65.4
+#define HMS_XMAX  54.6
+#define HMS_YMIN -30.
+#define HMS_YMAX  30.
 
 namespace hallc {
   namespace calibration {
