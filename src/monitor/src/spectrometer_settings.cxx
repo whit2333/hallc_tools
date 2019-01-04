@@ -29,12 +29,13 @@ using std::cout;
 using std::string;
 using namespace ranges;
 
-/**  Build with json database.
+/**  Build output range with json database.
+ *
  */
 table_range_t build_range_with_json(std::string dbfile, std::vector<int> runlist, bool all ) {
   using namespace ranges;
-  nlohmann::json j_in;
-  fs::path       in_path = dbfile;
+  nlohmann::json  j_in;
+  fs::path        in_path = dbfile;
 
   bool is_piped = false;
   if (!isatty(fileno(stdin))) {
@@ -105,7 +106,7 @@ table_range_t build_range_with_json(std::string dbfile, std::vector<int> runlist
 }
 
 
-/** Build using DBASE.
+/** Build output range using replay DBASE.
  *
  */
 table_range_t build_range_with_DBASE(std::string dbfile, std::vector<int> runlist, std::string spec_daq) {
@@ -201,6 +202,8 @@ int main(int argc, char* argv[]) {
                                 "    hcspec -S 0 -N 7000  -J print > all.json\n"
                                 "    hcspec -a -j all.json print  | hcspec filter hms angle 14 0.25 -u\n"
                                 "\n"
+                                "    hcspec -a -j all.json print  | hcspec filter hms angle 14 0.25 -u | jq \n"
+                                "\n"
                                 );
     std::exit(0);
   }
@@ -242,6 +245,9 @@ int main(int argc, char* argv[]) {
     std::exit(EXIT_FAILURE);
   }
 
+  // -----------------------------------------------------
+  // If result is piped then the input should only be json 
+  //
   if(is_piped) {
     // we assume only json is piped as input
     opts.use_json_input = true;
@@ -249,28 +255,14 @@ int main(int argc, char* argv[]) {
     opts.use_all = true;
   }
 
+  // -----------------------------------------------------
+  // If the output is being piped then only ouput json
   bool is_piped_out = false;
   if (!isatty(fileno(stdout))) {
     is_piped_out = true;
     opts.output_format = "json";
     opts.mode = RunMode::print;
   }
-
-  //for(auto [spec, mode,val,del] : view::zip(opts.fspecs, opts.fmodes, opts.filter_values, opts.filter_deltas) | to_<std::vector>()) {
-  //  //std::cout << cli_settings::GetSpecString(spec) << " " ;
-  //  switch (mode) {
-  //    case FilterMode::angle: 
-  //      std::cout << "angle ";
-  //      break;
-  //    case FilterMode::momentum: 
-  //      std::cout << "momentum ";
-  //      break;
-  //    default:
-  //      std::cout << "other ";
-  //      break;
-  //  }
-  //  //std::cout << "value : " << val << " +- " << del << "\n";
-  //}
 
   // If neither are given, use both
   if( (!opts.use_shms) && (!opts.use_hms)) {
@@ -282,10 +274,21 @@ int main(int argc, char* argv[]) {
     opts.daq_spec_type = "HMS";
   }
 
-  auto& run_list = opts.run_list; 
   // ---------------------------------
   // define the run list to use
+  std::cout << opts.start_run << " - ";
+  std::cout << opts.end_run << "\n";
+  if ((opts.end_run > 0) && (opts.end_run > opts.start_run)) {
+    opts.N_runs = opts.end_run - opts.start_run;
+  }
+  auto& run_list = opts.run_list;
   if (run_list.size() == 0) {
+    if (opts.N_runs <= 0) {
+      opts.N_runs = 100;
+      if(opts.use_json_input ) { 
+        opts.use_all = true;
+      }
+    }
     run_list = std::vector<int>(opts.N_runs);
     std::iota(run_list.begin(), run_list.end(), opts.start_run);
   }

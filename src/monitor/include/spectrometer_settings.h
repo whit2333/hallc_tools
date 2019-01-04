@@ -89,7 +89,8 @@ struct cli_settings {
   bool                use_unique     = false;
   bool                use_first_unique = false;
   int                 start_run      = 3900;
-  int                 N_runs         = 100;
+  int                 end_run        = 0;
+  int                 N_runs         = 0;
   int                 RunNumber      = 0;
   string              replay_dir     = ".";
   std::vector<int>    run_list       = {};
@@ -114,7 +115,9 @@ struct cli_settings {
                           ((option("-N", "--number-of-runs") & integer("N_runs", N_runs)) %
                                "Number of runs in the sequence starting at <start_run>",
                            (option("-S", "--start") & integer("start_run", start_run)) %
-                               "Set the starting run for the output run sequence"));
+                               "Set the starting run for the output run sequence") |
+                          ((option("-R", "--run-range") & integer("start_run", start_run) &
+                           integer("end_run", end_run)) % "Set the range of runs to use"));
     auto first_args =
         ("Data source options" %
              ((option("-d", "--replay-dir") & value("dir", replay_dir)) %
