@@ -276,8 +276,8 @@ int main(int argc, char* argv[]) {
 
   // ---------------------------------
   // define the run list to use
-  std::cout << opts.start_run << " - ";
-  std::cout << opts.end_run << "\n";
+  //std::cout << opts.start_run << " - ";
+  //std::cout << opts.end_run << "\n";
   if ((opts.end_run > 0) && (opts.end_run > opts.start_run)) {
     opts.N_runs = opts.end_run - opts.start_run;
   }
