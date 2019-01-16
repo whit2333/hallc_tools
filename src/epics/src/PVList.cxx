@@ -71,15 +71,26 @@ namespace hallc {
       int index            = m_N_pvs;
       m_pv_names[index]    = name;
       m_pv_channels[index] = m_provider->connect(name);
+      std::cout << "test\n";
+      try {
       auto ret             = m_pv_channels[index].get();
+      std::cout << "test2\n";
       auto val             = ret->getSubField<epics::pvData::PVDouble>("value");
+      std::cout << "test3\n";
       m_pv_values.push_back(val->getAs<float>());
+      std::cout << "test4\n";
       m_pv_index[name] = index;
       std::cout << m_pv_values[index] << std::endl;
       // std::vector<float> buffer;
       // buffer.push_back(m_pv_values[index]);
       m_pv_buffers.push_back(PVBuffer(0.0));
       m_N_pvs++;
+      } catch (const std::exception& e) {
+         std::cout << e.what() << "\n"; // information from length_error is lost
+         std::cout << " Epics hallc run_info ioc is probably not running or needs restarted.\n"
+                      " See https://github.com/whit2333/hallc_epics_run_info for more info.\n";
+         std::cout << "PV " << name << " not added to PVList\n";
+      }
       return index;
     }
     return m_pv_index[name];
