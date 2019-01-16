@@ -61,7 +61,7 @@ add_custom_target(Scandalizer_ROOTDICTS DEPENDS ${lib_HEADERS} ${CMAKE_CURRENT_B
 add_dependencies(Scandalizer Scandalizer_ROOTDICTS)
 
 target_link_libraries(Scandalizer
-  PUBLIC ${CXX_FILESYSTEM_LIB}
+  PUBLIC RunPlan ${CXX_FILESYSTEM_LIB}
   PUBLIC fmt::fmt
   PUBLIC Podd::Podd
   PUBLIC Podd::HallA
