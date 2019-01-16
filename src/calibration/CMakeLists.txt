@@ -169,3 +169,24 @@ install(TARGETS hcCalibration shms_cal_calib hms_cal_calib
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+
+# ----------------------------------------------
+# Tests
+
+# df_test
+set(test_name df_test)
+add_executable(${test_name} test/${test_name}.cxx)
+target_include_directories(${test_name} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+  )
+target_link_libraries(${test_name}
+  PUBLIC hcCalibration
+  PRIVATE nlohmann_json::nlohmann_json
+  #PUBLIC InSANEbase
+  PUBLIC ${CXX_FILESYSTEM_LIB}
+  PRIVATE Catch)
+add_test(NAME ${test_name} COMMAND ${test_name})
+

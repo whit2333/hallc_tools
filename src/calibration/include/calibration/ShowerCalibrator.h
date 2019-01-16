@@ -48,8 +48,16 @@
 #define HMS_YMIN -30.
 #define HMS_YMAX  30.
 
+#include "ROOT/RDataFrame.hxx"
+//#include "ROOT/RDF/RInterface.hxx"
+
 namespace hallc {
   namespace calibration {
+
+
+    bool shms_collimator_cut(double xptar, double ytar, double yptar, double delta) ;
+
+    //using RNode = ROOT::RDF::RNode;
 
     /** SHMS Calorimeter calibration class.
      */
@@ -127,7 +135,7 @@ namespace hallc {
           _canvas->SaveAs(plot_file.c_str());
       }
 
-      auto GetDataFrame(std::string rootfile);
+      auto GetDataFrame(ROOT::RDataFrame& df);
 
 
       void Print() const {
