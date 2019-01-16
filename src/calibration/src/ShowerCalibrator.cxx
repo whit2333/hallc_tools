@@ -1,4 +1,4 @@
-#include "calibration/THcPShTrack.h"
+
 #include "calibration/ShowerCalibrator.h"
 #include "calibration/ShowerTrack.h"
 
@@ -25,12 +25,45 @@
 #include "TVectorD.h"
 
 #include "ROOT/RDataFrame.hxx"
-#include "ROOT/RVec.hxx"
+#include "ROOT/RVec.hxx" 
 
 using namespace std;
 
 namespace hallc {
   namespace calibration {
+
+    bool shms_collimator_cut(double xptar, double ytar, double yptar, double delta) {
+      // SHMS octagonal collimator cut.
+      const double FullHeight = 25.; // cm
+      const double FullWidth  = 17.;
+      const double MidHeight  = 12.5;
+      const double MidWidth   = 8.5;
+
+      // Mark (04/16/18).
+      double yc = -0.019 * (delta) + yptar * 253. - 40. * 0.00052 * (delta) + ytar;
+      double xc = xptar * 253.;
+
+      if (xc > FullHeight / 2.)
+        return false;
+      if (xc < -FullHeight / 2.)
+        return false;
+      if (yc > FullWidth / 2.)
+        return false;
+      if (yc < -FullWidth / 2.)
+        return false;
+
+      double slope = (FullHeight - MidHeight) / (FullWidth - MidWidth);
+      if (xc > MidHeight / 2. + slope * (yc + FullWidth / 2.))
+        return false;
+      if (xc > FullHeight / 2. - slope * (yc - MidWidth / 2.))
+        return false;
+      if (xc < -FullHeight / 2. + slope * (yc - MidWidth / 2.))
+        return false;
+      if (xc < -MidHeight / 2. - slope * (yc + FullWidth / 2.))
+        return false;
+
+      return true;
+    }
 
     ShowerCalibrator::ShowerCalibrator(const CalorimeterCalibration& c) : _calibration(c) {}
 
@@ -39,7 +72,8 @@ namespace hallc {
     ShowerCalibrator::ShowerCalibrator(std::string infile, std::string outfile)
         : input_calib_file(infile), output_calib_file(outfile) {}
 
-    auto ShowerCalibrator::GetDataFrame(std::string rootfile) {
+    auto ShowerCalibrator::GetDataFrame(ROOT::RDataFrame& df) {
+
       // input_rootfile_name = rootfile;
       // Calculate +/-3 RMS thresholds on the uncalibrated total energy
       // depositions. These thresholds are used mainly to exclude potential
@@ -50,65 +84,13 @@ namespace hallc {
 
       using doublers = ROOT::VecOps::RVec<double>;
 
-      auto collimator_cut = [&](double xptar, double ytar, double yptar, double delta) {
-        // SHMS octagonal collimator cut.
-        const double FullHeight = 25.; // cm
-        const double FullWidth  = 17.;
-        const double MidHeight  = 12.5;
-        const double MidWidth   = 8.5;
-
-        // Mark (04/16/18).
-        double yc = -0.019 * (delta) + yptar * 253. - 40. * 0.00052 * (delta) + ytar;
-        double xc = xptar * 253.;
-
-        if (xc > FullHeight / 2.)
-          return false;
-        if (xc < -FullHeight / 2.)
-          return false;
-        if (yc > FullWidth / 2.)
-          return false;
-        if (yc < -FullWidth / 2.)
-          return false;
-
-        double slope = (FullHeight - MidHeight) / (FullWidth - MidWidth);
-        if (xc > MidHeight / 2. + slope * (yc + FullWidth / 2.))
-          return false;
-        if (xc > FullHeight / 2. - slope * (yc - MidWidth / 2.))
-          return false;
-        if (xc < -FullHeight / 2. + slope * (yc - MidWidth / 2.))
-          return false;
-        if (xc < -MidHeight / 2. - slope * (yc + FullWidth / 2.))
-          return false;
-
-        return true;
-      };
-
-      ROOT::RDataFrame df("T", rootfile.c_str(),
-                          {"P.cal.pr.goodPosAdcPulseInt",
-                           "P.cal.pr.goodNegAdcPulseInt",
-                           "P.cal.fly.goodAdcPulseInt",
-                           "P.tr.n",
-                           "P.tr.x",
-                           "P.tr.y",
-                           "P.tr.th",
-                           "P.tr.ph",
-                           "P.tr.p",
-                           "P.tr.tg_dp",
-                           "P.tr.tg_ph",
-                           "P.tr.tg_th",
-                           "P.tr.tg_y",
-                           "P.hgcer.npe",
-                           "P.ngcer.npe",
-                           "P.tr.beta",
-                           "P.cal.nclust",
-                           "P.cal.ntracks",
-                           "P.cal.fly.nclust",
-                           "P.cal.fly.ntracks"});
+      std::cout << " derp\n";
       //(P_tr_tg_th, P_tr_tg_y, P_tr_tg_ph, P_tr_tg_dp)
       // if (P_tr_n != 1)
       //  return 0;
       // bool good_trk = P_tr_tg_dp > fDeltaMin && P_tr_tg_dp < fDeltaMax;
 
+      std::cout << " derp\n";
       auto df_with_cuts =
           df.Filter([&](const double& n) { return int(n) == 1; }, {"P.tr.n"})
               .Filter(
@@ -135,7 +117,7 @@ namespace hallc {
                   {"P.tr.beta"})
               .Filter(
                   [&](doublers& th, doublers& y, doublers& yp, doublers& dp) {
-                    return collimator_cut(th.at(0), y.at(0), yp.at(0), dp.at(0));
+                    return shms_collimator_cut(th.at(0), y.at(0), yp.at(0), dp.at(0));
                   },
                   {"P.tr.tg_th", "P.tr.tg_y", "P.tr.tg_ph", "P.tr.tg_dp"})
               .Filter("P.cal.nclust==1")
@@ -188,16 +170,40 @@ namespace hallc {
 
     void ShowerCalibrator::Process(std::string rootfile) {
       using doublers = ROOT::VecOps::RVec<double>;
+      std::cout << "derp\n";
 
-      auto     d2 = GetDataFrame(rootfile);
+      ROOT::RDataFrame df("T", rootfile.c_str(),
+                          {"P.cal.pr.goodPosAdcPulseInt",
+                           "P.cal.pr.goodNegAdcPulseInt",
+                           "P.cal.fly.goodAdcPulseInt",
+                           "P.tr.n",
+                           "P.tr.x",
+                           "P.tr.y",
+                           "P.tr.th",
+                           "P.tr.ph",
+                           "P.tr.p",
+                           "P.tr.tg_dp",
+                           "P.tr.tg_ph",
+                           "P.tr.tg_th",
+                           "P.tr.tg_y",
+                           "P.hgcer.npe",
+                           "P.ngcer.npe",
+                           "P.tr.beta",
+                           "P.cal.nclust",
+                           "P.cal.ntracks",
+                           "P.cal.fly.nclust",
+                           "P.cal.fly.ntracks"});
+      auto     d2 = GetDataFrame(df);
       if(!_canvas) {
         _canvas = new TCanvas("glcanvas");
       }
       auto h_Euncalib = d2.Histo1D({"h_Euncalib", ";E/p total", 100, 0.8, 1.8}, "E_shower_cal0");
+      std::cout << "derp2\n";
       auto n_events   = d2.Count();
       //std::cout <<  " entries : " << *n_events << "\n";
       TH1D* hEunc      = (TH1D*)h_Euncalib->Clone("hEunc");
 
+      std::cout << "derp\n";
 
       TFitResultPtr r = hEunc->Fit("gaus", "S", "", 0.8,1.8);//_calibration.fEuncGFitLo, _calibration.fEuncGFitHi);
       //hEunc->Fit("gaus", "0", "", _calibration.fEuncGFitLo, _calibration.fEuncGFitHi);
@@ -222,6 +228,7 @@ namespace hallc {
                     {"E_shower_cal0"});
       auto   d3_Nev = d3.Count();
 
+      std::cout << "derp\n";
       MatrixQuantities mq;
       d3.Foreach(
           [&mq](const ShowerTrack& trk) {
@@ -332,7 +339,28 @@ namespace hallc {
     void ShowerCalibrator::UpdatePlots(std::string rootfile) {
       using doublers = ROOT::VecOps::RVec<double>;
 
-      auto d2 = GetDataFrame(rootfile);
+      ROOT::RDataFrame df("T", rootfile.c_str(),
+                          {"P.cal.pr.goodPosAdcPulseInt",
+                           "P.cal.pr.goodNegAdcPulseInt",
+                           "P.cal.fly.goodAdcPulseInt",
+                           "P.tr.n",
+                           "P.tr.x",
+                           "P.tr.y",
+                           "P.tr.th",
+                           "P.tr.ph",
+                           "P.tr.p",
+                           "P.tr.tg_dp",
+                           "P.tr.tg_ph",
+                           "P.tr.tg_th",
+                           "P.tr.tg_y",
+                           "P.hgcer.npe",
+                           "P.ngcer.npe",
+                           "P.tr.beta",
+                           "P.cal.nclust",
+                           "P.cal.ntracks",
+                           "P.cal.fly.nclust",
+                           "P.cal.fly.ntracks"});
+      auto     d2 = GetDataFrame(df);
       auto d5 = d2
       //.Filter([&](double Enorm) { return (Enorm > fLoThr) && (Enorm < fHiThr); },
       //                    {"E_shower_cal0"})

@@ -23,7 +23,7 @@
 #include "TVectorD.h"
 #include "TCanvas.h"
 
-#include "calibration/THcPShTrack.h"
+//#include "calibration/THcPShTrack.h"
 #include "calibration/CalorimeterCalibration.h"
 
 #include <Eigen/Dense>
@@ -39,8 +39,25 @@
 #define PR_ADC_THR 0
 #define SH_ADC_THR 0
 
+
+#define HMS_D_CALO_FP 338.69    //distance from FP to the calorimeter face
+
+//Whole calorimeter
+#define HMS_XMIN -65.4
+#define HMS_XMAX  54.6
+#define HMS_YMIN -30.
+#define HMS_YMAX  30.
+
+#include "ROOT/RDataFrame.hxx"
+//#include "ROOT/RDF/RInterface.hxx"
+
 namespace hallc {
   namespace calibration {
+
+
+    bool shms_collimator_cut(double xptar, double ytar, double yptar, double delta) ;
+
+    //using RNode = ROOT::RDF::RNode;
 
     /** SHMS Calorimeter calibration class.
      */
@@ -118,7 +135,7 @@ namespace hallc {
           _canvas->SaveAs(plot_file.c_str());
       }
 
-      auto GetDataFrame(std::string rootfile);
+      auto GetDataFrame(ROOT::RDataFrame& df);
 
 
       void Print() const {
