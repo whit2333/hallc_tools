@@ -8,6 +8,9 @@
 #pragma link C++ nestedtypedef;
 
 #pragma link C++ namespace hallc;
+#pragma link C++ namespace hallc::scandalizer;
+
+#pragma link C++ class hallc::scandalizer::SimplePostProcess+;
 
 //#pragma link C++ class hallc::HCKinematic+;
 //#pragma link C++ class std::vector<hallc::HCKinematic>+;

@@ -4,67 +4,82 @@ find_package(hcana REQUIRED)
 find_package(Podd 1.6 REQUIRED)
 include(PoddCMakeEnv)
 
+############################
+## ExpMonitor library
+#add_library(ExpMonitor SHARED 
+#  src/ExperimentMonitor.cxx
+#  ${CMAKE_CURRENT_BINARY_DIR}/ExpMonitorDict.cxx
+#  )
+#
+#set(lib_HEADERS 
+#  include/monitor/ExperimentMonitor.h
+#  )
+#
+#root_generate_dictionary(ExpMonitorDict 
+#  -I${CMAKE_CURRENT_SOURCE_DIR} ${lib_HEADERS} 
+#  LINKDEF include/LinkDef.h 
+#  OPTIONS -p)
+#add_custom_target(ExpMonitor_ROOTDICTS DEPENDS ${lib_HEADERS} ${CMAKE_CURRENT_BINARY_DIR}/ExpMonitorDict.cxx)
+#add_dependencies(ExpMonitor ExpMonitor_ROOTDICTS)
+#
+#target_include_directories(ExpMonitor
+#    PUBLIC 
+#        $<INSTALL_INTERFACE:include/runplan>    
+#        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/monitor>
+#        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+#    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+#    PUBLIC ${InSANE_INCLUDE_DIRS}
+#    PUBLIC ${EIGEN3_INCLUDE_DIRS}
+#)
+#target_compile_features(ExpMonitor PUBLIC cxx_std_17)
+#target_link_libraries(ExpMonitor
+#  PUBLIC RunPlan ${CXX_FILESYSTEM_LIB}
+#  PUBLIC fmt::fmt
+#)
+
 ###########################
-# ExpMonitor library
-add_library(ExpMonitor SHARED 
+# Scandalizer library
+add_library(Scandalizer SHARED 
   src/ExperimentMonitor.cxx
-  ${CMAKE_CURRENT_BINARY_DIR}/ExpMonitorDict.cxx
+  src/PostProcessors.cxx
+  ${CMAKE_CURRENT_BINARY_DIR}/ScandalizerDict.cxx
   )
 
 set(lib_HEADERS 
+  include/scandalizer/PostProcessors.h
   include/monitor/ExperimentMonitor.h
   )
 
-#get_target_property(insane_include_dir InSANE::InSANEnew_xsec INTERFACE_INCLUDE_DIRECTORIES)
-
-root_generate_dictionary(ExpMonitorDict 
-  #-I${insane_include_dir} 
-  -I${CMAKE_CURRENT_SOURCE_DIR} ${lib_HEADERS} 
+root_generate_dictionary(ScandalizerDict 
+  -I${CMAKE_CURRENT_SOURCE_DIR} 
+  -I${PODD_INCLUDE_DIR}
+  ${lib_HEADERS} 
   LINKDEF include/LinkDef.h 
   OPTIONS -p)
-add_custom_target(ExpMonitor_ROOTDICTS DEPENDS ${lib_HEADERS} ${CMAKE_CURRENT_BINARY_DIR}/ExpMonitorDict.cxx)
-add_dependencies(ExpMonitor ExpMonitor_ROOTDICTS)
+add_custom_target(Scandalizer_ROOTDICTS DEPENDS ${lib_HEADERS} ${CMAKE_CURRENT_BINARY_DIR}/ScandalizerDict.cxx)
+add_dependencies(Scandalizer Scandalizer_ROOTDICTS)
 
-target_include_directories(ExpMonitor
+target_link_libraries(Scandalizer
+  PUBLIC ${CXX_FILESYSTEM_LIB}
+  PUBLIC fmt::fmt
+  PUBLIC Podd::Podd
+  PUBLIC Podd::HallA
+  PUBLIC Podd::Decode
+  PUBLIC hcana::HallC
+)
+target_include_directories(Scandalizer
     PUBLIC 
-        $<INSTALL_INTERFACE:include/runplan>    
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/monitor>
+        $<INSTALL_INTERFACE:include/scandalizer>    
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/scandalizer>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
-    PUBLIC ${InSANE_INCLUDE_DIRS}
     PUBLIC ${EIGEN3_INCLUDE_DIRS}
+    PUBLIC ${PODD_INCLUDE_DIR}
+    PUBLIC ${HCANA_INCLUDE_DIR}
 )
-target_compile_features(ExpMonitor PUBLIC cxx_std_17)
-target_link_libraries(ExpMonitor
-  PUBLIC RunPlan ${CXX_FILESYSTEM_LIB}
-  PUBLIC fmt::fmt
-  #  PUBLIC InSANE::InSANEbase
-  #  PUBLIC InSANE::InSANEnew_xsec
-)
-
-#add_library(ExpMonitor SHARED 
-#  )
-#
-#target_include_directories(ExpMonitor
-#  PUBLIC 
-#    $<INSTALL_INTERFACE:include>    
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#  PRIVATE
-#    ${CMAKE_CURRENT_SOURCE_DIR}/src
-#  )
-#target_include_directories(experiment_monitor
-#  PUBLIC 
-#    $<INSTALL_INTERFACE:include>    
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#  PRIVATE
-#    ${CMAKE_CURRENT_SOURCE_DIR}/src
-#  )
-#target_compile_features(ExpMonitor PUBLIC cxx_std_17)
-#target_link_libraries(ExpMonitor
-#  #PUBLIC fmt::fmt
-#  #PUBLIC InSANEbase
-#)
+target_compile_features(Scandalizer PUBLIC cxx_std_17)
 
 ################################
 # experiment_monitor executable
@@ -107,14 +122,18 @@ target_link_libraries(hcspec
 
 include(GNUInstallDirs)
 
+install(DIRECTORY include/scandalizer
+  DESTINATION include
+  )
 install(DIRECTORY include/monitor
   DESTINATION include
   )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ExpMonitorDict_rdict.pcm
+install(FILES 
+  ${CMAKE_CURRENT_BINARY_DIR}/ScandalizerDict_rdict.pcm
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 
-install(TARGETS ExpMonitor experiment_monitor hcspec
+install(TARGETS Scandalizer experiment_monitor hcspec
     EXPORT RunPlannerTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
