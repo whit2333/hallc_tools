@@ -102,6 +102,8 @@ Now everything should be in place to run the replay
 
 ### `hcspec` usage
 
+[![asciicast](https://asciinema.org/a/Xd884h9huSRFKqH5rmkf2LdqG.svg)](https://asciinema.org/a/Xd884h9huSRFKqH5rmkf2LdqG)
+
 * Example 1
 Starting at run 2000, print the runs (non-zero) up to run 2500
 ```bash

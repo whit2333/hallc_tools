@@ -11,6 +11,10 @@ namespace fs = std::filesystem;
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 #endif
+#if !defined(__CLING__)
+#include <fmt/core.h>
+#include <fmt/ostream.h>
+#endif
 
 #include "TCanvas.h"
 #include "TGraph.h"
@@ -25,12 +29,13 @@ using std::cout;
 using std::string;
 using namespace ranges;
 
-/**  Build with json database.
+/**  Build output range with json database.
+ *
  */
 table_range_t build_range_with_json(std::string dbfile, std::vector<int> runlist, bool all ) {
   using namespace ranges;
-  nlohmann::json j_in;
-  fs::path       in_path = dbfile;
+  nlohmann::json  j_in;
+  fs::path        in_path = dbfile;
 
   bool is_piped = false;
   if (!isatty(fileno(stdin))) {
@@ -101,7 +106,7 @@ table_range_t build_range_with_json(std::string dbfile, std::vector<int> runlist
 }
 
 
-/** Build using DBASE.
+/** Build output range using replay DBASE.
  *
  */
 table_range_t build_range_with_DBASE(std::string dbfile, std::vector<int> runlist, std::string spec_daq) {
@@ -178,16 +183,28 @@ int main(int argc, char* argv[]) {
   auto doc_filter = param_filter{}.prefix("--");
 
   if (opts.use_help == 1) {
-    //cout << make_man_page(cli, argv[0]);
     cout << "\033[1mspectrometer_settings\033[0m\n";
-    cout << "Usage:\n" << usage_lines(cli, "specset", clipp_format)
-    << "\nOptions:\n" << documentation(cli, clipp_format,doc_filter) << '\n';
+    cout << "Usage:\n" << usage_lines(cli, "hcspec", clipp_format)
+       << "\nOptions:\n" << documentation(cli, clipp_format,doc_filter) << '\n';
     std::exit(0);
   } else if (opts.use_help == 2) {
     cout << make_man_page(cli, argv[0])
                 .prepend_section("DESCRIPTION" , "              things don't have to be difficult.")
-                .prepend_section("NAME"        , "              \033[1mspectrometer_settings\033[0m")
-                .append_section("LICENSE"      , "              GPL3");
+                .prepend_section("NAME"        , "              \033[1mhcspec : hallc spectrometer_settings\033[0m")
+                .append_section("LICENSE"      , "              GPL3")
+                .append_section("EXAMPLES"      , 
+                                "\n"
+                                "    hcspec -S 6000 -N 1000 -u print \n"
+                                "\n"
+                                "    hcspec -S 6000 -N 1000 -u  print | hcspec  filter hms angle 14 1\n"
+                                "\n"
+                                " Dump runs to JSON then use json file (which is much faster)\n"
+                                "    hcspec -S 0 -N 7000  -J print > all.json\n"
+                                "    hcspec -a -j all.json print  | hcspec filter hms angle 14 0.25 -u\n"
+                                "\n"
+                                "    hcspec -a -j all.json print  | hcspec filter hms angle 14 0.25 -u | jq \n"
+                                "\n"
+                                );
     std::exit(0);
   }
 
@@ -228,6 +245,9 @@ int main(int argc, char* argv[]) {
     std::exit(EXIT_FAILURE);
   }
 
+  // -----------------------------------------------------
+  // If result is piped then the input should only be json 
+  //
   if(is_piped) {
     // we assume only json is piped as input
     opts.use_json_input = true;
@@ -235,28 +255,14 @@ int main(int argc, char* argv[]) {
     opts.use_all = true;
   }
 
+  // -----------------------------------------------------
+  // If the output is being piped then only ouput json
   bool is_piped_out = false;
   if (!isatty(fileno(stdout))) {
     is_piped_out = true;
     opts.output_format = "json";
     opts.mode = RunMode::print;
   }
-
-  //for(auto [spec, mode,val,del] : view::zip(opts.fspecs, opts.fmodes, opts.filter_values, opts.filter_deltas) | to_<std::vector>()) {
-  //  //std::cout << cli_settings::GetSpecString(spec) << " " ;
-  //  switch (mode) {
-  //    case FilterMode::angle: 
-  //      std::cout << "angle ";
-  //      break;
-  //    case FilterMode::momentum: 
-  //      std::cout << "momentum ";
-  //      break;
-  //    default:
-  //      std::cout << "other ";
-  //      break;
-  //  }
-  //  //std::cout << "value : " << val << " +- " << del << "\n";
-  //}
 
   // If neither are given, use both
   if( (!opts.use_shms) && (!opts.use_hms)) {
@@ -268,10 +274,21 @@ int main(int argc, char* argv[]) {
     opts.daq_spec_type = "HMS";
   }
 
-  auto& run_list = opts.run_list; 
   // ---------------------------------
   // define the run list to use
+  //std::cout << opts.start_run << " - ";
+  //std::cout << opts.end_run << "\n";
+  if ((opts.end_run > 0) && (opts.end_run > opts.start_run)) {
+    opts.N_runs = opts.end_run - opts.start_run;
+  }
+  auto& run_list = opts.run_list;
   if (run_list.size() == 0) {
+    if (opts.N_runs <= 0) {
+      opts.N_runs = 100;
+      if(opts.use_json_input ) { 
+        opts.use_all = true;
+      }
+    }
     run_list = std::vector<int>(opts.N_runs);
     std::iota(run_list.begin(), run_list.end(), opts.start_run);
   }
@@ -341,6 +358,16 @@ int main(int argc, char* argv[]) {
                   (std::get<1>(t1)["shms"]["momentum"] == std::get<1>(t2)["shms"]["momentum"]));
         }) |
         to_<std::vector>();
+  } 
+  if(opts.use_first_unique){
+    output_settings =
+        output_settings | view::reverse | view::adjacent_remove_if([&](auto t1, auto t2) {
+          return ((std::get<1>(t1)["hms"]["angle"] == std::get<1>(t2)["hms"]["angle"]) &&
+                  (std::get<1>(t1)["hms"]["momentum"] == std::get<1>(t2)["hms"]["momentum"]) &&
+                  (std::get<1>(t1)["shms"]["angle"] == std::get<1>(t2)["shms"]["angle"]) &&
+                  (std::get<1>(t1)["shms"]["momentum"] == std::get<1>(t2)["shms"]["momentum"]));
+        }) | view::reverse|
+        to_<std::vector>();
   }
 
   nlohmann::json j_output;
@@ -376,16 +403,22 @@ int main(int argc, char* argv[]) {
 
       for (auto en : output_settings) {
         int arun_num = std::get<0>(en);
-        std::cout << arun_num << " :";
+
+        fmt::print("{:<9} ", arun_num);
+        //std::cout << arun_num << " :";
         if (opts.use_hms) {
-          std::cout << " HMS : ";
-          std::cout << std::get<1>(en)["hms"]["momentum"] << " GeV/c at ";
-          std::cout << std::get<1>(en)["hms"]["angle"] << " deg  ";
+          fmt::print("HMS: {:>7.3f} GeV/c at {:<7.3f} deg    ", std::get<1>(en)["hms"]["momentum"],
+                     std::get<1>(en)["hms"]["angle"]);
+          //std::cout << " HMS : ";
+          //std::cout << std::get<1>(en)["hms"]["momentum"] << " GeV/c at ";
+          //std::cout << std::get<1>(en)["hms"]["angle"] << " deg  ";
         }
         if (opts.use_shms) {
-          std::cout << "SHMS : ";
-          std::cout << std::get<1>(en)["shms"]["momentum"] << " GeV/c at ";
-          std::cout << std::get<1>(en)["shms"]["angle"] << " deg";
+          fmt::print("SHMS: {:>7.3f} GeV/c at {:<7.3f} deg  ", std::get<1>(en)["shms"]["momentum"],
+                     std::get<1>(en)["shms"]["angle"]);
+          //std::cout << "SHMS : ";
+          //std::cout << std::get<1>(en)["shms"]["momentum"] << " GeV/c at ";
+          //std::cout << std::get<1>(en)["shms"]["angle"] << " deg";
         }
         std::cout << "\n";
       }

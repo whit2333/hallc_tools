@@ -18,7 +18,6 @@ using namespace clipp;
 #include <TStyle.h>
 #include <TRint.h>
 
-//#include "calibration/THcPShowerCalib.h"
 #include "calibration/ShowerCalibrator.h"
 #include "calibration/CalorimeterCalibration.h"
 
@@ -42,7 +41,7 @@ int main(int argc, char* argv[]) {
   string                   output_name      = dir+"pcal_calib_new.json";
   string                   tree_name        = "T";
   string                   rootfile         = "";
-  string                   plot_file_name   = "shms_cal_calib.pdf";
+  string                   plot_file_name   = "hms_cal_calib.pdf";
   double                   weight           = 0.5;
 
   auto cli =
@@ -54,7 +53,7 @@ int main(int argc, char* argv[]) {
        option("-f", "--force").set(force_out) % "force the output to overwrite existing files",
        option("-u", "--update").set(update) % "update the input calibration file",
        option("-g", "--gui").set(use_gui) % "update the input calibration file",
-       "saves plots to plot_file (Default: \"shms_cal_calib_plots.pdf\"" %
+       "saves plots to plot_file (Default: \"hms_cal_calib_plots.pdf\"" %
            (option("-s", "--save-plots").set(save_plots, true) &
             opt_value("plot_file", plot_file_name)),
        //"starting event - skips the first <evt> events " %

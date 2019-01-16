@@ -87,8 +87,10 @@ struct cli_settings {
   string              fmt            = "json";
   bool                use_all        = false;
   bool                use_unique     = false;
+  bool                use_first_unique = false;
   int                 start_run      = 3900;
-  int                 N_runs         = 100;
+  int                 end_run        = 0;
+  int                 N_runs         = 0;
   int                 RunNumber      = 0;
   string              replay_dir     = ".";
   std::vector<int>    run_list       = {};
@@ -113,7 +115,9 @@ struct cli_settings {
                           ((option("-N", "--number-of-runs") & integer("N_runs", N_runs)) %
                                "Number of runs in the sequence starting at <start_run>",
                            (option("-S", "--start") & integer("start_run", start_run)) %
-                               "Set the starting run for the output run sequence"));
+                               "Set the starting run for the output run sequence") |
+                          ((option("-R", "--run-range") & integer("start_run", start_run) &
+                           integer("end_run", end_run)) % "Set the range of runs to use"));
     auto first_args =
         ("Data source options" %
              ((option("-d", "--replay-dir") & value("dir", replay_dir)) %
@@ -123,8 +127,10 @@ struct cli_settings {
                value("data", json_data_file)) %
                   "use json data as input instead of DBASE"),
          "Basic filtering options " %
-             joinable(option("-u", "--unique").set(use_unique, true) %
-                          "filter unique (adjacent) entries",
+             joinable( (option("-u", "--unique").set(use_unique, true) %
+                          "filter unique (adjacent) entries returning the latest run" |
+                          option("-U", "--first-unique").set(use_first_unique, true) %
+                          "filter unique (adjacent) entries returning the first run in the same group of settings"),
                       option("-a", "--all").set(use_all, true) %
                           "use all runs in supplied json file (only works with json input)",
                       option("-z", "--show-zeros").set(filter_zero, false) %
@@ -144,27 +150,6 @@ struct cli_settings {
     //auto last_args = ;
     //(option("-t", "--type") & value("type", output_format)) % "set the build type");
 
-
-    //auto build_cmd = (command("build").set(mode, RunMode::build) % "build mode",
-    //                  value("table_name", table_name) % "Output file");
-    //auto momentum_filter_type = 
-    //    (command("momentum")([this] { this->fmodes.push_back(FilterMode::momentum); }) %
-    //         "momentum filter type" &
-    //     number("GeV/c", filter_values) % "momentum in degrees" &
-    //     number("deltaP", filter_deltas) % "delta in degrees, used to search with the range of "
-    //                                       "values [angle-delta,angle+delta]") % "Momentunm Filter types" ;
-    //auto angle_filter_type = command("angle")([&] { fmodes.push_back(FilterMode::angle); }) &
-    //                         number("deg", filter_values) % "angle in degrees" &
-    //                         number("delta", filter_deltas) %
-    //                             "delta in degrees, used to search with the range of "
-    //                             "values [angle-delta,angle+delta]";
-    //auto filter_opt = option("--filter").set(has_filter, true) % "Add filter" &
-    //                  value("spectrometer")([this](const string& v) {
-    //                    this->fspecs.push_back(GetSpec(v));
-    //                  }) % "spectrometer to filter. Can be one of the following: hms,shms, both";
-    //auto print_cmd = "print mode" % (command("print").set(mode, RunMode::print),
-    //                                 option("--json-format")([&] { output_format = "json"; }) %
-    //                                     "set the printing format [default:table]");
     auto filter_spec =
         "Set to: hms,shms, or both. Specifies spectrometer to use with filter." % (command("filter").set(mode, RunMode::print),
          value("spec")([&](const string& v) { fspecs.push_back(GetSpec(v)); }));
@@ -181,7 +166,7 @@ struct cli_settings {
     //            (print_cmd, filter_opt & momentum_filter_type ) |
     //            (build_cmd, filter_opt & angle_filter_type ),
     //        first_args, standard_args, last_args);
-    return (first_args, "Filters" % (filter_spec, (filter_angle | filter_momentum)) |
+    return (first_args, "Filters" % (filter_spec, "filter by " % (filter_angle | filter_momentum)) |
                             "Print spectrometer" % print_cmd);
   }
 
