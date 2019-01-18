@@ -63,16 +63,18 @@ namespace hallc {
       virtual ~SkipAfterPedestal() {}
     };
 
+    /** Perodically skips a fixed number of events after 1000 pedestal events.  
+     */
     class SkipPeriodicAfterPedestal  : public SimplePostProcess {
     public:
-      SkipPeriodicAfterPedestal(int N_skip = 3000)
+      SkipPeriodicAfterPedestal(int N_skip = 3000, int N_process = 1000)
           : SimplePostProcess([&]() { return 0; },
                               [=](const THaEvData* evt) {
                                 static int counter = 0;
                                 if (evt->GetEvNum() > 2000) {
                                   if (counter == 0) {
                                     _analyzer->_skip_events = N_skip;
-                                    counter                = 1000;
+                                    counter                = N_process;
                                   } else {
                                     counter--;
                                   }
