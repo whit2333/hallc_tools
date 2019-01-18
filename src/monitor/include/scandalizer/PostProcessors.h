@@ -5,6 +5,7 @@
 #include "CodaDecoder.h"
 #include "THaEvData.h"
 #include "THaPostProcess.h"
+#include "Scandalizer.h"
 
 #include <functional>
 #include <iostream>
@@ -20,6 +21,8 @@ namespace hallc {
       using InitFunction_t = std::function<int()>;
       Function_t     _event_lambda;
       InitFunction_t _init_lambda;
+
+      hcana::Scandalizer*   _analyzer = nullptr;
 
     public:
       SimplePostProcess(Function_t&& f) : 
@@ -41,6 +44,43 @@ namespace hallc {
       ClassDef(SimplePostProcess,1)
     };
 
+
+    /** Skips a fixed number of events after 1000 pedestal events.  
+     */
+    class SkipAfterPedestal  : public SimplePostProcess {
+    public:
+
+      SkipAfterPedestal(int N_skip = 3000)
+          : SimplePostProcess([&]() { return 0; },
+                              [=](const THaEvData* evt) {
+                                static int counter = 0;
+                                if ((evt->GetEvNum() > 1000) && (counter == 0)) {
+                                    _analyzer->_skip_events = N_skip;
+                                    counter                = 1;
+                                }
+                                return 0;
+                              }) {}
+      virtual ~SkipAfterPedestal() {}
+    };
+
+    class SkipPeriodicAfterPedestal  : public SimplePostProcess {
+    public:
+      SkipPeriodicAfterPedestal(int N_skip = 3000)
+          : SimplePostProcess([&]() { return 0; },
+                              [=](const THaEvData* evt) {
+                                static int counter = 0;
+                                if (evt->GetEvNum() > 2000) {
+                                  if (counter == 0) {
+                                    _analyzer->_skip_events = N_skip;
+                                    counter                = 1000;
+                                  } else {
+                                    counter--;
+                                  }
+                                }
+                                return 0;
+                              }) {}
+      virtual ~SkipPeriodicAfterPedestal() {}
+    };
   //SimplePostProcess* pp1 = new SimplePostProcess(
   //  [&](){
   //    return 0;

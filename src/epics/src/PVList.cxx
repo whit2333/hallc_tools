@@ -247,7 +247,14 @@ namespace hallc {
       int ind1 = m_pv_index[pvname];
 
       std::thread thObj(
-          [&, ind1, val]() { m_pv_channels.at(ind1).put().set("value", val).exec(); });
+        [&, ind1, val]() { 
+          try {
+            auto res =  m_pv_channels.at(ind1).put().set("value", val);
+            res.exec(); 
+          } catch (const std::exception& e) {
+            std::cout << "error : " << e.what() << ", PV " << ind1 <<  " not put\n";
+          }
+        });
       thObj.detach();
     }
   }
