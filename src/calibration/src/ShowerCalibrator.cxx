@@ -84,13 +84,13 @@ namespace hallc {
 
       using doublers = ROOT::VecOps::RVec<double>;
 
-      std::cout << " derp\n";
+      //std::cout << " derp\n";
       //(P_tr_tg_th, P_tr_tg_y, P_tr_tg_ph, P_tr_tg_dp)
       // if (P_tr_n != 1)
       //  return 0;
       // bool good_trk = P_tr_tg_dp > fDeltaMin && P_tr_tg_dp < fDeltaMax;
 
-      std::cout << " derp\n";
+      //std::cout << " derp\n";
       auto df_with_cuts =
           df.Filter([&](const double& n) { return int(n) == 1; }, {"P.tr.n"})
               .Filter(
@@ -170,7 +170,7 @@ namespace hallc {
 
     void ShowerCalibrator::Process(std::string rootfile) {
       using doublers = ROOT::VecOps::RVec<double>;
-      std::cout << "derp\n";
+      //std::cout << "derp\n";
 
       ROOT::RDataFrame df("T", rootfile.c_str(),
                           {"P.cal.pr.goodPosAdcPulseInt",
@@ -198,12 +198,12 @@ namespace hallc {
         _canvas = new TCanvas("glcanvas");
       }
       auto h_Euncalib = d2.Histo1D({"h_Euncalib", ";E/p total", 100, 0.8, 1.8}, "E_shower_cal0");
-      std::cout << "derp2\n";
+      //std::cout << "derp2\n";
       auto n_events   = d2.Count();
       //std::cout <<  " entries : " << *n_events << "\n";
       TH1D* hEunc      = (TH1D*)h_Euncalib->Clone("hEunc");
 
-      std::cout << "derp\n";
+      //std::cout << "derp\n";
 
       TFitResultPtr r = hEunc->Fit("gaus", "S", "", 0.8,1.8);//_calibration.fEuncGFitLo, _calibration.fEuncGFitHi);
       //hEunc->Fit("gaus", "0", "", _calibration.fEuncGFitLo, _calibration.fEuncGFitHi);
@@ -228,7 +228,7 @@ namespace hallc {
                     {"E_shower_cal0"});
       auto   d3_Nev = d3.Count();
 
-      std::cout << "derp\n";
+      //std::cout << "derp\n";
       MatrixQuantities mq;
       d3.Foreach(
           [&mq](const ShowerTrack& trk) {

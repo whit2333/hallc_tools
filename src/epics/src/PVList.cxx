@@ -71,16 +71,12 @@ namespace hallc {
       int index            = m_N_pvs;
       m_pv_names[index]    = name;
       m_pv_channels[index] = m_provider->connect(name);
-      std::cout << "test\n";
       try {
       auto ret             = m_pv_channels[index].get();
-      std::cout << "test2\n";
       auto val             = ret->getSubField<epics::pvData::PVDouble>("value");
-      std::cout << "test3\n";
       m_pv_values.push_back(val->getAs<float>());
-      std::cout << "test4\n";
       m_pv_index[name] = index;
-      std::cout << m_pv_values[index] << std::endl;
+      //std::cout << m_pv_values[index] << std::endl;
       // std::vector<float> buffer;
       // buffer.push_back(m_pv_values[index]);
       m_pv_buffers.push_back(PVBuffer(0.0));

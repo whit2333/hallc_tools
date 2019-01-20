@@ -39,6 +39,7 @@ endif(NOT nlohmann_json_FOUND)
 
 #https://github.com/fmtlib/fmt.git
 find_package(fmt REQUIRED)
+find_package(spdlog REQUIRED)
 find_package(range-v3 REQUIRED)
 
 add_subdirectory(src/runplan)

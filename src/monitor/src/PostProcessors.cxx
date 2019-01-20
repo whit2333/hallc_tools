@@ -8,8 +8,6 @@ namespace hallc {
   namespace scandalizer {
 
       Int_t SimplePostProcess::Init(const TDatime& ) {
-        //std::cout << derp;
-        //_output_file.open("derp");
         return _init_lambda();
       }
       Int_t SimplePostProcess::Process( const THaEvData* evt, const THaRunBase*, Int_t code ){ 

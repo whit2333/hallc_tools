@@ -54,9 +54,10 @@ popd
 popd
 rm -r build_eigen
 
-git clone  https://github.com/gabime/spdlog.git
-pushd spdlog/include
-git checkout tags/v1.3.0
-cp -r spdlog ${prefix}/include/.
-popd 
+# now comes with analzyer
+#git clone  https://github.com/gabime/spdlog.git
+#pushd spdlog/include
+#git checkout tags/v1.3.0
+#cp -r spdlog ${prefix}/include/.
+#popd 
 
