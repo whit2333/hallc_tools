@@ -44,11 +44,18 @@ message(STATUS "EPICSBase_VERSION=${EPICSBase_VERSION}")
 message(STATUS "EPICSBase_VERSION_STRING=${EPICSBase_VERSION_STRING}")
 message(STATUS "EPICS_DEFINITIONS=${EPICS_DEFINITIONS}")
 
+find_package(hcana REQUIRED)
+find_package(Podd 1.6 REQUIRED)
+include(PoddCMakeEnv)
+
+find_package(spdlog REQUIRED)
+
 # --------------------------------------------------------
 # Because epics' build system is really stupid
 add_library(simple_epics SHARED
   src/PVList.cxx
   src/PVBuffer.cxx
+  src/PVBufferList.cxx
   )
 
 target_include_directories(simple_epics
@@ -57,6 +64,7 @@ target_include_directories(simple_epics
   INTERFACE ${EPICS_INCLUDE_DIRS}
   PRIVATE include
   PRIVATE include/simple_epics
+  PRIVATE include/cppitertools
 )
 target_compile_definitions(simple_epics
   PUBLIC ${EPICS_DEFINITIONS}
@@ -64,11 +72,13 @@ target_compile_definitions(simple_epics
   INTERFACE ${EPICS_DEFINITIONS}
 )
 target_link_libraries(simple_epics
-  ${EPICS_ca_LIBRARY}
+  PUBLIC ${EPICS_ca_LIBRARY}
   ${EPICS_Com_LIBRARY}
   ${EPICS_BASE_DIR}/lib/${EPICS_TARGET_ARCH}/libpvAccess.so
   ${EPICS_BASE_DIR}/lib/${EPICS_TARGET_ARCH}/libpvAccessCA.so
   ${EPICS_BASE_DIR}/lib/${EPICS_TARGET_ARCH}/libpvData.so
+  PUBLIC fmt::fmt
+  PUBLIC Podd::Podd
 )
 set_target_properties(simple_epics
   PROPERTIES

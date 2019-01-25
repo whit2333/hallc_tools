@@ -7,6 +7,7 @@
 #include <sstream>
 #include <thread>
 
+
 namespace hallc {
 
 
@@ -42,7 +43,7 @@ namespace hallc {
         m_pv_values.push_back(val->getAs<float>());
         std::cout << m_pv_values[index] << std::endl;
         m_pv_index[name] = index;
-        m_pv_buffers.push_back(PVBuffer(0.0));
+        //m_pv_buffers.push_back(PVBuffer(0.0));
         // array index starting from the front
         // int current_array_index =  m_array_index.at(index);
         // create buffer of zeros
@@ -79,7 +80,7 @@ namespace hallc {
       //std::cout << m_pv_values[index] << std::endl;
       // std::vector<float> buffer;
       // buffer.push_back(m_pv_values[index]);
-      m_pv_buffers.push_back(PVBuffer(0.0));
+      //m_pv_buffers.push_back(PVBuffer(0.0));
       m_N_pvs++;
       } catch (const std::exception& e) {
          std::cout << e.what() << "\n"; // information from length_error is lost
@@ -124,7 +125,7 @@ namespace hallc {
         auto ret           = channel_pair.second.get();
         auto val           = ret->getSubField<epics::pvData::PVDouble>("value");
         m_pv_values[index] = val->getAs<float>();
-        m_pv_buffers[index].Add(m_pv_values[index]);
+        //m_pv_buffers[index].Add(m_pv_values[index]);
       }
     }
     for (const auto& index_pair : m_pv_index) {
@@ -153,7 +154,7 @@ namespace hallc {
         auto ret           = channel_pair.second.get();
         auto val           = ret->getSubField<epics::pvData::PVDouble>("value");
         m_pv_values[index] = val->getAs<float>();
-        m_pv_buffers[index].Add(m_pv_values[index]);
+        //m_pv_buffers[index].Add(m_pv_values[index]);
       }
     }
   }
@@ -185,58 +186,58 @@ namespace hallc {
   //  m_pv_buffers[index].erase(m_pv_buffers[index].begin(),m_pv_buffers[index].begin()+m_buffer_extra);
   //}
 
-  PVBuffer& PVList::GetBuffer(int n) {
-    // if ( (n >= 0) && (n < GetNBuffers()) ) {
-    return m_pv_buffers.at(n);
-    //}
-  }
-  //______________________________________________________________________________
-
-  std::vector<float>& PVList::GetBufferCopy(int n) {
-    std::lock_guard<std::mutex> lockGuard(m_impl->m);
-    // if ( (n >= 0) && (n < m_buffer_copy.size()) ) {
-    return m_pv_buffers.at(n).GetBufferCopy();
-    //  m_buffer_copy[n].clear();
-    //  std::copy(m_pv_buffers[n].begin()+GetBufferOffset(n),
-    //            m_pv_buffers[n].begin()+GetBufferOffset(n)+m_buffer_max,
-    //            std::back_inserter(m_buffer_copy[n]));
-    //  return m_buffer_copy[n];
-    //}
-    // std::cout << "error\n";
-    // std::vector<float> buffer;
-    // m_buffer_copy.push_back(buffer);
-    // return buffer;
-  }
-  //______________________________________________________________________________
-
-  int PVList::GetBufferSize(int n) const {
-    int  sz      = m_pv_buffers.at(n).GetIndex();
-    auto buf_max = m_pv_buffers.at(n).GetMaxSize();
-    if (sz < buf_max) {
-      return sz;
-    }
-    return buf_max;
-    // auto buf_size = m_pv_buffers.at(n).size();
-    // if( buf_size > m_buffer_max  ) {
-    //  return m_buffer_max;
-    //}
-    // return buf_size;
-  }
-  //______________________________________________________________________________
-
-  int PVList::GetBufferOffset(int n) const {
-    // int off = (int)m_pv_buffers.at(n).size() - m_buffer_max;
-    int  current_index = m_pv_buffers.at(n).GetIndex();
-    auto buf_max       = m_pv_buffers.at(n).GetMaxSize();
-    if (current_index > buf_max) {
-      return current_index - buf_max;
-    }
-    return 0;
-    // if (off > 0) {
-    //  return off;
-    //}
-    // return 0;
-  }
+//  PVBuffer& PVList::GetBuffer(int n) {
+//    // if ( (n >= 0) && (n < GetNBuffers()) ) {
+//    return m_pv_buffers.at(n);
+//    //}
+//  }
+//  //______________________________________________________________________________
+//
+//  std::vector<float>& PVList::GetBufferCopy(int n) {
+//    std::lock_guard<std::mutex> lockGuard(m_impl->m);
+//    // if ( (n >= 0) && (n < m_buffer_copy.size()) ) {
+//    return m_pv_buffers.at(n).GetBufferCopy();
+//    //  m_buffer_copy[n].clear();
+//    //  std::copy(m_pv_buffers[n].begin()+GetBufferOffset(n),
+//    //            m_pv_buffers[n].begin()+GetBufferOffset(n)+m_buffer_max,
+//    //            std::back_inserter(m_buffer_copy[n]));
+//    //  return m_buffer_copy[n];
+//    //}
+//    // std::cout << "error\n";
+//    // std::vector<float> buffer;
+//    // m_buffer_copy.push_back(buffer);
+//    // return buffer;
+//  }
+//  //______________________________________________________________________________
+//
+//  int PVList::GetBufferSize(int n) const {
+//    int  sz      = m_pv_buffers.at(n).GetIndex();
+//    auto buf_max = m_pv_buffers.at(n).GetMaxSize();
+//    if (sz < buf_max) {
+//      return sz;
+//    }
+//    return buf_max;
+//    // auto buf_size = m_pv_buffers.at(n).size();
+//    // if( buf_size > m_buffer_max  ) {
+//    //  return m_buffer_max;
+//    //}
+//    // return buf_size;
+//  }
+//  //______________________________________________________________________________
+//
+//  int PVList::GetBufferOffset(int n) const {
+//    // int off = (int)m_pv_buffers.at(n).size() - m_buffer_max;
+//    int  current_index = m_pv_buffers.at(n).GetIndex();
+//    auto buf_max       = m_pv_buffers.at(n).GetMaxSize();
+//    if (current_index > buf_max) {
+//      return current_index - buf_max;
+//    }
+//    return 0;
+//    // if (off > 0) {
+//    //  return off;
+//    //}
+//    // return 0;
+//  }
 
   void PVList::Put(std::string pvname, double val) {
     if (m_pv_index.count(pvname) != 0) {

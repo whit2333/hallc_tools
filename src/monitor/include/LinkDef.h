@@ -11,6 +11,7 @@
 #pragma link C++ namespace hallc::scandalizer;
 
 #pragma link C++ class hallc::scandalizer::SimplePostProcess+;
+#pragma link C++ class hallc::scandalizer::SpectrometerMonitor+;
 
 //#pragma link C++ class hallc::HCKinematic+;
 //#pragma link C++ class std::vector<hallc::HCKinematic>+;
