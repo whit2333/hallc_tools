@@ -4,6 +4,8 @@ find_package(hcana REQUIRED)
 find_package(Podd 1.6 REQUIRED)
 include(PoddCMakeEnv)
 
+find_package(spdlog REQUIRED)
+
 ############################
 ## ExpMonitor library
 #add_library(ExpMonitor SHARED 
@@ -53,6 +55,7 @@ set(lib_HEADERS
 
 root_generate_dictionary(ScandalizerDict 
   -I${CMAKE_CURRENT_SOURCE_DIR} 
+  $<BUILD_INTERFACE:-I${CMAKE_SOURCE_DIR}/src/epics/include>
   -I${PODD_INCLUDE_DIR}
   ${lib_HEADERS} 
   LINKDEF include/LinkDef.h 
@@ -61,14 +64,15 @@ add_custom_target(Scandalizer_ROOTDICTS DEPENDS ${lib_HEADERS} ${CMAKE_CURRENT_B
 add_dependencies(Scandalizer Scandalizer_ROOTDICTS)
 
 target_link_libraries(Scandalizer
-  PUBLIC ${CXX_FILESYSTEM_LIB}
+  PUBLIC simple_epics RunPlan ${CXX_FILESYSTEM_LIB}
   PUBLIC fmt::fmt
   PUBLIC Podd::Podd
-  PUBLIC Podd::HallA
   PUBLIC Podd::Decode
   PUBLIC hcana::HallC
 )
 target_include_directories(Scandalizer
+  PRIVATE 
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/epics/include>
     PUBLIC 
         $<INSTALL_INTERFACE:include/scandalizer>    
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/scandalizer>

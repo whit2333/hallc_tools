@@ -71,15 +71,22 @@ namespace hallc {
       int index            = m_N_pvs;
       m_pv_names[index]    = name;
       m_pv_channels[index] = m_provider->connect(name);
+      try {
       auto ret             = m_pv_channels[index].get();
       auto val             = ret->getSubField<epics::pvData::PVDouble>("value");
       m_pv_values.push_back(val->getAs<float>());
       m_pv_index[name] = index;
-      std::cout << m_pv_values[index] << std::endl;
+      //std::cout << m_pv_values[index] << std::endl;
       // std::vector<float> buffer;
       // buffer.push_back(m_pv_values[index]);
       m_pv_buffers.push_back(PVBuffer(0.0));
       m_N_pvs++;
+      } catch (const std::exception& e) {
+         std::cout << e.what() << "\n"; // information from length_error is lost
+         std::cout << " Epics hallc run_info ioc is probably not running or needs restarted.\n"
+                      " See https://github.com/whit2333/hallc_epics_run_info for more info.\n";
+         std::cout << "PV " << name << " not added to PVList\n";
+      }
       return index;
     }
     return m_pv_index[name];
@@ -236,7 +243,14 @@ namespace hallc {
       int ind1 = m_pv_index[pvname];
 
       std::thread thObj(
-          [&, ind1, val]() { m_pv_channels.at(ind1).put().set("value", val).exec(); });
+        [&, ind1, val]() { 
+          try {
+            auto res =  m_pv_channels.at(ind1).put().set("value", val);
+            res.exec(); 
+          } catch (const std::exception& e) {
+            std::cout << "error : " << e.what() << ", PV " << ind1 <<  " not put\n";
+          }
+        });
       thObj.detach();
     }
   }
