@@ -50,6 +50,7 @@ namespace hallc {
         for (const auto& n : pvs) {
           _pv_list.AddPV(std::string("hc")  + _spectrometer_name + n);
         }
+        _ana_logger->info("Init for SpectrometerMonitor {}", _spectrometer_name);
         //_event_lambda(evt);
         //_output_file << " Event : " << evt->GetEvNum() << "  ( " << evt->GetEvType() << ")\n";
         //if( evt->GetEvNum()%100 == 0) {
@@ -108,10 +109,11 @@ namespace hallc {
                              dc_multiplicity / dc_multiplicity_n);
           _ana_logger->debug("hod multiplicity : {}/{} = {}", hod_multiplicity , hod_multiplicity_n,
                              hod_multiplicity / hod_multiplicity_n);
-          _pv_list.Put("hcSHMS:Hod:Mult", hod_multiplicity / hod_multiplicity_n);
-          _pv_list.Put("hcSHMSDCMultiplicity", dc_multiplicity / dc_multiplicity_n);
-          _pv_list.Put("hcSHMSTrackingEff", eff_num / eff_den);
-          _pv_list.Put("hcSHMSTrackingEff:Unc",
+          // Todo: fix this PV naming code
+          _pv_list.Put(std::string("hc")  + _spectrometer_name+ ":Hod:Mult", hod_multiplicity / hod_multiplicity_n);
+          _pv_list.Put(std::string("hc")  + _spectrometer_name+ "DCMultiplicity", dc_multiplicity / dc_multiplicity_n);
+          _pv_list.Put(std::string("hc")  + _spectrometer_name+ "TrackingEff", eff_num / eff_den);
+          _pv_list.Put(std::string("hc")  + _spectrometer_name+ "hcSHMSTrackingEff:Unc",
                        std::sqrt(double(n_num)) / (n_num + n_den + 0.0000001));
           eff_num = 0.000000001;
           eff_den = 0.0;

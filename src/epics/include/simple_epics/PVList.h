@@ -8,7 +8,10 @@
 #include <mutex>
 #include <map>
 
-#include "simple_epics/PVBuffer.h"
+
+//#include "podd2/Logger.h"
+
+//#include "simple_epics/PVBuffer.h"
 //#include "pva/client.h"
 namespace pvac {
   class ClientChannel;
@@ -36,18 +39,18 @@ namespace hallc {
     PV_value_map          m_pv_values;
     PV_channel_map        m_pv_channels;
     std::vector<int>      m_array_index;
-    std::vector<PVBuffer> m_pv_buffers;
+    //std::vector<PVBuffer> m_pv_buffers;
 
   public:
     PVList();
     PVList(const PVList&) = default ;
     PVList(const std::vector<std::string>& names);
-    ~PVList();
+    virtual ~PVList();
 
     /** Add a new process variable to list. 
      * Returns the list index for a new or existing variable.
      */
-    int AddPV(const std::string&);
+    virtual int AddPV(const std::string&);
 
     float GetValue(const std::string& n) const; 
     float GetValue(int n) const;
@@ -58,12 +61,12 @@ namespace hallc {
     void Init() { }
 
     int          GetN() const { return m_N_pvs; }
-    unsigned int GetNBuffers() const { return m_pv_buffers.size(); }
-    int          GetBufferSize(int n) const ;
-    int          GetBufferOffset(int n) const ;
+    //unsigned int GetNBuffers() const { return m_pv_buffers.size(); }
+    //int          GetBufferSize(int n) const ;
+    //int          GetBufferOffset(int n) const ;
 
-    PVBuffer&            GetBuffer(int n) ;
-    std::vector<float>&  GetBufferCopy(int n) ;
+    //PVBuffer&            GetBuffer(int n) ;
+    //std::vector<float>&  GetBufferCopy(int n) ;
 
     void TestPut(std::string pvname, double val);
     
@@ -72,13 +75,12 @@ namespace hallc {
      */
     void Put(std::string pvname, double val);
 
-
-    void PollAndPrintAll() ;
-    void PrintAll() const;
+    virtual void PollAndPrintAll() ;
+    virtual void PrintAll() const;
 
     /** This actually goes to CA and gets new values for all variables.
      */
-    void Poll();
+    virtual void Poll();
 
   private:
     class Impl;
