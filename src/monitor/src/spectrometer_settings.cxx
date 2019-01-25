@@ -118,37 +118,38 @@ table_range_t build_range_with_DBASE(std::string dbfile, std::vector<int> runlis
   
   std::string file_name           = "";
   std::string kinematics_filename = "";
-  bool use_dot_kinematics = flase;
+  bool use_dot_kinematics = false;
   fs::path dbfile_path(dbfile);
-  if( fs::exists(dbfile_path) && fs::is_symlink(dbfile_path) ){
+  if( fs::exists(fs::status(dbfile_path)) && fs::is_symlink(dbfile_path) ){
     dbfile_path =  fs::read_symlink(dbfile_path);
   }
-  if ((fs::exists(dbfile_path)) && (fs::is_regular_file(dbfile_path)) {
-    use_dot_kinematics true;
-    kinematics_filename = dbfile + "/DBASE/"+spec_daq+"/standard.kinematics";
-  } else if ((fs::exists(dbfile_path)) && (fs::is_directory(dbfile_path)) {
+  if ((fs::exists(dbfile_path)) && (fs::is_regular_file(dbfile_path))) {
+    use_dot_kinematics =true;
+    kinematics_filename = dbfile;
+  } else if ((fs::exists(dbfile_path)) && (fs::is_directory(dbfile_path))) {
     // use standard database
-    use_dot_kinematics false;
+    use_dot_kinematics =false;
+    //kinematics_filename = dbfile + "/DBASE/"+spec_daq+"/standard.kinematics";
     file_name           = dbfile + "/DBASE/"+spec_daq+"/standard.database";
   }
 
 
   if(!use_dot_kinematics) {
-  fs::path in_path = file_name;
-  if (!fs::exists(in_path)) {
-    std::cerr << "File : " << file_name << " not found.\n";
-    std::exit(EXIT_FAILURE);
-  }
-  std::string db_dir = dbfile + "/DBASE";
-  if (!fs::exists(dbfile + "/DBASE")) {
-    std::cerr << "Directory : " << dbfile + "/DBASE"
-              << " not found.\n";
-    std::exit(EXIT_FAILURE);
-  }
-  if (setenv("DB_DIR", db_dir.c_str(), 1)) {
-    std::cout << "Failed to set env var DB_DIR\n";
-    std::exit(EXIT_FAILURE);
-  }
+    fs::path in_path = file_name;
+    if (!fs::exists(in_path)) {
+      std::cerr << "File : " << file_name << " not found.\n";
+      std::exit(EXIT_FAILURE);
+    }
+    std::string db_dir = dbfile + "/DBASE";
+    if (!fs::exists(dbfile + "/DBASE")) {
+      std::cerr << "Directory : " << dbfile + "/DBASE"
+                << " not found.\n";
+      std::exit(EXIT_FAILURE);
+    }
+    if (setenv("DB_DIR", db_dir.c_str(), 1)) {
+      std::cout << "Failed to set env var DB_DIR\n";
+      std::exit(EXIT_FAILURE);
+    }
   }
   // if(const char* env_p = std::getenv("DB_DIR"))
   //     std::cout << "Your DB_DIR is: " << env_p << '\n';
@@ -167,9 +168,15 @@ table_range_t build_range_with_DBASE(std::string dbfile, std::vector<int> runlis
   // ----------------------------------------------------------
   //
   auto rng = runlist | view::transform([&](int irun) -> table_entry_t {
-    if( use_dot_kinematics ) {
-               hc_parms->Load(kinematics_filename.c_str(), irun);
-    }
+               if (use_dot_kinematics) {
+                 hc_parms->Load(kinematics_filename.c_str(), irun);
+                 //std::cout << kinematics_filename.c_str() << ", " << irun << "\n";
+               } else {
+               //if(!use_dot_kinematics) {
+                 hc_parms->Load(hc_parms->GetString("g_ctp_database_filename"), irun);
+                 hc_parms->Load(hc_parms->GetString("g_ctp_kinematics_filename"), irun);
+                 //std::cout << file_name.c_str() << ", " << irun << "\n";
+               }
                //return ({hcana::json::FindVarValueOr(hc_parms, "htheta_lab", 0.0),
                //         hcana::json::FindVarValueOr(hc_parms, "hpcentral", 0.0),
                //         hcana::json::FindVarValueOr(hc_parms, "ptheta_lab", 0.0),
