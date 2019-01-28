@@ -14,8 +14,8 @@
 //auto build_range_with(bool use_json_input, std::string dbfile, std::vector<int> runlist );
 //auto build_range_with_json(std::string dbfile, std::vector<int> runlist);
 
-enum class RunMode { standard, build, find, help, print };
-enum class FilterMode { angle, momentum  };
+enum class RunMode { standard, build, find, help, print, get };
+enum class FilterMode { angle, momentum, runnumber  };
 enum class FilterSpec { none, both, hms, shms  };
 
 //using table_range_t = std::vector<std::pair<int, std::array<double, 4>>>;
@@ -41,8 +41,11 @@ struct cli_settings {
   using string = std::string;
 
   static std::string GetFilterMode(FilterMode s)  {
-    const std::map<FilterMode, std::string> spec_to_string = {{FilterMode::angle, "angle"},
-                                                              {FilterMode::momentum, "momentum"}};
+    const std::map<FilterMode, std::string> spec_to_string = {
+        {FilterMode::angle, "angle"},
+        {FilterMode::momentum, "momentum"},
+        {FilterMode::runnumber, "runnum"},
+    };
     auto search = spec_to_string.find(s);
     if (search == spec_to_string.end()) {
       return "angle";
@@ -100,6 +103,10 @@ struct cli_settings {
   bool                has_filter     = false;
   std::vector<FilterSpec> fspecs     = {};
   std::vector<FilterMode> fmodes     = {};
+  std::vector<std::pair<FilterSpec, FilterMode>>  get_modes  = {};
+  bool                get_use_shms       = false;
+  bool                get_use_hms        = false;
+  std::vector<FilterSpec> get_specs  = {};
   std::vector<double> filter_values  = {};
   std::vector<double> filter_deltas  = {};
   string              daq_spec_type  = "COIN";
@@ -166,8 +173,39 @@ struct cli_settings {
     //            (print_cmd, filter_opt & momentum_filter_type ) |
     //            (build_cmd, filter_opt & angle_filter_type ),
     //        first_args, standard_args, last_args);
+    // todo: add args for "get" behaviour
+    // hcspec -r 1234 get shms angle
+    // prints just "20.0"
+    // hcspec -r 1234 get shms theta
+    // hcspec -r 1234 get shms momentum
+    // hcspec -r 1234 get shms p0
+    // hcspec -r 1234 get momentum # prints both spectrometers
+
+ //"spectrometer angle in degrees." %
+    auto get_angle    = option("theta")([this] {
+      this->get_modes.push_back({get_specs.back(), FilterMode::angle});
+    });
+    auto get_momentum = "spectrometer momentum in GeV/c" %  option("P0")([this] {
+                          this->get_modes.push_back({get_specs.back(), FilterMode::momentum});
+                        });
+    auto get_both = "get angle [degrees] and momentum [GeV/c]" %  option("both")([this] {
+                          this->get_modes.push_back({get_specs.back(), FilterMode::angle});
+                          this->get_modes.push_back({get_specs.back(), FilterMode::momentum});
+                        });
+    auto get_runnum = "run number corresponding to spectrometer values" %  option("runnum")([this] {
+                          this->get_modes.push_back({get_specs.back(),FilterMode::runnumber});
+                        });
+
+    auto get_command =
+        "Get the hms, shms, or both values alone. Both prints the hms value then shms." %
+        repeatable(option("get").set(mode, RunMode::get) &
+                   value("specs")([&](const string& v) { get_specs.push_back(GetSpec(v)); }) &
+                   (get_angle, get_momentum, get_both, get_runnum));
+
     return (first_args, "Filters" % (filter_spec, "filter by " % (filter_angle | filter_momentum)) |
-                            "Print spectrometer" % print_cmd);
+                            "Print spectrometer" % print_cmd |
+                            "Get specific spectrometer settings" % get_command);
+    //
   }
 
   auto GetFormat() {
