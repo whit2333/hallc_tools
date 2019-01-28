@@ -293,8 +293,19 @@ int main(int argc, char* argv[]) {
     opts.mode = RunMode::print;
   }
 
+  for (auto& aspec : opts.get_specs) {
+    if (aspec == FilterSpec::hms) {
+      opts.get_use_hms  = true;
+    } else if (aspec == FilterSpec::shms) {
+      opts.get_use_shms = true;
+    } else if (aspec == FilterSpec::both) {
+      opts.get_use_shms = true;
+      opts.get_use_hms  = true;
+    }
+  }
+
   // If neither are given, use both
-  if( (!opts.use_shms) && (!opts.use_hms)) {
+  if ((!opts.use_shms) && (!opts.use_hms)) {
     opts.use_shms = true;
     opts.use_hms = true;
   } else if(opts.use_shms) {
@@ -417,6 +428,9 @@ int main(int argc, char* argv[]) {
     opts.mode = RunMode::print;
   }
 
+  // ----------------------
+  // Run Modes 
+  // ----------------------
 
   switch (opts.mode) {
 
@@ -453,6 +467,38 @@ int main(int argc, char* argv[]) {
       }
     }
     break;
+
+  case RunMode::get:
+      for (auto en : output_settings) {
+        //int arun_num = std::get<0>(en);
+        //fmt::print("{:<9} ", arun_num);
+        //std::cout << arun_num << " :";
+        for (auto& gmode : opts.get_modes) {
+          if (gmode.first == FilterSpec::hms) {
+            if (gmode.second == FilterMode::angle) {
+              fmt::print("{:5.3f} ", std::get<1>(en)["hms"]["angle"]);
+            }
+            if (gmode.second == FilterMode::momentum) {
+              fmt::print("{:5.3f} ", std::get<1>(en)["hms"]["momentum"]);
+            }
+            if (gmode.second == FilterMode::runnumber) {
+              fmt::print("{} ", (int)std::get<0>(en));
+            }
+          }
+          if (gmode.first == FilterSpec::shms) {
+            if (gmode.second == FilterMode::angle) {
+              fmt::print("{:5.3f} ", std::get<1>(en)["shms"]["angle"]);
+            }
+            if (gmode.second == FilterMode::momentum) {
+              fmt::print("{:5.3f} ", std::get<1>(en)["shms"]["momentum"]);
+            }
+            if (gmode.second == FilterMode::runnumber) {
+              fmt::print("{} ", (int)std::get<0>(en));
+            }
+          }
+        }
+        std::cout << "\n";
+      }
 
   case RunMode::build:
 
