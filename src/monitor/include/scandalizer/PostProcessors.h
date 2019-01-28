@@ -217,6 +217,7 @@ namespace hallc {
       }
       virtual ~TrackingEfficiencyMonitor(){}
 
+      ClassDef(TrackingEfficiencyMonitor, 1)
     };
   }
 }
