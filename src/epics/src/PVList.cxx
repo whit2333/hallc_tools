@@ -18,12 +18,12 @@ namespace hallc {
   //______________________________________________________________________________
 
   PVList::PVList()
-      : m_N_pvs(0), m_provider(std::make_shared<pvac::ClientProvider>("pva")),
+      : podd2::AnalysisLogging<podd2::EmptyBase>(), m_N_pvs(0), m_provider(std::make_shared<pvac::ClientProvider>("pva")),
         m_impl(std::make_shared<Impl>()) {}
   //______________________________________________________________________________
 
   PVList::PVList(const std::vector<std::string>& names)
-      : m_N_pvs(0), m_provider(std::make_shared<pvac::ClientProvider>("pva")),
+      : podd2::AnalysisLogging<podd2::EmptyBase>(), m_N_pvs(0), m_provider(std::make_shared<pvac::ClientProvider>("pva")),
         m_impl(std::make_shared<Impl>()) {
     for (const auto& name : names) {
       if (m_pv_index.count(name) == 0) {
@@ -34,7 +34,8 @@ namespace hallc {
           m_pv_channels[index] = m_provider->connect(name);
           ret                  = m_pv_channels[index].get(2.0); // 5.0,epics::pvData::ValueBuilder()
         } catch (std::exception& e) {
-          std::cout << e.what() << '\n';
+          //std::cout << e.what() << '\n';
+          _ana_logger->error("{}",e.what());
           continue;
         }
         m_pv_names[index] = name;
@@ -42,6 +43,7 @@ namespace hallc {
         auto val          = ret->getSubField<epics::pvData::PVDouble>("value");
         m_pv_values.push_back(val->getAs<float>());
         std::cout << m_pv_values[index] << std::endl;
+        _ana_logger->debug("PV list value for index {}, {} = {}", index, name, m_pv_values[index]);
         m_pv_index[name] = index;
         //m_pv_buffers.push_back(PVBuffer(0.0));
         // array index starting from the front
@@ -83,10 +85,11 @@ namespace hallc {
       //m_pv_buffers.push_back(PVBuffer(0.0));
       m_N_pvs++;
       } catch (const std::exception& e) {
-         std::cout << e.what() << "\n"; // information from length_error is lost
-         std::cout << " Epics hallc run_info ioc is probably not running or needs restarted.\n"
-                      " See https://github.com/whit2333/hallc_epics_run_info for more info.\n";
-         std::cout << "PV " << name << " not added to PVList\n";
+        _ana_logger->error("{}", e.what());
+         //std::cout << e.what() << "\n"; // information from length_error is lost
+        _ana_logger->error(" Epics hallc run_info ioc is probably not running or needs restarted.");
+        _ana_logger->error(" See https://github.com/whit2333/hallc_epics_run_info for more info.");
+        _ana_logger->error("PV {} not added to PVList",name);
       }
       return index;
     }

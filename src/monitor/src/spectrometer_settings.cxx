@@ -286,8 +286,9 @@ int main(int argc, char* argv[]) {
 
   // -----------------------------------------------------
   // If the output is being piped then only ouput json
+  // However, if using the "get" command is used, force json to be ignored
   bool is_piped_out = false;
-  if (!isatty(fileno(stdout))) {
+  if (!isatty(fileno(stdout)) && (opts.mode != RunMode::get) ) {
     is_piped_out = true;
     opts.output_format = "json";
     opts.mode = RunMode::print;

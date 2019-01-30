@@ -45,8 +45,17 @@ namespace hallc {
         if (!_dc) {
           _ana_logger->error("drift chamber not defined");
         }
-        std::vector<std::string> pvs = {":Hod:Mult",       "DCMultiplicity",  "TrackingEff",
-                                        "TrackingEff:Unc", "TrackingEff.LOW", "TrackingEff.LOLO"};
+
+//hcSHMS:DC:Mult
+//hcSHMS:DC:Occupancy
+//hcSHMS:TrackingEff
+//hcSHMS:TrackingEff:Unc
+//hcSHMS:Hod:Mult
+//hcSHMS:incl:e:yields
+//hcSHMS:incl:pion:yields
+        std::vector<std::string> pvs = {":DC:Mult",         ":Hod:Mult",        ":DC:Occupancy",
+                                        ":TrackingEff",     ":TrackingEff:Unc", ":TrackingEff.LOW",
+                                        ":TrackingEff.LOLO"};
         for (const auto& n : pvs) {
           _pv_list.AddPV(std::string("hc")  + _spectrometer_name + n);
         }
@@ -111,9 +120,9 @@ namespace hallc {
                              hod_multiplicity / hod_multiplicity_n);
           // Todo: fix this PV naming code
           _pv_list.Put(std::string("hc")  + _spectrometer_name+ ":Hod:Mult", hod_multiplicity / hod_multiplicity_n);
-          _pv_list.Put(std::string("hc")  + _spectrometer_name+ "DCMultiplicity", dc_multiplicity / dc_multiplicity_n);
-          _pv_list.Put(std::string("hc")  + _spectrometer_name+ "TrackingEff", eff_num / eff_den);
-          _pv_list.Put(std::string("hc")  + _spectrometer_name+ "hcSHMSTrackingEff:Unc",
+          _pv_list.Put(std::string("hc")  + _spectrometer_name+ ":DC:Multiplicity", dc_multiplicity / dc_multiplicity_n);
+          _pv_list.Put(std::string("hc")  + _spectrometer_name+ ":TrackingEff", eff_num / eff_den);
+          _pv_list.Put(std::string("hc")  + _spectrometer_name+ ":TrackingEff:Unc",
                        std::sqrt(double(n_num)) / (n_num + n_den + 0.0000001));
           eff_num = 0.000000001;
           eff_den = 0.0;

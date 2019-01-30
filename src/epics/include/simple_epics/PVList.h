@@ -8,8 +8,7 @@
 #include <mutex>
 #include <map>
 
-
-//#include "podd2/Logger.h"
+#include "podd2/Logger.h"
 
 //#include "simple_epics/PVBuffer.h"
 //#include "pva/client.h"
@@ -23,7 +22,7 @@ namespace hallc {
   /** PV Get-List. Continuously updated list of variables.
    *
    */
-  class PVList {
+  class PVList : podd2::AnalysisLogging<podd2::EmptyBase> {
   public:
     using PV_index_name_map  = std::map<std::string,int>;
     using PV_name_map        = std::map<int,std::string>;
