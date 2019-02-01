@@ -52,8 +52,9 @@ namespace hallc {
     };
 
     /** Skips a fixed number of events after 1000 pedestal events.  
+     *
      */
-    class SkipAfterPedestal  : public SimplePostProcess {
+    class SkipAfterPedestal  final : public SimplePostProcess {
     public:
 
       SkipAfterPedestal(int N_skip = 3000)

@@ -44,6 +44,7 @@ find_package(spdlog REQUIRED)
 # Scandalizer library
 add_library(Scandalizer SHARED 
   src/ExperimentMonitor.cxx
+  src/DetectorDisplay.cxx
   src/PostProcessors.cxx
   ${CMAKE_CURRENT_BINARY_DIR}/ScandalizerDict.cxx
   )
@@ -51,6 +52,7 @@ add_library(Scandalizer SHARED
 set(lib_HEADERS 
   include/scandalizer/PostProcessors.h
   include/monitor/ExperimentMonitor.h
+  include/monitor/DetectorDisplay.h
   )
 
 root_generate_dictionary(ScandalizerDict 
