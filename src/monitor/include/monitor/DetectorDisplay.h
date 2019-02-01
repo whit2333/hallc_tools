@@ -50,15 +50,28 @@ namespace hallc {
   };
 
 
-  /** Detector Displays
+  /** Detector Displays.
+   *
+   * \code{.cpp}
+   * auto plt2 = ddisplay->CreateDisplayPlot(
+   *     [&](hallc::DisplayPlot& plt) {
+   *       plt._canvas = new TCanvas();
+   *       // initialize plots here
+   *       return 0;
+   *     },
+   *     [&](hallc::DisplayPlot& plt) {
+   *       // update histograms here
+   *       return 0;
+   *     });
+   * \endcode
    *
    */
   struct DetectorDisplay  {
     using InitFunction_t   = std::function<int(DisplayPlot&)>;
     using UpdateFunction_t = std::function<int(DisplayPlot&)>;
 
-    std::shared_ptr<THttpServer> _server;
-    std::map<int, std::shared_ptr<DisplayPlot>>   _plots;
+    std::shared_ptr<THttpServer>                 _server;
+    std::map<int, std::shared_ptr<DisplayPlot>>  _plots;
 
     DetectorDisplay()
         : _server(std::make_shared<THttpServer>("http:8888?top=replay;rw")) {}
