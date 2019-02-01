@@ -896,7 +896,6 @@ EXCLUDE_PATTERNS       =  */catch/*     \
                           */clipp.h     \
                           */clipp.hpp   \
                           */analysis/*  \
-                          */run_info/*  \
                           */test/*      \
                           test/*
 

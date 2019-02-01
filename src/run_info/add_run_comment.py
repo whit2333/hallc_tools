@@ -12,11 +12,11 @@ import threading
 
 import argparse
 
-parser = argparse.ArgumentParser(description='Accumulate run information.')
-parser.add_argument('-r', '--run', 
-        default = int(caget("hcCOINRunNumber")),
-        #required = True,
-        help = 'the run to add a comment',
+parser = argparse.ArgumentParser(description='Add a run comment and other annotations to a json format run list file.')
+parser.add_argument('-r', '--run','--run-number',
+        #default = int(caget("hcCOINRunNumber")),
+        required = True,
+        help = 'Run number to associated with the comment and/or annotate.',
         dest='run')
 parser.add_argument('-a','--append', 
         action = "store_true",
@@ -27,10 +27,11 @@ parser.add_argument('-u','--update',
         help='update run file')
 parser.add_argument('-f', '--file', 
         default = 'db2/run_list_extra.json',
-        help = 'The json run file to add a comment in',
+        help = 'The json run file to add a comment in. Default: db2/run_list_extra.json',
         dest='file')
 parser.add_argument('-c', '--comment', 
         help = 'specify the comment on the commandline',
+        required = True,
         default = None,
         dest='comment')
 parser.add_argument('-k', '--kine', 
