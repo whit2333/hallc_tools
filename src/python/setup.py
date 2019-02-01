@@ -43,11 +43,11 @@ setup(name='hallc',
       author_email='whit@jlab.org',
       license='MIT',
       packages=['hallc'],
-      #install_requires=[ 'markdown', ],
+      install_requires=[ 'pyepics', ],
       #dependency_links=['http://github.com/user/repo/tarball/master#egg=package-1.0']
       test_suite='nose.collector',
       tests_require=['nose'],
-      scripts=['bin/debug_run_info'],
+      scripts=['bin/debug_run_info','bin/hallc_runinfo_service'],
       include_package_data=True,
       classifiers=[
           "Programming Language :: Python :: 3",
