@@ -14,6 +14,12 @@ setup(name='hallc',
       tests_require=['nose'],
       scripts=['bin/debug_run_info'],
       include_package_data=True,
-      zip_safe=False)
+      classifiers=[
+          "Programming Language :: Python :: 3",
+          "License :: OSI Approved :: MIT License",
+          "Operating System :: OS Independent",
+          ],
+      zip_safe=False,
+      )
 
 
