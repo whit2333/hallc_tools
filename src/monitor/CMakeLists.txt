@@ -6,6 +6,11 @@ include(PoddCMakeEnv)
 
 find_package(spdlog REQUIRED)
 
+SET(Boost_USE_STATIC_LIBS OFF)
+SET(Boost_USE_MULTITHREAD ON)
+find_package( Boost 1.50 COMPONENTS system thread regex REQUIRED )
+INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
+
 ############################
 ## ExpMonitor library
 #add_library(ExpMonitor SHARED 
@@ -45,7 +50,9 @@ find_package(spdlog REQUIRED)
 add_library(Scandalizer SHARED 
   src/ExperimentMonitor.cxx
   src/DetectorDisplay.cxx
+  src/DisplayServer.cxx
   src/PostProcessors.cxx
+  src/EventDisplays.cxx
   ${CMAKE_CURRENT_BINARY_DIR}/ScandalizerDict.cxx
   )
 
@@ -53,6 +60,8 @@ set(lib_HEADERS
   include/scandalizer/PostProcessors.h
   include/monitor/ExperimentMonitor.h
   include/monitor/DetectorDisplay.h
+  include/monitor/DisplayServer.h
+  include/monitor/EventDisplays.h
   )
 
 root_generate_dictionary(ScandalizerDict 
@@ -146,3 +155,36 @@ install(TARGETS Scandalizer experiment_monitor hcspec
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
+
+################################
+# experiment_monitor executable
+add_executable(chat_client
+  tests/async_tcp_client.cpp)
+add_executable(chat_server  tests/server.cpp)
+#target_compile_features(chat PUBLIC cxx_std_17)
+target_include_directories(chat_client
+  PRIVATE ${Boost_INCLUDE_DIR}
+  PRIVATE /usr/include/boost
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/chat
+  PRIVATE include    
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+target_link_libraries(chat_client
+  PRIVATE ${Boost_LIBRARIES}
+  PRIVATE nlohmann_json::nlohmann_json
+  PUBLIC ${CXX_FILESYSTEM_LIB}
+  #PUBLIC InSANEbase
+  )
+target_include_directories(chat_server
+  PRIVATE ${Boost_INCLUDE_DIR}
+  PRIVATE /usr/include/boost
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/chat
+  PRIVATE include    
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+target_link_libraries(chat_server
+  PRIVATE ${Boost_LIBRARIES}
+  PRIVATE nlohmann_json::nlohmann_json
+  PUBLIC ${CXX_FILESYSTEM_LIB}
+  #PUBLIC InSANEbase
+  )

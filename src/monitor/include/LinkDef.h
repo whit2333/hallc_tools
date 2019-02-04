@@ -9,13 +9,28 @@
 
 #pragma link C++ namespace hallc;
 #pragma link C++ namespace hallc::scandalizer;
+#pragma link C++ namespace hallc::event_display;
+#pragma link C++ namespace hallc::display;
 
 #pragma link C++ class hallc::scandalizer::SimplePostProcess+;
 #pragma link C++ class hallc::scandalizer::SpectrometerMonitor+;
 #pragma link C++ class hallc::scandalizer::TrackingEfficiencyMonitor+;
+
+#pragma link C++ class hallc::display::PlotData+;
 #pragma link C++ class hallc::DisplayPlot+;
 //#pragma link C++ class std::shared_ptr<hallc::DisplayPlot>+;
+
+#pragma link C++ class std::map<int, hallc::DisplayPlot*>+;
+#pragma link C++ class std::map<int, hallc::display::PlotData*>+;
+
+#pragma link C++ class hallc::DisplayServer+;
+
 #pragma link C++ class hallc::DetectorDisplay+;
+#pragma link C++ class hallc::DisplayPostProcess+;
+
+#pragma link C++ class hallc::event_display::BasicEventDisplay+;
+#pragma link C++ class hallc::event_display::HMSEventDisplay+;
+#pragma link C++ class hallc::event_display::SHMSEventDisplay+;
 
 //#pragma link C++ class hallc::HCKinematic+;
 //#pragma link C++ class std::vector<hallc::HCKinematic>+;
