@@ -2,7 +2,7 @@
 
 from epics import PV
 from hallc.error import HallCError
-from time import time as tm
+from time import sleep
 
 class RunTypeError(HallCError):
     '''Exception raised when trying to access an unknown run type.'''
@@ -15,7 +15,6 @@ class EventTypeError(HallCError):
         self.message = 'Unknown event: {} (known events: {})'.format(
                     event, known_events)
 
-
 class _RunListener:
     '''Run listener for a single run type.
 
@@ -23,12 +22,12 @@ class _RunListener:
     '''
     def __init__(self, run_type):
         '''Initialize the listener for run_type.'''
-        self.name = 'listener for {} runs'.format(run_type)
         self.run_type = run_type.upper()
+        self.name = 'listener for {} runs'.format(self.run_type)
         print('Creating ' + self.name)
         self.reset()
-        self.pv_is_running = PV('hc{}RunInProgress'.format(self.run_type)),
-                                 callback=self._listener)
+        self.pv_is_running = PV('hc{}RunInProgress'.format(
+            self.run_type), callback=self._listener)
         self.pv_run_number = PV('hc{}RunNumber'.format(self.run_type))
     def reset(self):
         '''Reset/initialize the listener.'''
@@ -47,19 +46,20 @@ class _RunListener:
             self._stop_run()
     def _listener(self, pvname=None, value=None, char_value=None, **kwargs):
         '''Event listener, dispatches events.'''
+        print('got here...')
         run_in_progress = int(char_value)
-        if run_in_progress and not coda_running:
+        if run_in_progress and not self.coda_running:
             self._start_run()
-        elif not run_in_progress and coda_running
+        elif not run_in_progress and self.coda_running:
             self._end_run()
-    def _start_run(self)
+    def _start_run(self):
         '''Handle start_run event.'''
         self.run_number = self.pv_run_number.get()
         print('New {} run started: {}'.format(self.run_type, self.run_number))
         self.coda_running = True
         for task in self.tasks['on_run_start']:
             task(self.run_number)
-    def _stop_run(self)
+    def _stop_run(self):
         '''Handle stop_run event.'''
         self.run_number = self.pv_run_number.get()
         print('End of {} run: {}'.format(self.run_type, self.run_number))
@@ -84,7 +84,7 @@ class RunDaemon:
     def __init__(self):
         '''Constructs a RunDaemon object.'''
         self.listener = {}
-        print('Starting hallc.RunDaemon')
+        print('Constructing hallc.RunDaemon')
         for type in RunDaemon.known_types:
             if type is not 'all':
                 self.listener[type] = _RunListener(type)
@@ -123,7 +123,7 @@ class RunDaemon:
         try:
             ## slow infinite loop, everything happens through epics callbacks anyway
             while True:
-                time.sleep(10)
+                sleep(10)
         except KeyboardInterrupt:
             self.interrupt()
             print('RunDaemon Stopped')
