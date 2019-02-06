@@ -41,30 +41,28 @@ class _RunListener:
         else:
             raise EventTypeError(event, [e for e in self.tasks])
     def interrupt(self):
-        '''Interrupt the listener by issue a stop_run event if CODA is running.'''
+        '''Interrupt the listener by issue a run_stop event if CODA is running.'''
         if self.coda_running:
-            self._stop_run()
+            self._run_stop()
     def _listener(self, pvname=None, value=None, char_value=None, **kwargs):
         '''Event listener, dispatches events.'''
-        print('got here...')
         run_in_progress = int(char_value)
+        self.run_number = int(self.pv_run_number.get())
         if run_in_progress and not self.coda_running:
-            self._start_run()
+            self._run_start()
         elif not run_in_progress and self.coda_running:
-            self._end_run()
-    def _start_run(self):
-        '''Handle start_run event.'''
-        self.run_number = self.pv_run_number.get()
+            self._run_stop()
+    def _run_start(self):
+        '''Handle run_start event.'''
         print('New {} run started: {}'.format(self.run_type, self.run_number))
         self.coda_running = True
-        for task in self.tasks['on_run_start']:
+        for task in self.tasks['run_start']:
             task(self.run_number)
-    def _stop_run(self):
-        '''Handle stop_run event.'''
-        self.run_number = self.pv_run_number.get()
+    def _run_stop(self):
+        '''Handle run_stop event.'''
         print('End of {} run: {}'.format(self.run_type, self.run_number))
         self.coda_running = False
-        for task in self.tasks['on_run_stop']:
+        for task in self.tasks['run_stop']:
             task(self.run_number)
 
 class RunDaemon:
@@ -77,8 +75,8 @@ class RunDaemon:
       - all: executed for all run types
 
     Known run-level events are:
-      - start_run: CODA start-of-run event
-      - stop_run: CODA end-of-run event 
+      - run_start: CODA start-of-run event
+      - run_stop: CODA end-of-run event 
     '''
     known_types = ['all', 'coin', 'shms', 'hms']
     def __init__(self):
@@ -92,20 +90,24 @@ class RunDaemon:
         '''Add a listener to a run-related event.
 
         Arguments: 
-          - event: run-level event (start_run or stop_run)
+          - event: run-level event (run_start or run_stop)
           - callback: function f(run_number) to be executed on the event
           - run_type: 'coin', 'shms', 'hms' or 'all'
         '''
-        print('Adding new {} listener for {} runs'.format(event, run_type))
+        print('Adding new {} listener for {} runs'.format(event, run_type.upper()))
         if run_type not in RunDaemon.known_types:
             raise UnknownRunTypeError(run_type, RunDaemon.known_types)
         ## get list of all run types we want to add this for, splitting up 'all'
         ## into the other run types
         run_types = [run_type]
+        if run_type is 'all':
+            run_types = [type for type in RunDaemon.known_types if type is not 'all']
+        for type in run_types:
+            self.listener[type].on_event(event, callback)
     def interrupt(self):
         '''Interrupt the RunDaemon.
 
-        Sends a stop_run event to all listeners if CODA is running
+        Sends a run_stop event to all listeners if CODA is running
         '''
         self._apply_to_listeners('interrupt')
     def reset(self):
@@ -128,7 +130,7 @@ class RunDaemon:
             self.interrupt()
             print('RunDaemon Stopped')
 
-    def _apply_to_listeners(self, function):
+    def _apply_to_listeners(self, function, *args):
         '''Apply a simple function to all listeners.'''
         for type in self.listener:
-            getattr(self.listener[type], function)()
+            getattr(self.listener[type], function)(*args)
