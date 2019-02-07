@@ -23,7 +23,14 @@
 #pragma link C++ class std::map<int, hallc::DisplayPlot*>+;
 #pragma link C++ class std::map<int, hallc::display::PlotData*>+;
 
+#pragma link C++ class hallc::display::DisplayData+;
+
 #pragma link C++ class hallc::DisplayServer+;
+#pragma link C++ class hallc::EventDisplayServer+;
+
+#pragma link C++ class hallc::MonitoringDisplay+;
+#pragma link C++ class hallc::ExperimentMonitor+;
+#pragma link C++ class hallc::ExperimentMonitorPostProcess+;
 
 #pragma link C++ class hallc::DetectorDisplay+;
 #pragma link C++ class hallc::DisplayPostProcess+;

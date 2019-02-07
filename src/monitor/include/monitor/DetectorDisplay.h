@@ -1,97 +1,33 @@
 #ifndef hallc_DetectorDisplay_HH
 #define hallc_DetectorDisplay_HH
 
-#include "TSystem.h"
+#include "TCanvas.h"
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TH3F.h"
-#include "TCanvas.h"
 #include "THttpServer.h"
-#include <vector>
-#include <map>
-#include <memory>
-#include <functional>
-
-#include "THcParmList.h"
-#include "CodaDecoder.h"
-#include "THaEvData.h"
-#include "THaPostProcess.h"
-
 #include "TMessage.h"
 #include "TMonitor.h"
 #include "TServerSocket.h"
 #include "TSocket.h"
+#include "TSystem.h"
 
-#include "podd2/Logger.h"
+#include <functional>
+#include <map>
+#include <memory>
+#include <vector>
+
+#include "CodaDecoder.h"
+#include "THaEvData.h"
+#include "THaPostProcess.h"
+#include "THcParmList.h"
 
 #include "cppitertools/zip.hpp"
+#include "podd2/Logger.h"
+#include "monitor/DisplayPlots.h"
+#include "monitor/MonitoringDisplay.h"
 
 namespace hallc {
-
-  namespace display {
-
-    /**
-     */
-    struct PlotData {
-      PlotData(){}
-      PlotData(std::string name) : _name(name) {}
-
-      int                _id     = 0;
-      TCanvas*           _canvas = nullptr;
-      std::vector<TH1F*> _hists1; /// 1D histograms
-      std::vector<TH2F*> _hists2; /// 2D histograms
-      std::vector<TH3F*> _hists3; /// 2D histograms
-      std::string        _name = "";
-
-      void Merge(PlotData* d){
-        for(auto&& [h1,h2] : iter::zip(_hists1, d->_hists1)) {
-          (*h1) = (*h2);
-        }
-        for(auto&& [h1,h2] : iter::zip(_hists2, d->_hists2)) {
-          (*h1) = (*h2);
-        }
-      }
-
-      ClassDef(PlotData,1)
-    };
-
-  } // namespace display
-
-
-  /** Display Plot.
-   *
-   */
-  class DisplayPlot  {
-  public:
-    using InitFunction_t   = std::function<int(DisplayPlot&)>;
-    using UpdateFunction_t = std::function<int(DisplayPlot&)>;
-
-    UpdateFunction_t   _update_lambda;
-    InitFunction_t     _init_lambda;
-
-    display::PlotData _plot_data;
-
-  public:
-    DisplayPlot() : _plot_data("empty") {}
-    DisplayPlot(const DisplayPlot&) = default;
-    DisplayPlot(std::string name, InitFunction_t&& f_i, UpdateFunction_t&& f_u)
-        : _plot_data(name), _init_lambda(std::forward<InitFunction_t>(f_i)),
-          _update_lambda(std::forward<UpdateFunction_t>(f_u)) {}
-    DisplayPlot(InitFunction_t&& f_i, UpdateFunction_t&& f_u)
-        : _plot_data("unnamed"), _init_lambda(std::forward<InitFunction_t>(f_i)),
-          _update_lambda(std::forward<UpdateFunction_t>(f_u)) {}
-
-    int Init() {
-      _init_lambda(*this);
-      return 0;
-    }
-    int Update() {
-      _update_lambda(*this);
-      return 0;
-    }
-    ClassDef(DisplayPlot,1)
-  };
-
 
   /** Detector Displays.
    *
@@ -109,33 +45,25 @@ namespace hallc {
    * \endcode
    *
    */
-  struct DetectorDisplay  {
+  struct DetectorDisplay  : public hallc::MonitoringDisplay {
   public:
-    using InitFunction_t   = std::function<int(DisplayPlot&)>;
-    using UpdateFunction_t = std::function<int(DisplayPlot&)>;
+    DetectorDisplay(){}
+    DetectorDisplay(int num) : hallc::MonitoringDisplay(num){}
+    virtual ~DetectorDisplay(){}
 
-    TSocket*                                 _sock = nullptr; //!
-    std::map<int, DisplayPlot*>              _plots;
-    std::map<int, hallc::display::PlotData*> _plot_map; // for passing over socket
-    //std::shared_ptr<THttpServer>                 _server = nullptr;
+    //DisplayPlot* CreateDisplayPlot(std::string name, InitFunction_t&& f_init,
+    //                               UpdateFunction_t&& f_update);
 
-  public:
-    DetectorDisplay();
-    virtual ~DetectorDisplay(){
-      _sock->Send("Finished");          // tell server we are finished
-      _sock->Close();
-    }
+    //void                         RegisterPlot(DisplayPlot* plot);
+    //void                         InitAll();
+    //void                         Process();
+    //void                         UpdateAll();
 
-    DisplayPlot* CreateDisplayPlot(std::string name, InitFunction_t&& f_init,
-                                   UpdateFunction_t&& f_update);
-
-    void                         RegisterPlot(DisplayPlot* plot);
-    void                         InitAll();
-    void                         Process();
-    void                         UpdateAll();
+    virtual void UpdateAll();
 
     ClassDef(DetectorDisplay,2)
   };
+
 
 
   /** Simple  PostProcess implementation with some lambda hooks.
@@ -166,6 +94,8 @@ namespace hallc {
 
     ClassDef(DisplayPostProcess, 1)
   };
+
 }
 
 #endif 
+

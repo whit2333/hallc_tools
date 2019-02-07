@@ -30,6 +30,7 @@ namespace hallc {
     public:
       int              _run_number  = 0;
       DetectorDisplay* _det_display = nullptr;
+
       THcHodoscope*    _hod         = nullptr;
       THcCherenkov*    _hgcer       = nullptr;
       THcDC*           _dc          = nullptr;

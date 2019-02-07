@@ -51,8 +51,10 @@ add_library(Scandalizer SHARED
   src/ExperimentMonitor.cxx
   src/DetectorDisplay.cxx
   src/DisplayServer.cxx
+  src/DisplayPlots.cxx
   src/PostProcessors.cxx
   src/EventDisplays.cxx
+  src/MonitoringDisplay.cxx
   ${CMAKE_CURRENT_BINARY_DIR}/ScandalizerDict.cxx
   )
 
@@ -61,11 +63,14 @@ set(lib_HEADERS
   include/monitor/ExperimentMonitor.h
   include/monitor/DetectorDisplay.h
   include/monitor/DisplayServer.h
+  include/monitor/DisplayPlots.h
   include/monitor/EventDisplays.h
+  include/monitor/MonitoringDisplay.h
   )
 
 root_generate_dictionary(ScandalizerDict 
   -I${CMAKE_CURRENT_SOURCE_DIR} 
+  -I${CMAKE_CURRENT_SOURCE_DIR}/include
   $<BUILD_INTERFACE:-I${CMAKE_SOURCE_DIR}/src/epics/include>
   -I${PODD_INCLUDE_DIR}
   ${lib_HEADERS} 

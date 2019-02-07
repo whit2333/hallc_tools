@@ -22,7 +22,8 @@ namespace hallc {
     }
 
     Int_t BasicEventDisplay::Process(const THaEvData* evt, const THaRunBase*, Int_t code) {
-      if ((evt->GetEvNum() > 1200) && (_counter > 2500)) {
+      if ((evt->GetEvNum() > 1200) && (_counter > 1500)) {
+        _det_display->_event_number  = evt->GetEvNum();
         _det_display->Process();
         // process is inside the if statment so only every 1000 events are viewed.
         _det_display->UpdateAll();
@@ -44,9 +45,10 @@ namespace hallc {
 
       // Hodoscope 2D
       auto plt1 = _det_display->CreateDisplayPlot(
+          "/shms/hod/",
           "SHMS_Hod_2D",
           [&, N_planes](hallc::DisplayPlot& plt) {
-            plt._plot_data._canvas = new TCanvas();
+            plt._plot_data._canvas = new TCanvas(plt.GetName().c_str(),plt.GetName().c_str());
             for (int ip = 0; ip < N_planes; ip++) {
               auto n_paddles = _hod->GetNPaddles(ip) + 2;
               if (ip % 2 == 0) {
@@ -97,9 +99,10 @@ namespace hallc {
 
       // hodoscope 3D display
       auto plt2 = _det_display->CreateDisplayPlot(
+          "/shms/hod/",
           "SHMS_Hod_3D",
           [&, N_planes](hallc::DisplayPlot& plt) {
-            plt._plot_data._canvas = new TCanvas();
+            plt._plot_data._canvas = new TCanvas(plt.GetName().c_str(),plt.GetName().c_str());
             // for (int ip = 0; ip < N_planes; ip++) {
             auto n_paddles = 16;
             // if (ip % 2 == 0) {
@@ -155,9 +158,10 @@ namespace hallc {
 
       // Hodoscope 2D
       auto plt1 = _det_display->CreateDisplayPlot(
+          "/hms/hod/", 
           "HMS_Hod_2D",
           [&, N_planes](hallc::DisplayPlot& plt) {
-            plt._plot_data._canvas = new TCanvas();
+            plt._plot_data._canvas = new TCanvas(plt.GetName().c_str(),plt.GetName().c_str());
             for (int ip = 0; ip < N_planes; ip++) {
               auto n_paddles = _hod->GetNPaddles(ip) + 2;
               if (ip % 2 == 0) {
@@ -211,9 +215,10 @@ namespace hallc {
 
       // hodoscope 3D display
       auto plt2 = _det_display->CreateDisplayPlot(
+          "/hms/hod/", 
           "HMS_Hod_3D",
           [&, N_planes](hallc::DisplayPlot& plt) {
-            plt._plot_data._canvas    = new TCanvas();
+            plt._plot_data._canvas = new TCanvas(plt.GetName().c_str(),plt.GetName().c_str());
             auto n_paddles = 16;
             plt._plot_data._hists3.push_back(new TH3F(fmt::format("HMS_hod_3D_{}", 0).c_str(),
                                            fmt::format("HMS Hodoscope plane {}", 0).c_str(),
