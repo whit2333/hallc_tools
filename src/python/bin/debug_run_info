@@ -1,4 +1,23 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import hallc
+import sys, os
+from hallc.run_daemon import RunDaemon
+
+
+
+def main():
+    rund  = RunDaemon()
+    rund.on_event("run_start", lambda run_number: print("run {} finished".format(run_number)) , 'all')
+    rund.start()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('aborted.')
+        sys.exit(0)
+
+
+
 
