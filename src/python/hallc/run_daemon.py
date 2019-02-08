@@ -47,7 +47,13 @@ class _RunListener:
     def _listener(self, pvname=None, value=None, char_value=None, **kwargs):
         '''Event listener, dispatches events.'''
         run_in_progress = int(char_value)
-        self.run_number = int(self.pv_run_number.get())
+        self.run_number = self.pv_run_number.get()
+        ## Bail and print warning if we could not get a valid run number
+        if self.run_number is None
+            print('WARNING({}): Unable to load run number from EPICS'.format(self.name))
+            print('WARNING({}): Skipping this callback...'.format(self.name))
+            return
+        self.run_number = int(self.run_number)
         if run_in_progress and not self.coda_running:
             self._run_start()
         elif not run_in_progress and self.coda_running:
