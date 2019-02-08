@@ -27,6 +27,7 @@
 
 #pragma link C++ class hallc::DisplayServer+;
 #pragma link C++ class hallc::EventDisplayServer+;
+#pragma link C++ class hallc::MonitorDisplayServer+;
 
 #pragma link C++ class hallc::MonitoringDisplay+;
 #pragma link C++ class hallc::ExperimentMonitor+;

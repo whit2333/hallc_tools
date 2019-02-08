@@ -5,7 +5,16 @@
 #include "monitor/DetectorDisplay.h"
 #include "monitor/MonitoringDisplay.h"
 
+class THcHodoscope;
+class THcCherenkov;
+class THcDC;
+
+namespace hcana {
+  class Scandalizer;
+}
+
 namespace hallc {
+
 
   /** Experiment monitor display.
    *
@@ -23,15 +32,15 @@ namespace hallc {
    * \endcode
    *
    */
-  struct ExperimentMonitor  : public hallc::MonitoringDisplay {
+  struct ExperimentMonitor  : public MonitoringDisplay {
 
   public:
     ExperimentMonitor(){}
+    ExperimentMonitor(int rn) : MonitoringDisplay(rn) {}
     virtual ~ExperimentMonitor(){}
 
     //DisplayPlot* CreateDisplayPlot(std::string name, InitFunction_t&& f_init,
     //                               UpdateFunction_t&& f_update);
-
     //void                         RegisterPlot(DisplayPlot* plot);
     //void                         InitAll();
     //void                         Process();
@@ -51,11 +60,17 @@ namespace hallc {
     int _N_event_skip = 1000;
 
   public:
-    int              _run_number  = 0;
-    DetectorDisplay* _det_display = nullptr;
+    int                 _run_number        = 0;
+    MonitoringDisplay*  _det_display       = nullptr;
+    hcana::Scandalizer* _analyzer          = nullptr;
+    THcHodoscope*       _hod               = nullptr;
+    THcCherenkov*       _hgcer             = nullptr;
+    THcCherenkov*       _cer               = nullptr;
+    THcDC*              _dc                = nullptr;
+    std::string         _spectrometer_name = "SHMS";
 
   public:
-    ExperimentMonitorPostProcess(DetectorDisplay* d)
+    ExperimentMonitorPostProcess(MonitoringDisplay* d)
         : podd2::AnalysisLogging<THaPostProcess>(), _det_display(d) {}
 
     ExperimentMonitorPostProcess() : podd2::AnalysisLogging<THaPostProcess>() {}

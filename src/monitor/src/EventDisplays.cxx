@@ -45,10 +45,9 @@ namespace hallc {
 
       // Hodoscope 2D
       auto plt1 = _det_display->CreateDisplayPlot(
-          "/shms/hod/",
-          "SHMS_Hod_2D",
+          "shms/hod/", "SHMS_Hod_2D",
           [&, N_planes](hallc::DisplayPlot& plt) {
-            plt._plot_data._canvas = new TCanvas(plt.GetName().c_str(),plt.GetName().c_str());
+            plt._plot_data._canvas = new TCanvas(plt.GetName().c_str(), plt.GetName().c_str());
             for (int ip = 0; ip < N_planes; ip++) {
               auto n_paddles = _hod->GetNPaddles(ip) + 2;
               if (ip % 2 == 0) {
@@ -99,10 +98,9 @@ namespace hallc {
 
       // hodoscope 3D display
       auto plt2 = _det_display->CreateDisplayPlot(
-          "/shms/hod/",
-          "SHMS_Hod_3D",
+          "shms/hod/", "SHMS_Hod_3D",
           [&, N_planes](hallc::DisplayPlot& plt) {
-            plt._plot_data._canvas = new TCanvas(plt.GetName().c_str(),plt.GetName().c_str());
+            plt._plot_data._canvas = new TCanvas(plt.GetName().c_str(), plt.GetName().c_str());
             // for (int ip = 0; ip < N_planes; ip++) {
             auto n_paddles = 16;
             // if (ip % 2 == 0) {
@@ -158,7 +156,7 @@ namespace hallc {
 
       // Hodoscope 2D
       auto plt1 = _det_display->CreateDisplayPlot(
-          "/hms/hod/", 
+          "hms/hod/", 
           "HMS_Hod_2D",
           [&, N_planes](hallc::DisplayPlot& plt) {
             plt._plot_data._canvas = new TCanvas(plt.GetName().c_str(),plt.GetName().c_str());
@@ -215,7 +213,7 @@ namespace hallc {
 
       // hodoscope 3D display
       auto plt2 = _det_display->CreateDisplayPlot(
-          "/hms/hod/", 
+          "hms/hod/", 
           "HMS_Hod_3D",
           [&, N_planes](hallc::DisplayPlot& plt) {
             plt._plot_data._canvas = new TCanvas(plt.GetName().c_str(),plt.GetName().c_str());

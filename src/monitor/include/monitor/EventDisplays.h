@@ -29,14 +29,14 @@ namespace hallc {
 
     public:
       int              _run_number  = 0;
-      DetectorDisplay* _det_display = nullptr;
+      MonitoringDisplay* _det_display = nullptr;
 
       THcHodoscope*    _hod         = nullptr;
       THcCherenkov*    _hgcer       = nullptr;
       THcDC*           _dc          = nullptr;
 
     public:
-      BasicEventDisplay(DetectorDisplay* d)
+      BasicEventDisplay(MonitoringDisplay* d)
           : podd2::AnalysisLogging<THaPostProcess>(), _det_display(d) {}
 
       BasicEventDisplay() : podd2::AnalysisLogging<THaPostProcess>() {}
@@ -54,7 +54,7 @@ namespace hallc {
      */
     class SHMSEventDisplay : public BasicEventDisplay {
     public:
-      SHMSEventDisplay(DetectorDisplay* d) : BasicEventDisplay(d) {}
+      SHMSEventDisplay(MonitoringDisplay* d) : BasicEventDisplay(d) {}
       SHMSEventDisplay() : BasicEventDisplay() {}
       virtual ~SHMSEventDisplay() {}
       virtual Int_t Init(const TDatime&);
@@ -66,7 +66,7 @@ namespace hallc {
      */
     class HMSEventDisplay : public BasicEventDisplay {
     public:
-      HMSEventDisplay(DetectorDisplay* d) : BasicEventDisplay(d) {}
+      HMSEventDisplay(MonitoringDisplay* d) : BasicEventDisplay(d) {}
       HMSEventDisplay() : BasicEventDisplay() {}
       virtual ~HMSEventDisplay() {}
       virtual Int_t Init(const TDatime&);

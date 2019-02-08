@@ -8,7 +8,7 @@
 #include "Scandalizer.h"
 
 #include "THcHodoscope.h"
-#include "THcHodoscope.h"
+#include "THcCherenkov.h"
 #include "THcDC.h"
 
 #include "simple_epics/PVList.h"

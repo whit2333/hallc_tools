@@ -54,8 +54,14 @@ namespace hallc {
       std::string _name = "";
       PlotDataMap _plot_map;
       int         _id         = 1;
+      std::string _root_folder = "/";
 
+    public:
       DisplayData(int rn = 0, std::string n = "") : _run_number(rn), _name(n) {}
+
+      std::string GetRootFolder() const { return _root_folder; }
+      std::string GetName() const { return _name; }
+      std::string GetFolder() const { return _root_folder + std::to_string(_run_number) + "/";}
 
       ClassDef(DisplayData, 1)
     };

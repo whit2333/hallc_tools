@@ -31,21 +31,23 @@ namespace hallc {
 
   struct DisplayServer  {
   public:
-    std::shared_ptr<THttpServer> _server  = nullptr; //!
-    TServerSocket*               _ss      = nullptr; //! new TServerSocket(9090, kTRUE);
-    TMonitor*                    _mon     = nullptr; //! new TMonitor;
-    std::vector<TSocket*>        _running_sockets;   //!
-    using PlotDataMap =  std::map<int, display::PlotData*>;
+    using PlotDataMap   = std::map<int, display::PlotData*>;
     using SocketPlotMap = std::map<TSocket*, display::DisplayData*>;
 
-    // Holds one "default" set of plot
-    PlotDataMap* _plot_map = nullptr;
-
-    SocketPlotMap _connected_clients;
+    std::shared_ptr<THttpServer> _server        = nullptr; //!
+    TServerSocket*               _ss            = nullptr; //! new TServerSocket(9090, kTRUE);
+    TMonitor*                    _mon           = nullptr; //! new TMonitor;
+    int                          _http_port     = 8888;
+    int                          _sock_srv_port = 9090;
+    PlotDataMap*                 _plot_map      = nullptr; /// Holds one "default" set of plots
+    std::vector<TSocket*>        _running_sockets;         //!
+    SocketPlotMap                _connected_clients;
 
   public:
-    DisplayServer();
+    DisplayServer(int http_port = 8888, int sock_srv_port = 9090 );
     virtual ~DisplayServer() {} 
+     
+    int StartSocketServer(int port = 9090);
 
     virtual void AddSocket(TSocket* s) {}
 
@@ -67,6 +69,8 @@ namespace hallc {
 
     virtual void Shutdown() {}
 
+    /** Run the server. Can be interrupted with ctrl-c .
+     */
     void Run();
 
     ClassDef(DisplayServer,1)
@@ -78,12 +82,25 @@ namespace hallc {
    */
   struct EventDisplayServer : public DisplayServer {
 
-    SocketPlotMap _connected_replays;
+    //SocketPlotMap _connected_replays;
 
-    virtual void AddSocket(TSocket* s) {
-    }
+    virtual void AddSocket(TSocket* s) {}
+    //virtual void Update(TSocket* s, display::DisplayData*);
+    //virtual void RemoveSocket(TSocket* s);
+    ClassDef(EventDisplayServer,1)
+  };
 
-    virtual void Update(TSocket* s, display::DisplayData*);
+
+  /**
+   *
+   */
+  struct MonitorDisplayServer : public DisplayServer {
+    //SocketPlotMap _connected_replays;
+
+    virtual void AddSocket(TSocket* s) {}
+    //virtual void Update(TSocket* s, display::DisplayData*);
+    //virtual void RemoveSocket(TSocket* s);
+    ClassDef(MonitorDisplayServer,1)
   };
 
 }

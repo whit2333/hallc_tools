@@ -111,7 +111,7 @@ namespace hallc {
     mess.Reset();                 // re-use TMessage object
     mess.WriteObject(&_data); // write object in message buffer
     _sock->Send(mess);            // send message
-    std::cout << "message sent\n";
+    //std::cout << "message sent\n";
     // messlen  += mess.Length();
     // cmesslen += mess.CompLength();
   }
