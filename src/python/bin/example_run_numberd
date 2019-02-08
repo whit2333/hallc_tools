@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+
+from hallc.run_daemon import RunDaemon
+import subprocess
+
+def elaborate_print(run_number):
+    p = subprocess.Popen(
+            ['echo', 'Active run with number {}'.format(run_number)],
+            cwd='/',
+            stdout = subprocess.PIPE,
+            stderr = subprocess.STDOUT)
+
+d = RunDaemon()
+d.on_event('run_start', elaborate_print)
+d.start()
