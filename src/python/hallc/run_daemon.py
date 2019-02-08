@@ -29,7 +29,6 @@ class _RunListener:
         #print('hc{}RunNumber'.format(self.run_type))
         self.pv_run_number = PV('hc{}RunNumber'.format(self.run_type))
         self.pv_is_running = PV('hc{}RunInProgress'.format(self.run_type))
-        self.pv_is_running.add_callback(self._listener)
     def reset(self):
         '''Reset/initialize the listener.'''
         self.tasks = {'run_start': [], 'run_stop': []}
@@ -43,8 +42,12 @@ class _RunListener:
             raise EventTypeError(event, [e for e in self.tasks])
     def interrupt(self):
         '''Interrupt the listener by issue a run_stop event if CODA is running.'''
+        self.pv_is_running.clear_callbacks()
         if self.coda_running:
             self._run_stop()
+    def listen(self):
+        '''Start listening for events.'''
+        self.pv_is_running.add_callback(self._listener)
     def _listener(self, pvname=None, value=None, char_value=None, **kwargs):
         '''Event listener, dispatches events.'''
         run_in_progress = int(char_value)
@@ -128,6 +131,7 @@ class RunDaemon:
         
         Use a KeyboardInterrupt (Ctrl+C) to exit the daemon.
         '''
+        self._apply_to_listeners('listen')
         print('RunDaemon started, use Ctrl+C to exit')
         try:
             ## slow infinite loop, everything happens through epics callbacks anyway
