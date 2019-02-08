@@ -26,9 +26,10 @@ class _RunListener:
         self.name = 'listener for {} runs'.format(self.run_type)
         print('Creating ' + self.name)
         self.reset()
-        self.pv_is_running = PV('hc{}RunInProgress'.format(
-            self.run_type), callback=self._listener)
+        #print('hc{}RunNumber'.format(self.run_type))
         self.pv_run_number = PV('hc{}RunNumber'.format(self.run_type))
+        self.pv_is_running = PV('hc{}RunInProgress'.format(self.run_type))
+        self.pv_is_running.add_callback(self._listener)
     def reset(self):
         '''Reset/initialize the listener.'''
         self.tasks = {'run_start': [], 'run_stop': []}
@@ -49,7 +50,7 @@ class _RunListener:
         run_in_progress = int(char_value)
         self.run_number = self.pv_run_number.get()
         ## Bail and print warning if we could not get a valid run number
-        if self.run_number is None
+        if self.run_number is None :
             print('WARNING({}): Unable to load run number from EPICS'.format(self.name))
             print('WARNING({}): Skipping this callback...'.format(self.name))
             return
