@@ -30,10 +30,11 @@
 #pragma link C++ class hallc::MonitorDisplayServer+;
 
 #pragma link C++ class hallc::MonitoringDisplay+;
-#pragma link C++ class hallc::ExperimentMonitor+;
+
+//#pragma link C++ class hallc::ExperimentMonitor+;
 #pragma link C++ class hallc::ExperimentMonitorPostProcess+;
 
-#pragma link C++ class hallc::DetectorDisplay+;
+//#pragma link C++ class hallc::DetectorDisplay+;
 #pragma link C++ class hallc::DisplayPostProcess+;
 
 #pragma link C++ class hallc::event_display::BasicEventDisplay+;

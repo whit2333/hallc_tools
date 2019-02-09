@@ -16,38 +16,19 @@ namespace hcana {
 namespace hallc {
 
 
-  /** Experiment monitor display.
-   *
-   * \code{.cpp}
-   * auto plt2 = ddisplay->CreateDisplayPlot(
-   *     [&](hallc::DisplayPlot& plt) {
-   *       plt._canvas = new TCanvas();
-   *       // initialize plots here
-   *       return 0;
-   *     },
-   *     [&](hallc::DisplayPlot& plt) {
-   *       // update histograms here
-   *       return 0;
-   *     });
-   * \endcode
-   *
-   */
-  struct ExperimentMonitor  : public MonitoringDisplay {
+  ///** Experiment monitor display.
+  // *
+  // * This keeps a running tally of interesting and useful plots.
+  // */
+  //struct ExperimentMonitor  : public MonitoringDisplay {
 
-  public:
-    ExperimentMonitor(){}
-    ExperimentMonitor(int rn) : MonitoringDisplay(rn) {}
-    virtual ~ExperimentMonitor(){}
+  //public:
+  //  ExperimentMonitor(){}
+  //  ExperimentMonitor(int rn) : MonitoringDisplay(rn) {}
+  //  virtual ~ExperimentMonitor(){}
 
-    //DisplayPlot* CreateDisplayPlot(std::string name, InitFunction_t&& f_init,
-    //                               UpdateFunction_t&& f_update);
-    //void                         RegisterPlot(DisplayPlot* plot);
-    //void                         InitAll();
-    //void                         Process();
-    //void                         UpdateAll();
-
-    ClassDef(ExperimentMonitor,2)
-  };
+  //  ClassDef(ExperimentMonitor,2)
+  //};
 
 
   /** Simple  PostProcess implementation with some lambda hooks.
@@ -55,9 +36,9 @@ namespace hallc {
    */
   class ExperimentMonitorPostProcess : public podd2::AnalysisLogging<THaPostProcess> {
   private:
-    int _counter      = 0;
-    int _N_ped_skip   = 1200;
-    int _N_event_skip = 1000;
+    int _counter        = 0;
+    int _N_event_update = 5000;
+    int _N_ped_skip     = 1200;
 
   public:
     int                 _run_number        = 0;
@@ -70,14 +51,17 @@ namespace hallc {
     std::string         _spectrometer_name = "SHMS";
 
   public:
-    ExperimentMonitorPostProcess(MonitoringDisplay* d)
-        : podd2::AnalysisLogging<THaPostProcess>(), _det_display(d) {}
-
-    ExperimentMonitorPostProcess() : podd2::AnalysisLogging<THaPostProcess>() {}
-    virtual ~ExperimentMonitorPostProcess() {}
+    ExperimentMonitorPostProcess(MonitoringDisplay* d);
+    ExperimentMonitorPostProcess();
+    virtual ~ExperimentMonitorPostProcess();
 
     virtual Int_t Init(const TDatime&);
+
+    /** Process event. All the MonitoringDisplay's have process invoked.
+     *
+     */
     virtual Int_t Process(const THaEvData* evt, const THaRunBase*, Int_t code);
+
     virtual Int_t Close();
 
     Int_t WritePlots();

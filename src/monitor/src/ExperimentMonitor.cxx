@@ -8,6 +8,12 @@
 
 namespace hallc {
 
+  ExperimentMonitorPostProcess::ExperimentMonitorPostProcess(MonitoringDisplay* d)
+        : podd2::AnalysisLogging<THaPostProcess>(), _det_display(d) {}
+
+      ExperimentMonitorPostProcess::ExperimentMonitorPostProcess() : podd2::AnalysisLogging<THaPostProcess>() {}
+    ExperimentMonitorPostProcess::~ExperimentMonitorPostProcess() {}
+
   Int_t ExperimentMonitorPostProcess::Init(const TDatime&) {
     _det_display->InitAll();
     return 0;
@@ -15,7 +21,7 @@ namespace hallc {
 
   Int_t ExperimentMonitorPostProcess::Process(const THaEvData* evt, const THaRunBase*, Int_t code) {
     _det_display->Process();
-    if ((evt->GetEvNum() > _N_ped_skip) && (_counter > _N_event_skip)) {
+    if ((evt->GetEvNum() > _N_event_update) && (_counter > _N_event_update)) {
       _det_display->UpdateAll();
       gSystem->ProcessEvents();
       //WritePlots();

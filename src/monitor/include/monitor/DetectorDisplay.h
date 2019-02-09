@@ -45,24 +45,24 @@ namespace hallc {
    * \endcode
    *
    */
-  struct DetectorDisplay  : public hallc::MonitoringDisplay {
-  public:
-    DetectorDisplay(){}
-    DetectorDisplay(int num) : hallc::MonitoringDisplay(num){}
-    virtual ~DetectorDisplay(){}
+  //struct DetectorDisplay  : public hallc::MonitoringDisplay {
+  //public:
+  //  DetectorDisplay(){}
+  //  DetectorDisplay(int num) : hallc::MonitoringDisplay(num){}
+  //  virtual ~DetectorDisplay(){}
 
-    //DisplayPlot* CreateDisplayPlot(std::string name, InitFunction_t&& f_init,
-    //                               UpdateFunction_t&& f_update);
+  //  //DisplayPlot* CreateDisplayPlot(std::string name, InitFunction_t&& f_init,
+  //  //                               UpdateFunction_t&& f_update);
 
-    //void                         RegisterPlot(DisplayPlot* plot);
-    //void                         InitAll();
-    //void                         Process();
-    //void                         UpdateAll();
+  //  //void                         RegisterPlot(DisplayPlot* plot);
+  //  //void                         InitAll();
+  //  //void                         Process();
+  //  //void                         UpdateAll();
 
-    virtual void UpdateAll();
+  //  virtual void UpdateAll();
 
-    ClassDef(DetectorDisplay,2)
-  };
+  //  ClassDef(DetectorDisplay,2)
+  //};
 
 
 
@@ -77,10 +77,10 @@ namespace hallc {
 
   public:
     int              _run_number  = 0;
-    DetectorDisplay* _det_display = nullptr;
+    MonitoringDisplay* _det_display = nullptr;
 
   public:
-    DisplayPostProcess(DetectorDisplay* d)
+    DisplayPostProcess(MonitoringDisplay* d)
         : podd2::AnalysisLogging<THaPostProcess>(), _det_display(d) {}
 
     DisplayPostProcess() : podd2::AnalysisLogging<THaPostProcess>() {}

@@ -44,17 +44,17 @@ namespace hallc {
   //  }
   //}
 
-  void DetectorDisplay::UpdateAll() {
+  //void DetectorDisplay::UpdateAll() {
 
-    for (auto& [i, plt] : _plots) {
-      plt->_plot_data._canvas->SetTitle(fmt::format("{} Run:{} Event:{}",plt->_plot_data._name, _data._run_number,_event_number).c_str());
-      //TPaveText *t = new TPaveText(0.0, 0.9, 0.3, 1.0, "brNDC"); // left-up
-      plt->_plot_data._canvas->cd();
-      TPaveLabel *t = new TPaveLabel(0.0, 0.9, 0.3, 1.0, fmt::format("{} Run:{} Event:{}",plt->_plot_data._name, _data._run_number,_event_number).c_str(), "brNDC"); // left-up
-      t->Draw();
-    }
-    MonitoringDisplay::UpdateAll();
-  }
+  //  for (auto& [i, plt] : _plots) {
+  //    plt->_plot_data._canvas->SetTitle(fmt::format("{} Run:{} Event:{}",plt->_plot_data._name, _data._run_number,_event_number).c_str());
+  //    //TPaveText *t = new TPaveText(0.0, 0.9, 0.3, 1.0, "brNDC"); // left-up
+  //    plt->_plot_data._canvas->cd();
+  //    TPaveLabel *t = new TPaveLabel(0.0, 0.9, 0.3, 1.0, fmt::format("{} Run:{} Event:{}",plt->_plot_data._name, _data._run_number,_event_number).c_str(), "brNDC"); // left-up
+  //    t->Draw();
+  //  }
+  //  MonitoringDisplay::UpdateAll();
+  //}
   //_________________________________________________________________________
 
   Int_t DisplayPostProcess::Init(const TDatime&) {
