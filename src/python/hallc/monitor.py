@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from epics import caget, caput, camonitor, PV
+from hallc.error import HallCError
+from epics import PV
 from collections import abc
 from copy import deepcopy
 from hallc.error import HallCError
@@ -11,17 +12,30 @@ import os
 import subprocess
 import sys
 
+class MonitorTypeError(HallCError):
+    '''Exception raised when an unknown type is encountered by the monitor'''
+    def __init__(self, type):
+        self.message = 'Unknown variable type: {}'.format(type)
+class MonitorKeyError(HallCError):
+    '''Exception raised when trying to access unknown section.'''
+    def __init(self, key):
+        self.message = 'Unknown monitor section: {}'.format(key)
+
 ## misc target specs
 _TARGET_SPEC = {
-        '1': {
+        1: {
             'mass': 1.00794,
             'name': 'LH2'},
-        '2': {
+        2: {
             'mass': 2.014101,
             'name': 'LD2'},
-        '4': {
+        4: {
             'mass': 26.92,
             'name': 'DUMMY'
+            },
+        16: {
+            'mass': 0,
+            'name': 'HOME'
             }
         }
 
@@ -36,12 +50,12 @@ _DEFAULT_DEFINITIONS = {
             'target_label': {
                 'type': 'calc',
                 'input': ['hcBDSSELECT'],
-                'func': lambda bds_sel: _TARGET_SPEC[bds_sel]['name']
+                'func': lambda bds_sel: _TARGET_SPEC[int(bds_sel)]['name']
                 },
             'target_mass_amu': {
                 'type': 'calc',
                 'input': ['hcBDSSELECT'],
-                'func': lambda bds_sel: _TARGET_SPEC[bds_sel]['mass']
+                'func': lambda bds_sel: _TARGET_SPEC[(bds_sel)]['mass']
                 }
             },
         'beam': {
@@ -134,9 +148,10 @@ class Monitor():
             elif var['type'] is 'calc':
                 input = [self._pv_get(pv) for pv in var['input']]
                 return var['func'](*input)
-            else raise MonitorTypeError(var['type'])
+            else: 
+                raise MonitorTypeError(var['type'])
     def _pv_get(self, pv_name):
     '''Internal function that returns the PV value.'''
         if not pv_name in self._pv_buf:
             self._pv_buf[pv_name] = PV(pv_name)
-        return self._pv_buf.get()
+        return self._pv_buf[pv_name].get()
