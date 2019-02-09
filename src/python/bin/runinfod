@@ -1,44 +1,157 @@
 #!/usr/bin/env python3
 
 from hallc.run_daemon import RunDaemon
-from epics import caget, caput, camonitor, PV
+from hallc.monitor import Monitor
 
 import argparse
 import json
 import os
 import subprocess
-import sys
-
-TARGET_MASS_AMU = {"2":1.00794,"3":2.014101, "5":26.92} 
-TARGET_DESC     = {"2":"LH2",  "3": "LD2",   "5":"DUMMY"}
-
-parser = argparse.ArgumentParser(
-        description='Automatic kinematics and run info daemon.')
-parser.add_argument('-k', '--kinematics',
-        default='DBASE/COIN/auto_standard.kinematics',
-        help = 'Path and file name for auto_standard.kinematics.',
-        dest = 'fname_kinematics')
-parser.add_argument('-r', '--runinfo',
-        default='db2/run_list.json',
-        help='Path and file name for the run info database.'
-        dest = 'fname_runinfo')
-
-print('Welcome to the automatic kinematics and run info daemon.')
-print('')
-print('Automatic kinematics file: {}'.format(args.fname_kinematics)
-print('Run info file: {}'.format(args.fname_runinfo)
+import tempfile
 
 
-p = None
-def elaborate_print(run_number):
-    global p
-    p = subprocess.Popen(
-            ['echo', 'PRINTED FROM ECHO Active run with number {}'.format(run_number)],
-            cwd='/',
-            stdout = sys.stdout,
-            stderr = sys.stderr)
-        
+class RunInfo:
+    def __init__(self, fname, run_type=None, monitor = None):
+        self.print('Run info for {}'.format(run_type.upper()) if run_type is not None else
+                'unspecified')
+        print('Run info file: {}'.format(fname))
+        self.path = fname
+        self.monitor = monitor if monitor is not None else Monitor()
+        self.update()
+    def update(self, run_number = -1):
+        self.run_info = {}
+        ## 1. read in existing file from disk
+        if os.path.isfile(self.path):
+            with open(self.path) as f:
+                self.run_info = json.loads(f.read())
+        ## 2. add new data from the monitor
+        if run_number > 0:
+            self.run_info.update({run_number: monitor.all})
+    def write(self):
+        ## 1. write to temporary file
+        f, path = tempfile.mkstemp(prefix='runinfo', suffix='json')
+        print('DEBUG', path)
+        f.write(json.dumps(self.run_info, sort_keys=True,
+            ensure_ascii=False, indent=2))
+        ## 2. move file over new file
+        os.rename(path, self.path)
+    def update_and_write(self, run_number = -1):
+        self.update(run_number)
+        self.write()
 
-d = RunDaemon()
-d.on_event('run_start', elaborate_print)
-d.start()
+class Kinematics:
+    def __init__(self, fname, hms_mass, shms_mass, monitor = None):
+        self.print('Automatic kinematics for {}'.format(run_type.upper()) if run_type is
+                not None else 'unspecified')
+        print('Automatic kinematics file: {}'.format(fname))
+        print('HMS particle mass: {}'.format(hms_mass))
+        print('SHMS particle mass: {}'.format(shms_mass))
+        self.path = fname
+        self.monitor = monitor if monitor is not None else Monitor()
+        self.last_run = -1
+        self.current_run = -1
+        self.hms_mass = float(hms_mass)
+        self.shms_mass = float(shms_mass)
+        self.update()
+    def update(self, run_number = -1):
+        pass
+    def write(self, secure_and_slow=True):
+        ## Do nothing if we already advanced to this run, or the current run
+        ## is invalid
+        if self.current_run == self.last_run or self.current_run < 0:
+            return
+        ## If in slow/safe mode: check if the kinematics file already
+        ## contains this entry
+        if secure_and_slow and self._header() in open(path).read()
+            return
+        ## 1. write to temporary file
+        f, path = tempfile.mkstemp(prefix='autokin', suffix='txt')
+        f.write(self._entry())
+        ## 2. move file over new file
+        os.rename(path, self.path)
+        ## Current run is now also last run, as it has been written
+        self.last_run = self.current_run
+    def update_and_write(self, run_number = -1):
+        self.update(run_number)
+        self.write(secure_and_slow=False)
+    def _entry(self):
+        beam = monitor.get('beam')
+        target = monitor.get('target')
+        spec = monitor.get('spectrometer')
+        return ''.join(
+                self.header(), '\n',
+                'gpbeam = {}\n'.format(beam['beam_energy']),
+                'gtargmass_amu - {}\n'.format(target['target_mass_amu']),
+                'htheta_lab = {}\n'.format(-1*abs(spec['hms_angle'])),
+                'ptheta_lab = {}\n'.format(abs(spec['shms_angle'])),
+                'hpcentral = {}\n'.format(abs(spec['hms_momentum'])),
+                'ppcentral = {}\n'.format(abs(spec['shms_momentum'])),
+                'ppartmass = {}\n'.format(self.shms_mass),
+                'hpartmass = {}\n'.format(self.hms_mass),
+                '\n')
+    def _header(self):
+        return '{} - {}'.format(self.current_run, self.current_run)
+
+if __name__ is '__main__':
+    parser = argparse.ArgumentParser(
+            description='Automatic kinematics and run info daemon.')
+    parser.add_argument('-k', '--kinematics',
+            default='DBASE/COIN/auto_standard.kinematics',
+            help='Path and file name for automatic standard.kinematics (COIN).',
+            dest = 'fname_kinematics')
+    parser.add_argument('-kh', '--hms-kinematics',
+            default='DBASE/HMS/auto_standard.kinematics',
+            help='Path and file name for automatic standard.kinematics (HMS).',
+            dest = 'fname_hms_kinematics')
+    parser.add_argument('-ks', '--shms-kinematics',
+            default='DBASE/SHMS/auto_standard.kinematics',
+            help='Path and file name for automatic standard.kinematics (SHMS).',
+            dest = 'fname_shms_kinematics')
+    parser.add_argument('-r', '--runinfo',
+            default='db2/run_list.json',
+            help='Path and file name for the run info database.'
+            dest = 'fname_runinfo')
+    parser.add_argument('-rh', '--runinfo-hms',
+            default='db2/run_list_hms.json',
+            help='Path and file name for the run info database for HMS running.'
+            dest = 'fname_hms_runinfo')
+    parser.add_argument('-rs', '--runinfo-shms',
+            default='db2/run_list_shms.json',
+            help='Path and file name for the run info database for SHMS running.'
+            dest = 'fname_shms_runinfo')
+    parser.add_argument('-s', '--shms-mass',
+            default='0.0005109',
+            help='SHMS Particle Mass',
+            dest = 'shms_mass')
+    parser.add_argument('-h', '--hms-mass',
+            default='0.0005109',
+            help='HMS Particle Mass',
+            dest = 'shms_mass')
+
+    print('Welcome to the automatic kinematics and run info daemon.')
+    print('')
+
+    ## create RunDaemon
+    d = RunDaemon()
+
+    ## Share monitor between all objects to avoid redundancy
+    monitor = Monitor()
+
+    ## setup run info and kinematics
+    run_info = {'coin': RunInfo(args.fname_runinfo, run_type='coin', monitor=monitor),
+                'hms': RunInfo(args.fname_hms_runinfo, run_type='hms', monitor=monitor),
+                'shms': RunInfo(args.fname_shms_runinfo, run_type='shms', monitor=monitor)}
+    kinematics = {'coin': Kinematics(args.fname_kinematics, args.hms_mass, args.shms_mass,
+                            run_type='coin', monitor=monitor),
+                  'hms': Kinematics(args.fname_hms_kinematics, args.hms_mass, args.shms_mass,
+                            run_type='coin', monitor=monitor),
+                  'shms': Kinematics(args.fname_shms_kinematics, args.hms_mass, args.shms_mass,
+                            run_type='coin', monitor=monitor)}
+
+    ## Add listeners to the daemon
+    for run_type in ['coin', 'hms', 'shms']:
+        d.on_event('run_start', run_info[run_type].update_and_write, run_type)
+        d.on_event('run_start', kinematics[run_type].update_and_write, run_type)
+
+    ## Go be an infinite daemon
+    d.start()
