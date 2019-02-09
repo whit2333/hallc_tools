@@ -38,6 +38,10 @@ _TARGET_SPEC = {
             'name': 'HOME'
             }
         }
+_RADIATOR_SPEC = {
+        0: 'OUT',
+        1: 'IN'
+        }
 
 _DEFAULT_DEFINITIONS = {
         'target': {
@@ -66,18 +70,24 @@ _DEFAULT_DEFINITIONS = {
             'shms_momentum': 'hcSHMSMomentum',
             'hms_momentum': 'hcHMSMomentum',
             'shms_angle': 'hcSHMSCorrectedAngle',
-            'hms_angle': 'hcHMSCorrectedAngle'},
+            'hms_angle': 'hcHMSCorrectedAngle'
+            },
         'daq': {
             'ps1': 'hcDAQ_ps1',
             'ps2': 'hcDAQ_ps2',
             'ps3': 'hcDAQ_ps3',
             'ps4': 'hcDAQ_ps4',
             'ps5': 'hcDAQ_ps5',
-            'ps6': 'hcDAQ_ps6'},
+            'ps6': 'hcDAQ_ps6'
+            },
         'radiator': {
-            'radiator_position': 'HCRAD8POS'
+            'radiator_position': {
+                'type': 'calc',
+                'input': ['HCRAD8POS'],
+                'func': lambda radpos: _RADIATOR_SPEC[int(radpos)]
             }
         }
+    }
 
 class MonitorAddError(HallCError):
     def __init__(self, var, problem):
@@ -85,38 +95,38 @@ class MonitorAddError(HallCError):
 
 class Monitor():
     def __init__(self):
-    '''Initialize the monitor.'''
+        '''Initialize the monitor.'''
         self._pv_buf = {}
         self._definitions = deepcopy(_DEFAULT_DEFINITIONS)
         self.sections = [key for key in self._definitions]
         for section_name in self.sections:
             setattr(self, section_name, lambda : self.get(section_name))
     def get(self, section_name):
-    '''Return the a dict with the values for section_name.'''
+        '''Return the a dict with the values for section_name.'''
         if section_name is 'all':
             return self.all()
-        return {key: self._get_value(val) for key, val in
-                self._definitions[section_name]}
+        section = self._definitions[section_name]
+        return {key: self._get_value(section[key]) for key in section}
     def all(self):
-    '''Return the values for all sections at once in a master dictionary.'''
-        return {key: self.get(key) for key in self._definitions[section_name]}
+        '''Return the values for all sections at once in a master dictionary.'''
+        return {key: self.get(key) for key in self._definitions}
     def add(self, section_name, name, var):
-    '''Add new variables to the monitor, with error checking.
-    
-    Parameters:
-        - section_name: Can be the name of an existing or new section
-        - name: Variable name. Existing variables will be overwritten
-        - var: Variable definition, can be:
-            - a string containing an epics variable name
-            - a dictionary for a straight epics variable:
-                {'type': 'pv', 'name': 'EpicsPVName'}
-            - a 'lookup' object that links to the value of a new epics variable based on
-              the values of a list of input epics variables
-                {'type': 'lookup', 'input': [ListOfInputPVs], 'func': MakePVName(*input)}
-            - a 'calc' object that calculates a new value based on
-              the values of a list of input epics variables
-                {'type': 'calc', 'input': [ListOfInputPVs], 'func': CalcValue(*input)}
-    '''
+        '''Add new variables to the monitor, with error checking.
+        
+        Parameters:
+            - section_name: Can be the name of an existing or new section
+            - name: Variable name. Existing variables will be overwritten
+            - var: Variable definition, can be:
+                - a string containing an epics variable name
+                - a dictionary for a straight epics variable:
+                    {'type': 'pv', 'name': 'EpicsPVName'}
+                - a 'lookup' object that links to the value of a new epics variable based on
+                  the values of a list of input epics variables
+                    {'type': 'lookup', 'input': [ListOfInputPVs], 'func': MakePVName(*input)}
+                - a 'calc' object that calculates a new value based on
+                  the values of a list of input epics variables
+                    {'type': 'calc', 'input': [ListOfInputPVs], 'func': CalcValue(*input)}
+        '''
         if section_name not in self.sections:
             self.section.append(section_name)
             self._definitions[section_name] = {}
@@ -137,6 +147,7 @@ class Monitor():
         ## All good:
         self._definitions[section_name][name] = var
     def _get_value(self, var):
+        '''Get the value associated with this var, throw on issues.'''
         if not isinstance(var, abc.Mapping):
             return self._pv_get(var)
         else:
@@ -151,7 +162,7 @@ class Monitor():
             else: 
                 raise MonitorTypeError(var['type'])
     def _pv_get(self, pv_name):
-    '''Internal function that returns the PV value.'''
+        '''Internal function that returns the PV value.'''
         if not pv_name in self._pv_buf:
             self._pv_buf[pv_name] = PV(pv_name)
         return self._pv_buf[pv_name].get()
