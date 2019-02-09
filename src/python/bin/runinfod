@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+from hallc.run_daemon import RunDaemon
+from epics import caget, caput, camonitor, PV
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+
+TARGET_MASS_AMU = {"2":1.00794,"3":2.014101, "5":26.92} 
+TARGET_DESC     = {"2":"LH2",  "3": "LD2",   "5":"DUMMY"}
+
+parser = argparse.ArgumentParser(
+        description='Automatic kinematics and run info daemon.')
+parser.add_argument('-k', '--kinematics',
+        default='DBASE/COIN/auto_standard.kinematics',
+        help = 'Path and file name for auto_standard.kinematics.',
+        dest = 'fname_kinematics')
+parser.add_argument('-r', '--runinfo',
+        default='db2/run_list.json',
+        help='Path and file name for the run info database.'
+        dest = 'fname_runinfo')
+
+print('Welcome to the automatic kinematics and run info daemon.')
+print('')
+print('Automatic kinematics file: {}'.format(args.fname_kinematics)
+print('Run info file: {}'.format(args.fname_runinfo)
+
+
+p = None
+def elaborate_print(run_number):
+    global p
+    p = subprocess.Popen(
+            ['echo', 'PRINTED FROM ECHO Active run with number {}'.format(run_number)],
+            cwd='/',
+            stdout = sys.stdout,
+            stderr = sys.stderr)
+        
+
+d = RunDaemon()
+d.on_event('run_start', elaborate_print)
+d.start()
