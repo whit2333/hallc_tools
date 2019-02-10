@@ -102,12 +102,9 @@ class Kinematics:
         if secure_and_slow and self._header() in open(path).read():
             print('{}: Run already present in kinematics file, not updated again.'.format(self.name))
             return
-        ## 1. write to temporary file
-        status, path = tempfile.mkstemp(prefix='autokin-', dir=self.odir, suffix='.txt')
-        with open(path, 'w') as f:
+        ## if kinematics file already present, append to file, else create new file
+        with open(self.path, 'a') as f:
             f.write(self._entry())
-        ## 2. move file over new file
-        os.rename(path, self.path)
         ## Current run is now also last run, as it has been written
         self.last_run = self.current_run
         print('{}: Kinematics file written to: {}'.format(self.name, self.path))
