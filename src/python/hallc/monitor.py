@@ -61,7 +61,7 @@ _TARGET_SPEC = {
             'mass': 12.0107,
             'name': 'C-0.5%'
             },
-        16: {
+        17: {
             'mass': 0,
             'name': 'HOME'
             }
