@@ -28,23 +28,38 @@ _TARGET_SPEC = {
             'mass': 1.00794,
             'name': 'LH2'},
         2: {
+            'mass': 1.00794,
+            'name': 'LH2'},
+        3: {
             'mass': 2.014101,
             'name': 'LD2'},
-        4: {
+        5: {
             'mass': 26.92,
             'name': 'DUMMY'
             },
+        7: {
+            'mass': 12.0107,
+            'name': 'OPTICS-1'
+            },
+        8: {
+            'mass': 12.0107,
+            'name': 'OPTICS-2'
+            },
         9: {
-            'mass': None,
+            'mass': 12.0107,
             'name': 'C-HOLE'
             },
         10: {
-            'mass': None,
+            'mass': 12.0107,
             'name': 'C-6%'
             },
         11: {
-            'mass': None,
+            'mass': 12.0107,
             'name': 'C-6%'
+            },
+        12: {
+            'mass': 12.0107,
+            'name': 'C-0.5%'
             },
         16: {
             'mass': 0,

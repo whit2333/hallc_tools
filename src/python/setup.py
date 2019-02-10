@@ -47,7 +47,7 @@ setup(name='hallc',
       #dependency_links=['http://github.com/user/repo/tarball/master#egg=package-1.0']
       test_suite='nose.collector',
       tests_require=['nose'],
-      scripts=['bin/debug_run_info','bin/hallc_runinfo_service'],
+      scripts=['bin/debug_run_info','bin/hallc_runinfo_service', 'bin/runinfod'],
       include_package_data=True,
       classifiers=[
           "Programming Language :: Python :: 3",
