@@ -81,9 +81,6 @@ class Kinematics:
         print('HMS particle mass: {}'.format(hms_mass))
         print('SHMS particle mass: {}'.format(shms_mass))
         self.path = fname
-        if (not os.path.exists(self.path)):
-            with open(self.path, 'w') as f:
-                pass
         self.odir = os.path.dirname(os.path.realpath(self.path))
         print(self.odir)
         self.monitor = monitor if monitor is not None else Monitor()
@@ -138,22 +135,26 @@ class Kinematics:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
             description='Automatic kinematics and run info daemon.')
-    parser.add_argument('-k', '--kinematics',
-            default='DBASE/COIN/auto_standard.kinematics',
+    parser.add_argument('-k', '--enable-kinematics',
+            default='yes',
+            help='Write the auto-kinematics file? yes or no (default: yes)',
+            dest='enable_kinematics')
+    parser.add_argument('-kc', '--coin-kinematics',
+            default='db2/auto_standard_coin.kinematics',
             help='Path and file name for automatic standard.kinematics (COIN).',
-            dest = 'fname_kinematics')
+            dest = 'fname_coin_kinematics')
     parser.add_argument('-kh', '--hms-kinematics',
-            default='DBASE/HMS/auto_standard.kinematics',
+            default='db2/auto_standard_hms.kinematics',
             help='Path and file name for automatic standard.kinematics (HMS).',
             dest = 'fname_hms_kinematics')
     parser.add_argument('-ks', '--shms-kinematics',
-            default='DBASE/SHMS/auto_standard.kinematics',
+            default='db2/auto_standard_shms.kinematics',
             help='Path and file name for automatic standard.kinematics (SHMS).',
             dest = 'fname_shms_kinematics')
-    parser.add_argument('-r', '--runinfo',
-            default='db2/run_list.json',
+    parser.add_argument('-rc', '--runinfo',
+            default='db2/run_list_coin.json',
             help='Path and file name for the run info database.',
-            dest = 'fname_runinfo')
+            dest = 'fname_coin_runinfo')
     parser.add_argument('-rh', '--runinfo-hms',
             default='db2/run_list_hms.json',
             help='Path and file name for the run info database for HMS running.',
@@ -182,21 +183,25 @@ if __name__ == '__main__':
     monitor = Monitor()
 
     ## setup run info and kinematics
-    run_info = {'coin': RunInfo(args.fname_runinfo, run_type='coin', monitor=monitor),
+    run_info = {'coin': RunInfo(args.fname_coin_runinfo, run_type='coin', monitor=monitor),
                 'hms': RunInfo(args.fname_hms_runinfo, run_type='hms', monitor=monitor),
                 'shms': RunInfo(args.fname_shms_runinfo, run_type='shms', monitor=monitor)}
-    kinematics = {'coin': Kinematics(args.fname_kinematics, args.hms_mass, args.shms_mass,
-                            run_type='coin', monitor=monitor),
-                  'hms': Kinematics(args.fname_hms_kinematics, args.hms_mass, args.shms_mass,
-                            run_type='hms', monitor=monitor),
-                  'shms': Kinematics(args.fname_shms_kinematics, args.hms_mass, args.shms_mass,
-                            run_type='shms', monitor=monitor)}
+    print(args.enable_kinematics)
+    if args.enable_kinematics == 'yes':
+        kinematics = {
+                'coin': Kinematics(args.fname_coin_kinematics, args.hms_mass,
+                    args.shms_mass, run_type='coin', monitor=monitor),
+                  'hms': Kinematics(args.fname_hms_kinematics, args.hms_mass, 
+                      args.shms_mass, run_type='hms', monitor=monitor),
+                  'shms': Kinematics(args.fname_shms_kinematics, args.hms_mass, 
+                      args.shms_mass, run_type='shms', monitor=monitor)}
 
     ## Add listeners to the daemon
     for run_type in ['coin', 'hms', 'shms']:
         d.on_event('run_start', run_info[run_type].run_start, run_type)
         d.on_event('run_stop', run_info[run_type].run_stop, run_type)
-        d.on_event('run_start', kinematics[run_type].update_and_write, run_type)
+        if args.enable_kinematics == 'yes':
+            d.on_event('run_start', kinematics[run_type].update_and_write, run_type)
 
     ## Go be an infinite daemon
     d.start()
