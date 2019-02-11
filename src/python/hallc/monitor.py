@@ -75,7 +75,7 @@ _DEFAULT_DEFINITIONS = {
                 'input': ['hcBDSSELECT'],
                 'func': lambda bds_sel: int(bds_sel),
                 'table': {index: 'hcBDSSEL1:but{}'.format(index+1) for index in
-                    range(1,17)}
+                    range(1,18)}
                 },
             'target_label': {
                 'type': 'calc',
@@ -89,7 +89,11 @@ _DEFAULT_DEFINITIONS = {
                 }
             },
         'beam': {
-            'beam_energy': 'HALLC:p',
+            'beam_energy': {
+                'type': 'calc',
+                'input': ['HALLC:p'],
+                'func': lambda p: p if p is not None else 10.6
+                },
             'beam_current': 'ibcm1'
             },
         'spectrometers': {
