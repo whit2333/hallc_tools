@@ -38,13 +38,14 @@ namespace hallc {
     TServerSocket*               _ss            = nullptr; //! new TServerSocket(9090, kTRUE);
     TMonitor*                    _mon           = nullptr; //! new TMonitor;
     int                          _http_port     = 8888;
+    std::string                  _host          = "127.0.0.1";
     int                          _sock_srv_port = 9090;
     PlotDataMap*                 _plot_map      = nullptr; /// Holds one "default" set of plots
     std::vector<TSocket*>        _running_sockets;         //!
     SocketPlotMap                _connected_clients;
 
   public:
-    DisplayServer(int http_port = 8888, int sock_srv_port = 9090 );
+    DisplayServer(int http_port = 8888, std::string host = "127.0.0.1" , int sock_srv_port = 9090 );
     virtual ~DisplayServer() {} 
      
     int StartSocketServer(int port = 9090);

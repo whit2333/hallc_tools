@@ -162,34 +162,34 @@ install(TARGETS Scandalizer experiment_monitor hcspec
 
 
 ################################
-# experiment_monitor executable
-add_executable(chat_client
-  tests/async_tcp_client.cpp)
-add_executable(chat_server  tests/server.cpp)
-#target_compile_features(chat PUBLIC cxx_std_17)
-target_include_directories(chat_client
-  PRIVATE ${Boost_INCLUDE_DIR}
-  PRIVATE /usr/include/boost
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/chat
-  PRIVATE include    
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
-  )
-target_link_libraries(chat_client
-  PRIVATE ${Boost_LIBRARIES}
-  PRIVATE nlohmann_json::nlohmann_json
-  PUBLIC ${CXX_FILESYSTEM_LIB}
-  #PUBLIC InSANEbase
-  )
-target_include_directories(chat_server
-  PRIVATE ${Boost_INCLUDE_DIR}
-  PRIVATE /usr/include/boost
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/chat
-  PRIVATE include    
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
-  )
-target_link_libraries(chat_server
-  PRIVATE ${Boost_LIBRARIES}
-  PRIVATE nlohmann_json::nlohmann_json
-  PUBLIC ${CXX_FILESYSTEM_LIB}
-  #PUBLIC InSANEbase
-  )
+## experiment_monitor executable
+#add_executable(chat_client
+#  tests/async_tcp_client.cpp)
+#add_executable(chat_server  tests/server.cpp)
+##target_compile_features(chat PUBLIC cxx_std_17)
+#target_include_directories(chat_client
+#  PRIVATE ${Boost_INCLUDE_DIR}
+#  PRIVATE /usr/include/boost
+#  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/chat
+#  PRIVATE include    
+#  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+#  )
+#target_link_libraries(chat_client
+#  PRIVATE ${Boost_LIBRARIES}
+#  PRIVATE nlohmann_json::nlohmann_json
+#  PUBLIC ${CXX_FILESYSTEM_LIB}
+#  #PUBLIC InSANEbase
+#  )
+#target_include_directories(chat_server
+#  PRIVATE ${Boost_INCLUDE_DIR}
+#  PRIVATE /usr/include/boost
+#  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/chat
+#  PRIVATE include    
+#  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+#  )
+#target_link_libraries(chat_server
+#  PRIVATE ${Boost_LIBRARIES}
+#  PRIVATE nlohmann_json::nlohmann_json
+#  PUBLIC ${CXX_FILESYSTEM_LIB}
+#  #PUBLIC InSANEbase
+#  )

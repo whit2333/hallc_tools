@@ -5,6 +5,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TH3F.h"
+#include "TGraph.h"
 
 #include "podd2/Logger.h"
 
@@ -27,6 +28,7 @@ namespace hallc {
       std::vector<TH1F*> _hists1; /// 1D histograms
       std::vector<TH2F*> _hists2; /// 2D histograms
       std::vector<TH3F*> _hists3; /// 2D histograms
+      std::vector<TGraph*> _graphs1; /// 2D histograms
 
       void Merge(PlotData* d);
 

@@ -14,6 +14,9 @@ namespace hallc {
       for (auto&& [h1, h2] : iter::zip(_hists3, d->_hists3)) {
         (*h1) = (*h2);
       }
+      for (auto&& [h1, h2] : iter::zip(_graphs1, d->_graphs1)) {
+        (*h1) = (*h2);
+      }
     }
 
     /** Replace this data with d data.
@@ -27,6 +30,9 @@ namespace hallc {
         (*h1) = (*h2);
       }
       for (auto&& [h1, h2] : iter::zip(_hists3, d->_hists3)) {
+        (*h1) = (*h2);
+      }
+      for (auto&& [h1, h2] : iter::zip(_graphs1, d->_graphs1)) {
         (*h1) = (*h2);
       }
     }

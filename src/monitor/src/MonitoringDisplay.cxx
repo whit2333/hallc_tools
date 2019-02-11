@@ -1,4 +1,5 @@
 #include "monitor/MonitoringDisplay.h"
+#include "cppitertools/zip.hpp"
 
 #include <iostream>
 

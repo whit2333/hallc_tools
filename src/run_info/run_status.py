@@ -23,7 +23,7 @@ parser.add_argument('-i','--input',
 args = parser.parse_args()
 
 #print args.kinematics
-print args.input_file
+print(args.input_file)
 
 
 cursor_x = 0
@@ -107,14 +107,14 @@ class HallcEpics:
         self.kine_id = int(value)
 
     def onSHMSAngleChange(self, pvname=None, value=None, host=None, **kws):
-        print "onSHMSAngleChange"
+        print("onSHMSAngleChange")
         if self.shms_change_value != value :
             # turning off temporarily
             #self.shms_ask_angle = True
             self.shms_change_value = value
 
     def onHMSAngleChange(self, pvname=None, value=None, host=None, **kws):
-        print "onHMSAngleChange"
+        print("onHMSAngleChange")
         if self.hms_change_value != value :
             #self.hms_ask_angle = True
             self.hms_change_value = value
@@ -547,4 +547,4 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         """user wants control back"""
-        print "done"
+        print( "done")

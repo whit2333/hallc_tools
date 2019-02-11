@@ -70,7 +70,10 @@ struct cli_settings {
       {"none",FilterSpec::none},
       {"both",FilterSpec::both},
       {"shms",FilterSpec::shms},
-      {"hms",FilterSpec::hms}};
+      {"hms",FilterSpec::hms},
+      {"SHMS",FilterSpec::shms},
+      {"HMS",FilterSpec::hms},
+    };
 
     auto search = str_to_spec.find(s);
     if (search == str_to_spec.end()) {

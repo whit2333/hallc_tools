@@ -16,7 +16,6 @@
 #include <memory>
 #include <vector>
 
-#include "cppitertools/zip.hpp"
 #include "monitor/DisplayPlots.h"
 #include "podd2/Logger.h"
 
@@ -28,6 +27,7 @@ namespace hallc {
    *
    * \code{.cpp}
    * auto plt2 = ddisplay->CreateDisplayPlot(
+   *  "a", "b",
    *     [&](hallc::DisplayPlot& plt) {
    *       plt._canvas = new TCanvas();
    *       // initialize plots here
