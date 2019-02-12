@@ -7,7 +7,7 @@ from time import sleep
 class RunTypeError(HallCError):
     '''Exception raised when trying to access an unknown run type.'''
     def __init__(self, run_type, known_types):
-        self.message = 'Unknown run type: {} (known types: {})'.format(
+        self.message = 'Unknown run type: {} (known types: {}, or "all")'.format(
                 run_type, known_types)
 class EventTypeError(HallCError):
     '''Exception raised when trying to refer to an unknown event type.'''
@@ -88,14 +88,13 @@ class RunDaemon:
       - run_start: CODA start-of-run event
       - run_stop: CODA end-of-run event 
     '''
-    known_types = ['all', 'coin', 'shms', 'hms']
+    known_types = ['coin', 'shms', 'hms']
     def __init__(self):
         '''Constructs a RunDaemon object.'''
         self.listener = {}
         print('Constructing hallc.RunDaemon')
         for type in RunDaemon.known_types:
-            if type is not 'all':
-                self.listener[type] = _RunListener(type)
+            self.listener[type] = _RunListener(type)
     def on_event(self, event, callback, run_type='all'):
         '''Add a listener to a run-related event.
 
@@ -105,13 +104,13 @@ class RunDaemon:
           - run_type: 'coin', 'shms', 'hms' or 'all'
         '''
         print('Adding new {} listener for {} runs'.format(event, run_type.upper()))
-        if run_type not in RunDaemon.known_types:
+        if run_type not in RunDaemon.known_types and run_type is not 'all':
             raise UnknownRunTypeError(run_type, RunDaemon.known_types)
         ## get list of all run types we want to add this for, splitting up 'all'
         ## into the other run types
         run_types = [run_type]
         if run_type is 'all':
-            run_types = [type for type in RunDaemon.known_types if type is not 'all']
+            run_types = [type for type in RunDaemon.known_types]
         for type in run_types:
             self.listener[type].on_event(event, callback)
     def interrupt(self):
