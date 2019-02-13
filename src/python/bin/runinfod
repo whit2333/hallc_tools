@@ -18,6 +18,7 @@ class RunInfo:
         print(self.name)
         print('Run info file: {}'.format(fname))
         self.path = fname
+        self.run_type = run_type
         self.odir = os.path.dirname(os.path.realpath(self.path))
         self.monitor = monitor if monitor is not None else Monitor()
         self.run_number = -1
@@ -32,15 +33,14 @@ class RunInfo:
                 self.run_info = json.loads(f.read())
         ## 2. add new data from the monitor
         if run_number > 0:
-            run_data = monitor.all()
-            run_data['run_info'] = self._run_info()
-            run_number = str(run_number)
-            if run_number in self.run_info:
-                self.run_info[run_number] = run_data
+            run_data = monitor.all(self.runtype)
+            ## merge extra run info if necessary, or make a new entry
+            if 'run_info' in run_data:
+                run_data['run_info'] = {**run_data[run_info], **self._run_info()}
             else:
-                self.run_info.update(
-                        {run_number: run_data
-                    })
+                run_data['run_info'] = self._run_info()
+            run_number = str(run_number)
+            self.run_info[run_number] = run_data
         print('{}: Loaded data for run: {}'.format(self.name, run_number))
     def run_start(self, run_number = -1):
         self.run_number = run_number

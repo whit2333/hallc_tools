@@ -88,13 +88,47 @@ _DEFAULT_DEFINITIONS = {
                 'func': lambda bds_sel: _TARGET_SPEC[(bds_sel)]['mass']
                 }
             },
-        'beam': {
+        'run_info': {
             'beam_energy': {
                 'type': 'calc',
                 'input': ['HALLC:p'],
                 'func': lambda p: p if p is not None else 10.6
                 },
-            'beam_current': 'ibcm1'
+            'beam_current': {
+                'type': 'lookup',
+                'input': ['run_type'],
+                'func': lambda rt: rt
+                'lookup': {
+                    'coin': 'hcCoinRunAverageBeamCurrent',
+                    'shms': 'hcSHMSRunAverageBeamCurrent',
+                    'hms': 'hcHMSRunAverageBeamCurrent',
+                    'null': None
+                    },
+            'accumulated_charge': {
+                'type': 'lookup',
+                'input': ['run_type'],
+                'func': lambda rt: rt
+                'lookup': {
+                    'coin': 'hcCoinRunAccumulatedCharge',
+                    'shms': 'hcSHMSRunAccumulatedCharge',
+                    'hms': 'hcHMSRunAccumulatedCharge',
+                    'null': None
+                    },
+            'run_time': {
+                'type': 'lookup',
+                'input': ['run_type'],
+                'func': lambda rt: rt
+                'lookup': {
+                    'coin': 'hcCoinRunRunTime',
+                    'shms': 'hcSHMSRunRunTime',
+                    'hms': 'hcHMSRunRunTime',
+                    'null': None
+                    },
+                'run_type': {
+                    'type': 'calc',
+                    'input': 'run_type',
+                    'func': lambda rt: rt.upper()
+                    }
             },
         'spectrometers': {
             'shms_momentum': 'hcSHMSMomentum',
@@ -133,12 +167,12 @@ class Monitor():
             setattr(self, section_name, lambda : self.get(section_name))
         self._pv_buf = {}
         self._init_pvs()
-    def get(self, section_name):
+    def get(self, section_name, run_type='null'):
         '''Return the a dict with the values for section_name.'''
         if section_name is 'all':
             return self.all()
         section = self._definitions[section_name]
-        return {key: self._get_value(section[key]) for key in section}
+        return {key: self._get_value(section[key], run_type) for key in section}
     def all(self):
         '''Return the values for all sections at once in a master dictionary.'''
         return {key: self.get(key) for key in self._definitions}
@@ -183,7 +217,7 @@ class Monitor():
         ## All good:
         self._definitions[section_name][name] = var
         self._init_pvs()
-    def _get_value(self, var):
+    def _get_value(self, var, run_type='null'):
         '''Get the value associated with this var, throw on issues.'''
         if not isinstance(var, abc.Mapping):
             return self._pv_get(var)
@@ -200,6 +234,11 @@ class Monitor():
                 raise MonitorTypeError(var['type'])
     def _pv_get(self, pv_name):
         '''Internal function that returns the PV value.'''
+        ## special values: run_type and null
+        if pv_name is run_type:
+            return run_type
+        elif pv_name is None:
+            return None
         ret =  self._pv_buf[pv_name].get()
         return ret
     def _init_pvs(self):
