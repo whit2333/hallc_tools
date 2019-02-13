@@ -41,7 +41,8 @@ class RunInfo:
                 run_data['run_info'] = self._run_info()
             run_number = str(run_number)
             self.run_info[run_number] = run_data
-        print('{}: Loaded data for run: {}'.format(self.name, run_number))
+        if run_number is not -1:
+            print('{}: Loaded data for run: {}'.format(self.name, run_number))
     def run_start(self, run_number = -1):
         self.run_number = run_number
         self.start_time = time.strftime('%X %x %Z')
@@ -191,7 +192,6 @@ if __name__ == '__main__':
     run_info = {'coin': RunInfo(args.fname_coin_runinfo, run_type='coin', monitor=monitor),
                 'hms': RunInfo(args.fname_hms_runinfo, run_type='hms', monitor=monitor),
                 'shms': RunInfo(args.fname_shms_runinfo, run_type='shms', monitor=monitor)}
-    print(args.enable_kinematics)
     if args.enable_kinematics == 'yes':
         kinematics = {
                 'coin': Kinematics(args.fname_coin_kinematics, args.hms_mass,

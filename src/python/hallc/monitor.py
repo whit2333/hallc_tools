@@ -64,18 +64,26 @@ _TARGET_SPEC = {
         17: {
             'mass': 0,
             'name': 'HOME'
+            },
+        0: {
+            'mass': 0,
+            'name': 'HOME'
             }
         }
 
 _DEFAULT_DEFINITIONS = {
         'target': {
-            'target_id': 'hcBDSSELECT',
+            'target_id': {
+                'type': 'calc',
+                'input': ['hcBDSSELECT'],
+                'func': lambda val: int(val)
+                },
             'target_name': {
                 'type': 'lookup',
                 'input': ['hcBDSSELECT'],
                 'func': lambda bds_sel: int(bds_sel),
                 'table': {index: 'hcBDSSEL1:but{}'.format(index+1) for index in
-                    range(1,18)}
+                    range(0,18)}
                 },
             'target_label': {
                 'type': 'calc',
@@ -91,7 +99,7 @@ _DEFAULT_DEFINITIONS = {
         'run_info': {
             'beam_energy': {
                 'type': 'calc',
-                'input': ['HALLC:p'],
+                'input': ['hcBeamEnergy'],
                 'func': lambda p: p if p is not None else 10.6
                 },
             'beam_current': {
