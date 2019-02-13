@@ -120,17 +120,17 @@ class Kinematics:
                 self._header(), '\n',
                 'gpbeam = {}\n'.format(run_info['beam_energy']),
                 'gtargmass_amu = {}\n'.format(target['target_mass_amu'])]
-        if (self.type is not 'shms'):
+        if (self.run_type is not 'shms'):
                 list.append('htheta_lab = {}\n'.format(-1*abs(spec['hms_angle'])))
-        if (self.type is not 'hms'):
+        if (self.run_type is not 'hms'):
                 list.append('ptheta_lab = {}\n'.format(abs(spec['shms_angle'])))
-        if (self.type is not 'shms'):
+        if (self.run_type is not 'shms'):
                 list.append('hpcentral = {}\n'.format(abs(spec['hms_momentum'])))
-        if (self.type is not 'hms'):
+        if (self.run_type is not 'hms'):
                 list.append('ppcentral = {}\n'.format(abs(spec['shms_momentum'])))
-        if (self.type is not 'hms'):
+        if (self.run_type is not 'hms'):
                 list.append('ppartmass = {}\n'.format(self.shms_mass))
-        if (self.type is not 'shms'):
+        if (self.run_type is not 'shms'):
                 list.append('hpartmass = {}\n'.format(self.hms_mass))
         list.append('\n')
         return ''.join(list)
