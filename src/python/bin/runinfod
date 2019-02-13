@@ -33,10 +33,10 @@ class RunInfo:
                 self.run_info = json.loads(f.read())
         ## 2. add new data from the monitor
         if run_number > 0:
-            run_data = monitor.all(self.runtype)
+            run_data = monitor.all(self.run_type)
             ## merge extra run info if necessary, or make a new entry
             if 'run_info' in run_data:
-                run_data['run_info'] = {**run_data[run_info], **self._run_info()}
+                run_data['run_info'] = {**run_data['run_info'], **self._run_info()}
             else:
                 run_data['run_info'] = self._run_info()
             run_number = str(run_number)
@@ -112,12 +112,12 @@ class Kinematics:
         self.update(run_number)
         self.write(secure_and_slow=False)
     def _entry(self):
-        beam = monitor.get('beam')
+        run_info = monitor.get('run_info')
         target = monitor.get('target')
         spec = monitor.get('spectrometers')
         return ''.join([
                 self._header(), '\n',
-                'gpbeam = {}\n'.format(beam['beam_energy']),
+                'gpbeam = {}\n'.format(run_info['beam_energy']),
                 'gtargmass_amu = {}\n'.format(target['target_mass_amu']),
                 'htheta_lab = {}\n'.format(-1*abs(spec['hms_angle'])),
                 'ptheta_lab = {}\n'.format(abs(spec['shms_angle'])),
