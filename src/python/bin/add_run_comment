@@ -1,10 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from epics import caget, caput, camonitor, PV
 import epics
 import time
 import subprocess
 import json
-import sys
+#import sys
 #from multiprocessing import Pool
 import copy
 import os.path
@@ -88,16 +88,16 @@ def main():
     #jif os.path.isdir(os.path.basename(args.file)) :
     #if os.path.isfile(args.file) and not args.update:
     if os.path.exists(args.file) and not args.update:
-        print "Cannot overwrite existing file: {}".format(args.file)
-        print "use -u to  update existing file "
+        print("Cannot overwrite existing file: {}".format(args.file))
+        print("use -u to  update existing file ")
     elif not os.path.exists(os.path.dirname(args.file)):
-        print "Cannot create file: {}".format(args.file)
-        print "Directory {} does not exist".format(os.path.dirname(args.file))
+        print("Cannot create file: {}".format(args.file))
+        print("Directory {} does not exist".format(os.path.dirname(args.file)))
     elif not os.path.isfile(args.file) or args.update:
         with open(args.file, 'w') as f:
             f.write(json.dumps(the_json, sort_keys=True, ensure_ascii=False, indent=2))
     else : 
-        print "aborted"
+        print("aborted")
     #            print "Writing to output file : {}".format(args.file)
     #run_list.current_run.PrintJSON()
 
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print 'aborted.'
+        print( 'aborted.')
         sys.exit(0)
 
 
