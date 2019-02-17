@@ -43,6 +43,7 @@ namespace hallc {
     PlotDataMap*                 _plot_map      = nullptr; /// Holds one "default" set of plots
     std::vector<TSocket*>        _running_sockets;         //!
     SocketPlotMap                _connected_clients;
+    SocketPlotMap                _disconnected_clients;
 
   public:
     DisplayServer(int http_port = 8888, std::string host = "127.0.0.1" , int sock_srv_port = 9090 );
@@ -68,7 +69,7 @@ namespace hallc {
      */
     virtual void Update(TSocket* s, display::DisplayData*);
 
-    virtual void Shutdown() {}
+    virtual void Shutdown();
 
     /** Run the server. Can be interrupted with ctrl-c .
      */

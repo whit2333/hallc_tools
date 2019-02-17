@@ -115,28 +115,6 @@ namespace hallc {
       virtual ~SkipPeriodicToEOF() {}
     };
 
-    class SpectrometerMonitor : public podd2::AnalysisLogging<THaPostProcess> {
-    public:
-      hcana::Scandalizer* _analyzer = nullptr;
-      THcHodoscope* _hod   = nullptr;
-      THcCherenkov* _hgcer = nullptr;
-      THcDC*        _dc    = nullptr;
-      hallc::PVList _pv_list;
-      std::string _spectrometer_name = "SHMS";
-
-    public:
-      SpectrometerMonitor(); 
-      SpectrometerMonitor(THcHodoscope* phod, THcCherenkov* phgcer, THcDC* pdc);
-
-      virtual ~SpectrometerMonitor() {}
-
-      virtual Int_t Init(const TDatime&);
-      virtual Int_t Process(const THaEvData* evt, const THaRunBase*, Int_t code);
-      virtual Int_t Close();
-
-      ClassDef(SpectrometerMonitor, 1)
-    };
-
 
     /** TrackingEfficiencyMonitor.
      *
@@ -206,9 +184,10 @@ namespace hallc {
                     _ana_logger->debug("hod multiplicity : {}/{} = {}", hod_multiplicity , hod_multiplicity_n,
                                        hod_multiplicity / hod_multiplicity_n);
                     _pv_list.Put("hcSHMS:Hod:Mult", hod_multiplicity / hod_multiplicity_n);
-                    _pv_list.Put("hcSHMSDCMultiplicity", dc_multiplicity / dc_multiplicity_n);
-                    _pv_list.Put("hcSHMSTrackingEff", eff_num / eff_den);
-                    _pv_list.Put("hcSHMSTrackingEff:Unc",
+                    _pv_list.Put("hcSHMS:DC:Occupancy", dc_multiplicity / dc_multiplicity_n);
+                    _pv_list.Put("hcSHMS:DC:Mult", dc_multiplicity / dc_multiplicity_n);
+                    _pv_list.Put("hcSHMS:TrackingEff", eff_num / eff_den);
+                    _pv_list.Put("hcSHMS:TrackingEff:Unc",
                                  std::sqrt(double(n_num)) / (n_num + n_den + 0.0000001));
                     eff_num = 0.000000001;
                     eff_den = 0.0;

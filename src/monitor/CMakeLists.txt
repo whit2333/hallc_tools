@@ -55,13 +55,18 @@ add_library(Scandalizer SHARED
   src/PostProcessors.cxx
   src/EventDisplays.cxx
   src/MonitoringDisplay.cxx
+  src/SpectrometerMonitor.cxx
+  src/YieldMonitors.cxx
   src/ScriptHelpers.cxx
+
   ${CMAKE_CURRENT_BINARY_DIR}/ScandalizerDict.cxx
   )
 
 set(lib_HEADERS 
   include/scandalizer/PostProcessors.h
   include/scandalizer/ScriptHelpers.h
+  include/scandalizer/SpectrometerMonitor.h
+  include/scandalizer/YieldMonitors.h
   include/monitor/ExperimentMonitor.h
   include/monitor/DetectorDisplay.h
   include/monitor/DisplayServer.h

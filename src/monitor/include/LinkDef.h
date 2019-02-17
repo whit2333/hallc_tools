@@ -15,6 +15,7 @@
 #pragma link C++ class hallc::scandalizer::SimplePostProcess+;
 #pragma link C++ class hallc::scandalizer::SpectrometerMonitor+;
 #pragma link C++ class hallc::scandalizer::TrackingEfficiencyMonitor+;
+#pragma link C++ class hallc::scandalizer::YieldMonitor+;
 
 #pragma link C++ class hallc::display::PlotData+;
 #pragma link C++ class hallc::DisplayPlot+;
