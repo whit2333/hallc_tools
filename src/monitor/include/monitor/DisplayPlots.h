@@ -22,6 +22,7 @@ namespace hallc {
 
       int                _id         = 0;
       int                _run_number = 0;
+      int                _persist    = false;
       std::string        _name       = "";
       std::string        _folder_name= "/";
       TCanvas*           _canvas     = nullptr;
@@ -36,6 +37,7 @@ namespace hallc {
        *
        */
       void Replace(PlotData* d);
+
       ClassDef(PlotData,1)
     };
 
@@ -99,6 +101,9 @@ namespace hallc {
     std::string GetFolderName() const { return _plot_data._folder_name; }
     int GetRunNumber() const { return _plot_data._run_number; }
     int GetId() const { return _plot_data._id; }
+    TCanvas* SetCanvas(TCanvas* c) { _plot_data._canvas = c; return _plot_data._canvas; }
+    void SetPersist(int v = 1) {_plot_data._persist = v;}
+
 
     int Init() {
       _init_lambda(*this);

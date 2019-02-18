@@ -9,6 +9,8 @@
 #include <iomanip>
 #include <iostream>
 #include <stdexcept>
+#include "TRootSniffer.h"
+#include "TFolder.h"
 
 volatile sig_atomic_t sig_caught = 0;
 
@@ -115,6 +117,10 @@ namespace hallc {
       _connected_clients[s] = dd;
       for (auto& [i, data] : dd->_plot_map) {
         std::string name = dd->GetFolder() + data->_folder_name;
+        auto tobj = _server->GetSniffer()->FindTObjectInHierarchy(name.c_str());
+        //if( !strcmp(tobj->GetName(), data->_canvas->GetName()) ) {
+        //  _server->Unregister(tobj);
+        //}
         // std::cout << "hiding : " <<  name << "\n";
         _server->Register(name.c_str(), data->_canvas);
         //_server->Hide(name.c_str(), false);
@@ -136,14 +142,19 @@ namespace hallc {
       // data->_folder_name;
       for (auto& [i, data] : dd->_plot_map) {
         std::string name = dd->GetFolder() + data->_folder_name;
+
+        if(!(data->_persist) ){
         _server->Unregister(data->_canvas);
         std::cout << "hiding : " << name << "\n";
-        _server->Hide(name.c_str());
+        }
+        //_server->Hide(name.c_str());
         auto iter = _connected_clients.find(s);
         if (iter != std::end(_connected_clients)) {
           std::cout << "erasing \n";
           _connected_clients.erase(iter);
         }
+
+        if(!(data->_persist) ){
         for (auto& h1 : data->_hists1) {
           delete h1;
         }
@@ -156,10 +167,18 @@ namespace hallc {
         for (auto&& g1 : data->_graphs1) {
           delete g1;
         }
+        }
         // std::string name = std::string("/") + std::to_string(dd->_run_number) + "/";
         //_server->Register(name.c_str(), data->_canvas);
       }
     }
+  }
+
+  void DisplayServer::Shutdown() {
+    //TFolder* f = _server->GetSniffer()->GetTopFolder();
+    //if(f) {
+    //  f->SaveAs("test.root");
+    //}
   }
 
   //_______________________________________________________________________

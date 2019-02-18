@@ -41,7 +41,9 @@ namespace hallc {
         m_pv_names[index] = name;
         auto nfs          = ret->getNumberFields();
         auto val          = ret->getSubField<epics::pvData::PVDouble>("value");
-        m_pv_values.push_back(val->getAs<float>());
+        if(val) {
+          m_pv_values.push_back(val->getAs<float>());
+        }
         std::cout << m_pv_values[index] << std::endl;
         _ana_logger->debug("PV list value for index {}, {} = {}", index, name, m_pv_values[index]);
         m_pv_index[name] = index;
@@ -77,7 +79,9 @@ namespace hallc {
       try {
       auto ret             = m_pv_channels[index].get();
       auto val             = ret->getSubField<epics::pvData::PVDouble>("value");
-      m_pv_values.push_back(val->getAs<float>());
+      if( val) {
+        m_pv_values.push_back(val->getAs<float>());
+      }
       m_pv_index[name] = index;
       //std::cout << m_pv_values[index] << std::endl;
       // std::vector<float> buffer;
@@ -127,7 +131,9 @@ namespace hallc {
         int  index         = channel_pair.first;
         auto ret           = channel_pair.second.get();
         auto val           = ret->getSubField<epics::pvData::PVDouble>("value");
+        if(val){
         m_pv_values[index] = val->getAs<float>();
+        }
         //m_pv_buffers[index].Add(m_pv_values[index]);
       }
     }
@@ -156,7 +162,9 @@ namespace hallc {
         int  index         = channel_pair.first;
         auto ret           = channel_pair.second.get();
         auto val           = ret->getSubField<epics::pvData::PVDouble>("value");
-        m_pv_values[index] = val->getAs<float>();
+        if(val) {
+          m_pv_values[index] = val->getAs<float>();
+        }
         //m_pv_buffers[index].Add(m_pv_values[index]);
       }
     }

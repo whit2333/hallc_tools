@@ -22,7 +22,7 @@ namespace hallc {
     }
 
     Int_t BasicEventDisplay::Process(const THaEvData* evt, const THaRunBase*, Int_t code) {
-      if ((evt->GetEvNum() > 1200) && (_counter > 1500)) {
+      if ((evt->GetEvNum() > 1200) && (_counter > 3000)) {
         _det_display->_event_number  = evt->GetEvNum();
         _det_display->Process();
         // process is inside the if statment so only every 1000 events are viewed.
