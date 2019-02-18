@@ -64,18 +64,26 @@ _TARGET_SPEC = {
         17: {
             'mass': 0,
             'name': 'HOME'
+            },
+        0: {
+            'mass': 0,
+            'name': 'HOME'
             }
         }
 
 _DEFAULT_DEFINITIONS = {
         'target': {
-            'target_id': 'hcBDSSELECT',
+            'target_id': {
+                'type': 'calc',
+                'input': ['hcBDSSELECT'],
+                'func': lambda val: int(val)
+                },
             'target_name': {
                 'type': 'lookup',
                 'input': ['hcBDSSELECT'],
                 'func': lambda bds_sel: int(bds_sel),
                 'table': {index: 'hcBDSSEL1:but{}'.format(index+1) for index in
-                    range(1,18)}
+                    range(0,18)}
                 },
             'target_label': {
                 'type': 'calc',
@@ -88,13 +96,50 @@ _DEFAULT_DEFINITIONS = {
                 'func': lambda bds_sel: _TARGET_SPEC[(bds_sel)]['mass']
                 }
             },
-        'beam': {
+        'run_info': {
             'beam_energy': {
                 'type': 'calc',
-                'input': ['HALLC:p'],
+                'input': ['hcBeamEnergy'],
                 'func': lambda p: p if p is not None else 10.6
                 },
-            'beam_current': 'ibcm1'
+            'beam_current': {
+                'type': 'lookup',
+                'input': ['run_type'],
+                'func': lambda rt: rt,
+                'table': {
+                    'coin': 'hcCOINRunAverageBeamCurrent',
+                    'shms': 'hcSHMSRunAverageBeamCurrent',
+                    'hms': 'hcHMSRunAverageBeamCurrent',
+                    'null': None
+                    },
+                },
+            'accumulated_charge': {
+                'type': 'lookup',
+                'input': ['run_type'],
+                'func': lambda rt: rt,
+                'table': {
+                    'coin': 'hcCOINRunAccumulatedCharge',
+                    'shms': 'hcSHMSRunAccumulatedCharge',
+                    'hms': 'hcHMSRunAccumulatedCharge',
+                    'null': None
+                    },
+                },
+            'run_time': {
+                'type': 'lookup',
+                'input': ['run_type'],
+                'func': lambda rt: rt,
+                'table': {
+                    'coin': 'hcCOINRunTime',
+                    'shms': 'hcSHMSRunTime',
+                    'hms': 'hcHMSRunTime',
+                    'null': None
+                    },
+                },
+                'run_type': {
+                    'type': 'calc',
+                    'input': ['run_type'],
+                    'func': lambda rt: rt.upper()
+                }
             },
         'spectrometers': {
             'shms_momentum': 'hcSHMSMomentum',
@@ -133,15 +178,15 @@ class Monitor():
             setattr(self, section_name, lambda : self.get(section_name))
         self._pv_buf = {}
         self._init_pvs()
-    def get(self, section_name):
+    def get(self, section_name, run_type='null'):
         '''Return the a dict with the values for section_name.'''
         if section_name is 'all':
-            return self.all()
+            return self.all(run_type)
         section = self._definitions[section_name]
-        return {key: self._get_value(section[key]) for key in section}
-    def all(self):
+        return {key: self._get_value(section[key], run_type) for key in section}
+    def all(self, run_type='null'):
         '''Return the values for all sections at once in a master dictionary.'''
-        return {key: self.get(key) for key in self._definitions}
+        return {key: self.get(key, run_type) for key in self._definitions}
     def add(self, section_name, name, var):
         '''Add new variables to the monitor, with error checking.
         
@@ -183,23 +228,28 @@ class Monitor():
         ## All good:
         self._definitions[section_name][name] = var
         self._init_pvs()
-    def _get_value(self, var):
+    def _get_value(self, var, run_type='null'):
         '''Get the value associated with this var, throw on issues.'''
         if not isinstance(var, abc.Mapping):
             return self._pv_get(var)
         else:
             if var['type'] is 'pv':
-                return self._pv_get(var['name'])
+                return self._pv_get(var['name'], run_type)
             elif var['type'] is 'lookup':
-                input = [self._pv_get(pv) for pv in var['input']]
-                return self._pv_get(var['table'][var['func'](*input)])
+                input = [self._pv_get(pv, run_type) for pv in var['input']]
+                return self._pv_get(var['table'][var['func'](*input)], run_type)
             elif var['type'] is 'calc':
-                input = [self._pv_get(pv) for pv in var['input']]
+                input = [self._pv_get(pv, run_type) for pv in var['input']]
                 return var['func'](*input)
             else: 
                 raise MonitorTypeError(var['type'])
-    def _pv_get(self, pv_name):
+    def _pv_get(self, pv_name, run_type=None):
         '''Internal function that returns the PV value.'''
+        ## special values: run_type and null
+        if pv_name is 'run_type':
+            return run_type
+        elif pv_name is None:
+            return None
         ret =  self._pv_buf[pv_name].get()
         return ret
     def _init_pvs(self):
@@ -233,6 +283,8 @@ class Monitor():
             for key in pv_names:
                 self._load_pv(pv_names[key])
     def _load_pv(self, pv_name):
+        if pv_name is 'run_type' or pv_name is None:
+            return
         if not pv_name in self._pv_buf:
             self._pv_buf[pv_name] = PV(pv_name)
 

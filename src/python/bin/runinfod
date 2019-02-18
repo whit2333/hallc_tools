@@ -18,6 +18,7 @@ class RunInfo:
         print(self.name)
         print('Run info file: {}'.format(fname))
         self.path = fname
+        self.run_type = run_type
         self.odir = os.path.dirname(os.path.realpath(self.path))
         self.monitor = monitor if monitor is not None else Monitor()
         self.run_number = -1
@@ -32,16 +33,16 @@ class RunInfo:
                 self.run_info = json.loads(f.read())
         ## 2. add new data from the monitor
         if run_number > 0:
-            run_data = monitor.all()
-            run_data['run_info'] = self._run_info()
-            run_number = str(run_number)
-            if run_number in self.run_info:
-                self.run_info[run_number] = run_data
+            run_data = monitor.all(self.run_type)
+            ## merge extra run info if necessary, or make a new entry
+            if 'run_info' in run_data:
+                run_data['run_info'] = {**run_data['run_info'], **self._run_info()}
             else:
-                self.run_info.update(
-                        {run_number: run_data
-                    })
-        print('{}: Loaded data for run: {}'.format(self.name, run_number))
+                run_data['run_info'] = self._run_info()
+            run_number = str(run_number)
+            self.run_info[run_number] = run_data
+        if run_number is not -1:
+            print('{}: Loaded data for run: {}'.format(self.name, run_number))
     def run_start(self, run_number = -1):
         self.run_number = run_number
         self.start_time = time.strftime('%X %x %Z')
@@ -76,6 +77,7 @@ class Kinematics:
     def __init__(self, fname, hms_mass, shms_mass, run_type=None, monitor = None):
         self.name = 'Kinematics data for {}'.format(run_type.upper() if run_type is not
                 None else 'unspecified')
+        self.run_type = run_type
         print(self.name)
         print('Automatic kinematics file: {}'.format(fname))
         print('HMS particle mass: {}'.format(hms_mass))
@@ -112,20 +114,27 @@ class Kinematics:
         self.update(run_number)
         self.write(secure_and_slow=False)
     def _entry(self):
-        beam = monitor.get('beam')
+        run_info = monitor.get('run_info')
         target = monitor.get('target')
         spec = monitor.get('spectrometers')
-        return ''.join([
+        list = [
                 self._header(), '\n',
-                'gpbeam = {}\n'.format(beam['beam_energy']),
-                'gtargmass_amu = {}\n'.format(target['target_mass_amu']),
-                'htheta_lab = {}\n'.format(-1*abs(spec['hms_angle'])),
-                'ptheta_lab = {}\n'.format(abs(spec['shms_angle'])),
-                'hpcentral = {}\n'.format(abs(spec['hms_momentum'])),
-                'ppcentral = {}\n'.format(abs(spec['shms_momentum'])),
-                'ppartmass = {}\n'.format(self.shms_mass),
-                'hpartmass = {}\n'.format(self.hms_mass),
-                '\n'])
+                'gpbeam = {}\n'.format(run_info['beam_energy']),
+                'gtargmass_amu = {}\n'.format(target['target_mass_amu'])]
+        if (self.run_type is not 'shms'):
+                list.append('htheta_lab = {}\n'.format(-1*abs(spec['hms_angle'])))
+        if (self.run_type is not 'hms'):
+                list.append('ptheta_lab = {}\n'.format(abs(spec['shms_angle'])))
+        if (self.run_type is not 'shms'):
+                list.append('hpcentral = {}\n'.format(abs(spec['hms_momentum'])))
+        if (self.run_type is not 'hms'):
+                list.append('ppcentral = {}\n'.format(abs(spec['shms_momentum'])))
+        if (self.run_type is not 'hms'):
+                list.append('ppartmass = {}\n'.format(self.shms_mass))
+        if (self.run_type is not 'shms'):
+                list.append('hpartmass = {}\n'.format(self.hms_mass))
+        list.append('\n')
+        return ''.join(list)
     def _header(self):
         return '{} - {}'.format(self.current_run, self.current_run)
 
@@ -183,7 +192,6 @@ if __name__ == '__main__':
     run_info = {'coin': RunInfo(args.fname_coin_runinfo, run_type='coin', monitor=monitor),
                 'hms': RunInfo(args.fname_hms_runinfo, run_type='hms', monitor=monitor),
                 'shms': RunInfo(args.fname_shms_runinfo, run_type='shms', monitor=monitor)}
-    print(args.enable_kinematics)
     if args.enable_kinematics == 'yes':
         kinematics = {
                 'coin': Kinematics(args.fname_coin_kinematics, args.hms_mass,
