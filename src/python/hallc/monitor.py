@@ -33,9 +33,16 @@ _TARGET_SPEC = {
         3: {
             'mass': 2.014101,
             'name': 'LD2'},
+        4: {
+            'mass': 26.92,
+            'name': 'DUMMY+C'},
         5: {
             'mass': 26.92,
             'name': 'DUMMY'
+            },
+        6: {
+            'mass': 26.92,
+            'name': 'DUMMY-4CM'
             },
         7: {
             'mass': 12.0107,
@@ -55,11 +62,27 @@ _TARGET_SPEC = {
             },
         11: {
             'mass': 12.0107,
-            'name': 'C-6%'
+            'name': 'C-6%-B'
             },
         12: {
             'mass': 12.0107,
             'name': 'C-0.5%'
+            },
+        13: {
+            'mass': 0.0,
+            'name': '10-BORON'
+            },
+        14: {
+            'mass': 0.0,
+            'name': '11-BORON'
+            },
+        15: {
+            'mass': 0.0,
+            'name': 'BERYLLIUM'
+            },
+        16: {
+            'mass': 12.0107,
+            'name': 'C-1.5%'
             },
         17: {
             'mass': 0,
