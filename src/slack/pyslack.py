@@ -1,7 +1,7 @@
 import os
 import requests
 
-TOKEN = 'xoxb-388601630947-465012143968-t1MJP5y7s1TPzwCUvJvn8Jzv'
+TOKEN = 'butt'
 
 def upload_file(
         filepath,

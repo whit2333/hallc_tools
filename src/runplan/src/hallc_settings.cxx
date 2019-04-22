@@ -36,6 +36,7 @@ namespace hallc {
     th_e           = th_e * 180.0 / M_PI;
     th_q           = th_q * 180.0 / M_PI;
   }
+
   Kinematic RecomputeKinematic_SIDIS(Kinematic k2, double Q2) {
     const double M  = 0.938;
     k2.Q2           = Q2;

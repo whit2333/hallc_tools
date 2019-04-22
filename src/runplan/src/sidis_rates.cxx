@@ -92,7 +92,8 @@ namespace hallc {
     auto csv_settings = settings;
     RunTable run_plan_table;
 
-    for (auto& a_kinematic : csv_settings) {
+    //csv_settings
+    for (auto& a_kinematic : {csv::kine2_settings_v3}) {
 
       a_kinematic.Compute();
 
